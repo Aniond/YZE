@@ -11,7 +11,7 @@ Built against the YZE Standard Reference Document v1.0.
 
 ## Features
 
-**Character Sheet (5 tabs)**
+**Character Sheet **
 - Attributes (Strength, Agility, Wits, Empathy) with pip tracking
 - 12 skills grouped by attribute with roll buttons
 - Health & Resolve pip strips with click-to-set
