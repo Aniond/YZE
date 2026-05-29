@@ -65,6 +65,7 @@ Built against the YZE Standard Reference Document v1.0.
 
 ## Installation
 
-1. In Realm VTT, create a new ruleset
-2. Upload all files from this repository
+1. In Realm VTT, create a new campaign
+2. Select **Year Zero Engine** from the ruleset dropdown
 3. Import compendium records:
+
