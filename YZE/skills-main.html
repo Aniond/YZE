@@ -1,0 +1,25 @@
+<div style="padding:12px;">
+  <namefield field="name" label="Skill Name" size="md" bold="true"
+    placeholder="Skill name..."></namefield>
+
+  <divider label="Details" orientation="horizontal" size="xs"></divider>
+
+  <dropdown field="linkedAttr" label="Linked Attribute" size="xs"
+    options='[
+      {"label":"Strength","value":"strength"},
+      {"label":"Agility", "value":"agility"},
+      {"label":"Wits",    "value":"wits"},
+      {"label":"Empathy", "value":"empathy"}
+    ]'>
+  </dropdown>
+
+  <divider label="Description" orientation="horizontal" size="xs"></divider>
+  <richtextfield field="description" label="" height="200px"
+    placeholder="What this skill covers and how it is used...">
+  </richtextfield>
+
+  <divider label="Failure / Push Results" orientation="horizontal" size="xs"></divider>
+  <richtextfield field="failureText" label="" height="100px"
+    placeholder="What happens on failure or when the player pushes...">
+  </richtextfield>
+</div>

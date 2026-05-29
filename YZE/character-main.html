@@ -1,0 +1,543 @@
+<!-- ═══ PERSISTENT HEADER — copy verbatim to top of every tab ═══ -->
+<div class="yze-sheet">
+<style>
+  button[field="condPhysBreakP"] { background: #cc3333 !important; border-color: #cc3333 !important; color: #ffffff !important; }
+  button[field="condMentBreakP"] { background: #cc3333 !important; border-color: #cc3333 !important; color: #ffffff !important; }
+  button[field="condPhysMinusP"] { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+  button[field="condPhysPlusP"]  { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+  button[field="condMentMinusP"] { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+  button[field="condMentPlusP"]  { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+</style>
+
+<div style="padding:14px 18px 12px; background:#15110b;
+  border-bottom:2px solid #c8902a; position:relative;">
+
+  <!-- Identity row -->
+  <div style="display:flex; gap:14px; align-items:flex-start;">
+    <portrait field="portrait" width="60" height="60"
+      style="border-radius:3px; border:1px solid #3a2e1c;
+        flex-shrink:0; cursor:pointer;"></portrait>
+
+    <div style="flex:1; min-width:0; padding-top:2px;">
+      <namefield field="name" label="" placeholder="Character name…"
+        style="font-family:Georgia,serif; font-size:22px;
+          color:#f0d9b5; font-weight:500;"></namefield>
+
+      <div style="display:flex; align-items:center; gap:8px; margin-top:4px; flex-wrap:wrap;">
+        <stringfield field="archetype" label="" placeholder="Archetype / Role…"
+          style="flex:1; min-width:0; color:#c8902a; font-size:12px;"></stringfield>
+        <box field="brokenBadge">
+          <div onclick="setBrokenPlayer(false);"
+            style="background:#6e1f1f; border:1px solid #cc3333; color:#ffd9d9;
+              font-size:10px; font-weight:700; letter-spacing:0.14em;
+              text-transform:uppercase; padding:3px 10px; border-radius:3px;
+              cursor:pointer; white-space:nowrap;">Broken &times;</div>
+        </box>
+        <span style="font-size:10px; color:#e8b85a;
+          background:rgba(200,144,42,0.10); border:1px solid #7a571c;
+          padding:3px 8px; border-radius:2px;
+          font-family:Consolas,monospace; letter-spacing:0.08em; white-space:nowrap;
+          flex-shrink:0;">
+          <span style="color:#524535; margin-right:4px;">XP</span>
+          <calculated field="xpAvailable"></calculated>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vitals row -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;">
+    <div style="background:#1c1610; border:1px solid rgba(200,144,42,0.20);
+      border-radius:5px; padding:8px 12px;
+      display:flex; align-items:center; gap:8px;">
+      <span style="font-size:9px; font-weight:700; letter-spacing:0.18em;
+        text-transform:uppercase; color:#c8902a;
+        width:52px; flex-shrink:0;">Health</span>
+      <canvas field="healthCanvas" autosize="true" width="160" height="14"
+        style="flex:1; height:14px; display:block; min-width:0;"
+        onload="drawHeader();"
+        onresize="drawHeader();"
+        onrecordchanged="drawHeader();"
+        onclick="onHealthPipClick();"></canvas>
+      <span style="font-family:Consolas,monospace; font-size:12px;
+        font-weight:600; color:#f0d9b5; white-space:nowrap; flex-shrink:0;">
+        <numberfield field="curHealth" label="" minvalue="0" defaultvalue="0"
+          variant="unstyled"
+          style="width:20px; display:inline-block; background:transparent;
+            border:none; color:#f0d9b5; text-align:right;"></numberfield>
+        <span style="color:#524535;">/</span>
+        <calculated field="maxHealth"></calculated>
+      </span>
+    </div>
+    <div style="background:#1c1610; border:1px solid rgba(154,122,212,0.20);
+      border-radius:5px; padding:8px 12px;
+      display:flex; align-items:center; gap:8px;">
+      <span style="font-size:9px; font-weight:700; letter-spacing:0.18em;
+        text-transform:uppercase; color:#9a7ad4;
+        width:52px; flex-shrink:0;">Resolve</span>
+      <canvas field="resolveCanvas" autosize="true" width="160" height="14"
+        style="flex:1; height:14px; display:block; min-width:0;"
+        onload="drawHeader();"
+        onresize="drawHeader();"
+        onrecordchanged="drawHeader();"
+        onclick="onResolvePipClick();"></canvas>
+      <span style="font-family:Consolas,monospace; font-size:12px;
+        font-weight:600; color:#f0d9b5; white-space:nowrap; flex-shrink:0;">
+        <numberfield field="curResolve" label="" minvalue="0" defaultvalue="0"
+          variant="unstyled"
+          style="width:20px; display:inline-block; background:transparent;
+            border:none; color:#f0d9b5; text-align:right;"></numberfield>
+        <span style="color:#524535;">/</span>
+        <calculated field="maxResolve"></calculated>
+      </span>
+    </div>
+  </div>
+
+  <!-- Conditions strip -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      padding:9px 12px; display:flex; align-items:center; gap:7px;">
+      <span style="font-size:10px; font-weight:700; letter-spacing:0.12em;
+        text-transform:uppercase; color:#b8a288; flex:1;">Physical</span>
+      <button field="condPhysMinusP" label="&minus;" size="xs"
+        variant="outline" color="orange"
+        onclick="removeCondPlayer('physical');"></button>
+      <stringfield field="condPhysDisplay" label="" defaultvalue="0/3"
+        readonly="true"
+        style="font-family:Consolas,monospace; font-size:13px; font-weight:600;
+          color:#f0d9b5; width:32px; text-align:center;
+          background:transparent; border:none;"></stringfield>
+      <button field="condPhysPlusP" label="+" size="xs"
+        variant="outline" color="orange"
+        onclick="addCondPlayer('physical');"></button>
+      <button field="condPhysBreakP" label="Break" size="xs" color="red"
+        onclick="takeConditionPlayer('physical');"></button>
+    </div>
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      padding:9px 12px; display:flex; align-items:center; gap:7px;">
+      <span style="font-size:10px; font-weight:700; letter-spacing:0.12em;
+        text-transform:uppercase; color:#b8a288; flex:1;">Mental</span>
+      <button field="condMentMinusP" label="&minus;" size="xs"
+        variant="outline" color="orange"
+        onclick="removeCondPlayer('mental');"></button>
+      <stringfield field="condMentDisplay" label="" defaultvalue="0/3"
+        readonly="true"
+        style="font-family:Consolas,monospace; font-size:13px; font-weight:600;
+          color:#f0d9b5; width:32px; text-align:center;
+          background:transparent; border:none;"></stringfield>
+      <button field="condMentPlusP" label="+" size="xs"
+        variant="outline" color="orange"
+        onclick="addCondPlayer('mental');"></button>
+      <button field="condMentBreakP" label="Break" size="xs" color="red"
+        onclick="takeConditionPlayer('mental');"></button>
+    </div>
+  </div>
+
+  <!-- Hidden condition checkboxes — back the −1 penalty in yzeCondPenalty() -->
+  <checkboxfield field="cond_exhausted"    label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_battered"     label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_wounded"      label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_angry"        label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_scared"       label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_disheartened" label="" style="display:none;"></checkboxfield>
+</div>
+<!-- ═══ END PERSISTENT HEADER ═══ -->
+
+<script>
+  var COL = {
+    bg:           '#1a1612',
+    bgDeep:       '#111009',
+    bgSection:    '#1e1a14',
+    border:       '#2a2015',
+    borderBright: '#3a2e22',
+    gold:         '#c8902a',
+    goldDim:      'rgba(200,144,42,0.12)',
+    goldPip:      'rgba(200,144,42,0.10)',
+    goldStroke:   'rgba(200,144,42,0.35)',
+    textPrimary:  '#f0d9b5',
+    textMid:      '#c8b090',
+    textMuted:    '#8a7055',
+    textDim:      '#5a4a38',
+    textGhost:    '#3a2e22',
+    red:          '#cc3333',
+    redDim:       'rgba(204,51,51,0.15)',
+    redPip:       'rgba(204,51,51,0.10)',
+    purple:       '#9966cc',
+    purpleDim:    'rgba(153,102,204,0.15)',
+    badgeStr:     '#8B3A3A',
+    badgeAgi:     '#3A5A8B',
+    badgeWit:     '#3A7A4A',
+    badgeEmp:     '#6A3A8B',
+    stripe:       'rgba(200,144,42,0.04)'
+  };
+
+  var YZE_ATTRS = [
+    { key: 'strength', label: 'STRENGTH' },
+    { key: 'agility',  label: 'AGILITY'  },
+    { key: 'wits',     label: 'WITS'     },
+    { key: 'empathy',  label: 'EMPATHY'  }
+  ];
+
+  // Two-column grid layout — colW and barY are set dynamically in drawAttrs()
+  var AC = {
+    colW:         0,
+    rowH:         52,
+    startY:        6,
+    labelX:       12,
+    labelY:       14,
+    valX:         12,
+    valY:         36,
+    pipStartX:    52,
+    pipY:         36,
+    pipR:          6,
+    pipGap:       16,
+    barY:          0,
+    barH:         40
+  };
+
+  function attrVal(key) { return parseInt(api.getValue('data.' + key) || '0', 10); }
+  function curVal(key)  { return parseInt(api.getValue('data.' + key) || '0', 10); }
+
+  // Max pools derive from base attributes (SRD p.5). Current pools are stored,
+  // damageable values — see updateDerived().
+  function calcMaxHealth()  { return Math.ceil((attrVal('strength') + attrVal('agility')) / 2) + 1; }
+  function calcMaxResolve() { return Math.ceil((attrVal('wits')     + attrVal('empathy')) / 2) + 1; }
+
+  // Recompute max pools, clamp current pools into range, and fill to full the
+  // first time the sheet is opened (data.hrInit). Writes only when something
+  // actually changes, to avoid an onrecordchanged feedback loop.
+  function updateDerived() {
+    var mh = calcMaxHealth(), mr = calcMaxResolve();
+    var inited = parseInt(api.getValue('data.hrInit') || '0', 10);
+    var curH = curVal('curHealth');
+    var curR = curVal('curResolve');
+
+    var updates = {};
+    if (parseInt(api.getValue('data.maxHealth')  || '0', 10) !== mh) updates['data.maxHealth']  = mh;
+    if (parseInt(api.getValue('data.maxResolve') || '0', 10) !== mr) updates['data.maxResolve'] = mr;
+
+    if (!inited) {
+      updates['data.curHealth']  = mh;
+      updates['data.curResolve'] = mr;
+      updates['data.hrInit']     = 1;
+    } else {
+      if (curH > mh) updates['data.curHealth']  = mh;
+      if (curR > mr) updates['data.curResolve'] = mr;
+    }
+
+    var hasUpdate = false;
+    for (var uk in updates) { if (updates.hasOwnProperty(uk)) { hasUpdate = true; break; } }
+    if (hasUpdate) api.setValues(updates);
+  }
+
+  // Accent color per attribute (spec §2 tokens)
+  var ATTR_ACCENT = {
+    strength: '#b85050',
+    agility:  '#5a8ac8',
+    wits:     '#6aa07a',
+    empathy:  '#a070c8'
+  };
+
+  function drawAttrs() {
+    var c = api.getCanvas('attrCanvas');
+    if (!c) return;
+    var W = c.width, H = c.height;
+    AC.colW  = Math.floor(W / 4);
+    AC.pipR  = 5;
+    AC.pipGap = 12;
+
+    // Pip strip width (edge of first to edge of last): 4 gaps + 2 radii each end
+    var pipSpan  = 4 * AC.pipGap;                        // center[0] to center[4]
+    var pipLeft  = Math.floor((AC.colW - (pipSpan + 2 * AC.pipR)) / 2) + AC.pipR;
+
+    c.clearOverlayFields();
+    c.clearTooltips();
+    c.clearRect(0, 0, W, H);
+    c.setFillStyle(COL.bgDeep);
+    c.fillRect(0, 0, W, H);
+
+    for (var i = 0; i < YZE_ATTRS.length; i++) {
+      var attr     = YZE_ATTRS[i];
+      var cellLeft = i * AC.colW;
+      var accent   = ATTR_ACCENT[attr.key] || COL.gold;
+      var val      = attrVal(attr.key);
+      var pipCY    = 62;
+
+      // Card background (alternating)
+      c.setFillStyle(i % 2 === 0 ? COL.bgSection : COL.bg);
+      c.fillRect(cellLeft, 0, AC.colW, H);
+
+      // Left accent bar
+      c.setFillStyle(accent);
+      c.fillRect(cellLeft, 0, 3, H);
+
+      // Right divider (all but last)
+      if (i < 3) {
+        c.setFillStyle(COL.border);
+        c.fillRect(cellLeft + AC.colW - 1, 0, 1, H);
+      }
+
+      // Attribute label (top-left, accent colour)
+      c.setFillStyle(accent);
+      c.setFont('700 9px sans-serif');
+      c.setTextAlign('left');
+      c.setTextBaseline('middle');
+      c.fillText(attr.label, cellLeft + 10, 14);
+
+      // Big value number
+      c.setFillStyle(val > 0 ? COL.textPrimary : COL.red);
+      c.setFont('700 28px sans-serif');
+      c.setTextAlign('left');
+      c.setTextBaseline('middle');
+      c.fillText(String(val), cellLeft + 10, 42);
+
+      // Pips (5, centred, below number)
+      for (var p = 0; p < 5; p++) {
+        var px = cellLeft + pipLeft + p * AC.pipGap;
+        c.beginPath();
+        c.arc(px, pipCY, AC.pipR, 0, Math.PI * 2);
+        c.closePath();
+        if (p < val) {
+          c.setFillStyle(accent);
+          c.fill();
+        } else {
+          c.setFillStyle(COL.goldPip);
+          c.fill();
+          c.setStrokeStyle(accent + '55');
+          c.setLineWidth(1);
+          c.stroke();
+        }
+        c.tooltip(px - AC.pipR, pipCY - AC.pipR, AC.pipR * 2, AC.pipR * 2,
+          attr.label + ': set to ' + (p + 1));
+      }
+
+      // "TAP TO ROLL" hint (bottom-centre)
+      c.setFillStyle(COL.textDim);
+      c.setFont('400 8px sans-serif');
+      c.setTextAlign('center');
+      c.setTextBaseline('middle');
+      c.fillText('TAP TO ROLL', cellLeft + Math.floor(AC.colW / 2), 79);
+    }
+  }
+
+  // Attribute-only roll (no skill). Uses the same pool/modifier/push pipeline
+  // as skill rolls so common.js handlers work unchanged.
+  function rollAttrOnly(key) {
+    var base    = attrVal(key);
+    var pen        = yzeCondPenalty(key);
+    var mod        = yzeReadModifier() + yzeReadDifficulty();
+    var opposed    = yzeReadOpposed();
+    var difficulty = api.getValue('data.difficulty') || 'average';
+    var counts     = yzeApplyPenalty({ attr: base, skill: 0, gear: 0 }, pen);
+    yzeApplyModifier(counts, mod);
+    var total   = counts.attr + counts.skill + counts.gear;
+    if (total <= 0) {
+      api.showNotification('No dice to roll!', 'red', 'Cannot Roll');
+      return;
+    }
+    var label = key.charAt(0).toUpperCase() + key.slice(1);
+    api.roll(total + 'd6', {
+      attrKey:    key,
+      attrCount:  counts.attr,
+      skillCount: 0,
+      gearCount:  0,
+      skillName:  label,
+      condPenalty: pen,
+      mod:         mod,
+      opposed:     opposed,
+      difficulty:  difficulty
+    }, 'yze_pool');
+    api.setValues({ 'data.rollMod': 0, 'data.opposed': 0, 'data.difficulty': 'average' });
+  }
+
+  // ── Canvas click — 4-column hit detection ────────────────────────────────
+  function onAttrClick() {
+    var cx = event.x;
+    var cy = event.y;
+    var c  = api.getCanvas('attrCanvas');
+    if (!c) return;
+    var W    = c.width;
+    var colW = Math.floor(W / 4);
+
+    // Pip geometry must mirror drawAttrs()
+    var pipSpan = 4 * AC.pipGap;
+    var pipLeft = Math.floor((colW - (pipSpan + 2 * AC.pipR)) / 2) + AC.pipR;
+    var pipCY   = 62;
+
+    for (var i = 0; i < YZE_ATTRS.length; i++) {
+      var attr     = YZE_ATTRS[i];
+      var cellLeft = i * colW;
+
+      if (cx < cellLeft || cx >= cellLeft + colW) continue;
+
+      // Pip click?
+      for (var p = 0; p < 5; p++) {
+        var px = cellLeft + pipLeft + p * AC.pipGap;
+        if (Math.abs(cx - px) <= AC.pipR && Math.abs(cy - pipCY) <= AC.pipR) {
+          var newVal = Math.max(1, p + 1);
+          api.setValue('data.' + attr.key, newVal, function() {
+            updateDerived();
+            drawAttrs();
+          });
+          return;
+        }
+      }
+
+      // Non-pip card click — roll the attribute
+      rollAttrOnly(attr.key);
+      return;
+    }
+  }
+
+  // Push is handled by the shared yzePushRoll() in common.js (routes a skill
+  // roll to yze_push and an attack to yze_combat automatically).
+
+  // D66 critical injury — rolled as 2d6 (tens / ones). Physical when broken by
+  // Health damage; mental when broken by Resolve loss (SRD p.21).
+  function rollCrit(critType) {
+    api.roll('2d6', { critType: critType || 'physical' }, 'yze_crit');
+  }
+
+  // Acquire a condition (SRD p.21). You hold at most three of a type (each gives
+  // -1 to the matching attribute's rolls — see yzeCondPenalty in common.js).
+  // Checking the FOURTH condition of a type breaks you in the matching pool
+  // (Health for physical, Resolve for mental) and triggers a crit of that type.
+  function takeCondition(type) {
+    var boxes = (type === 'mental')
+      ? ['cond_angry', 'cond_scared', 'cond_disheartened']
+      : ['cond_exhausted', 'cond_battered', 'cond_wounded'];
+    function on(f) { var v = api.getValue('data.' + f); return (v === true || v === 1 || v === '1' || v === 'true'); }
+
+    // Tick the next unheld condition of this type, if any.
+    for (var i = 0; i < boxes.length; i++) {
+      if (!on(boxes[i])) {
+        api.setValue('data.' + boxes[i], true, function() { drawAttrs(); });
+        return;
+      }
+    }
+
+    // All three already held — this is the fourth: broken + critical injury.
+    var pool  = (type === 'mental') ? 'curResolve' : 'curHealth';
+    var label = (type === 'mental') ? 'mental' : 'physical';
+    var upd = {}; upd['data.' + pool] = 0;
+    api.setValues(upd, function() {
+      drawAttrs();
+      api.showNotification('Fourth ' + label + ' condition - you are BROKEN!', 'red', 'Broken');
+      rollCrit(type);
+    });
+  }
+
+  function initMain() {
+    updateDerived();
+    drawAttrs();
+    drawHeader();
+    var canPush = parseInt(api.getValue('data.canPush') || '0', 10);
+    api.setHidden('pushSection', canPush !== 1);
+  }
+
+  function onMainChange() {
+    updateDerived();
+    drawAttrs();
+    drawHeader();
+    var canPush = parseInt(api.getValue('data.canPush') || '0', 10);
+    api.setHidden('pushSection', canPush !== 1);
+  }
+</script>
+
+<!-- Attributes section label ───────────────────────────────────────────── -->
+<div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+  text-transform:uppercase; color:#7d6b54; padding:14px 18px 6px;
+  display:flex; align-items:center; gap:10px;">
+  <span>Attributes</span>
+  <span style="flex:1; height:1px; background:linear-gradient(90deg,#2a2015,transparent);"></span>
+  <span style="font-size:9px; color:#524535; font-weight:400; letter-spacing:0; text-transform:none;">Tap a card to roll · pips set the value</span>
+</div>
+
+<!-- Attributes canvas ─────────────────────────────────────────────────── -->
+<canvas field="attrCanvas" width="650" height="90"
+  style="width:100%; height:90px; display:block; background:#1a1612;"
+  onload="initMain();"
+  onresize="drawAttrs();"
+  onrecordchanged="onMainChange();"
+  onclick="onAttrClick();">
+</canvas>
+
+<!-- Critical Injury ────────────────────────────────────────────────────── -->
+<div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+  text-transform:uppercase; color:#7d6b54; padding:14px 18px 6px;
+  display:flex; align-items:center; gap:10px;">
+  <span>Critical Injury</span>
+  <span style="flex:1; height:1px; background:linear-gradient(90deg,#2a2015,transparent);"></span>
+  <span style="font-size:9px; color:#524535; font-weight:400; letter-spacing:0; text-transform:none;">Roll when broken</span>
+</div>
+<div style="margin:0 16px 16px; background:#1c1610; border:1px solid #2a2015;
+  border-radius:5px; padding:10px 12px;
+  display:flex; align-items:center; gap:10px;">
+  <span style="font-size:11px; font-weight:700; font-family:Consolas,monospace;
+    color:#7d6b54; letter-spacing:0.06em; flex-shrink:0;">D66</span>
+  <button field="critPhysBtn" label="Physical" size="xs"
+    color="default" variant="outline"
+    onclick="rollCrit('physical');"></button>
+  <button field="critMentBtn" label="Mental" size="xs"
+    color="default" variant="outline"
+    onclick="rollCrit('mental');"></button>
+  <span style="font-size:10px; color:#524535;">Physical at 0 Health · Mental at 0 Resolve</span>
+</div>
+
+<!-- Next Roll ──────────────────────────────────────────────────────────── -->
+<div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+  text-transform:uppercase; color:#7d6b54; padding:0 18px 6px;
+  display:flex; align-items:center; gap:10px;">
+  <span>Next Roll</span>
+  <span style="flex:1; height:1px; background:linear-gradient(90deg,#2a2015,transparent);"></span>
+  <span style="font-size:9px; color:#524535; font-weight:400; letter-spacing:0; text-transform:none;">cleared after each roll</span>
+</div>
+<div style="margin:0 16px 16px; background:#1c1610; border:1px solid #2a2015;
+  border-radius:5px; padding:10px 12px;
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+  <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+    <numberfield field="rollMod" label="Modifier" size="xs" variant="unstyled"
+      defaultvalue="0" minvalue="-10" maxvalue="10" style="width:92px;"></numberfield>
+  </div>
+  <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+    <numberfield field="opposed" label="Opposed" size="xs" variant="unstyled"
+      defaultvalue="0" minvalue="0" maxvalue="20" style="width:96px;"></numberfield>
+  </div>
+  <dropdown field="difficulty" label="Difficulty" size="xs" defaultvalue="average"
+    style="width:130px; flex-shrink:0;"
+    options='[
+      {"label":"Trivial (+3)",   "value":"trivial"},
+      {"label":"Simple (+2)",    "value":"simple"},
+      {"label":"Easy (+1)",      "value":"easy"},
+      {"label":"Average",        "value":"average"},
+      {"label":"Demanding (-1)", "value":"demanding"},
+      {"label":"Hard (-2)",      "value":"hard"},
+      {"label":"Formidable (-3)","value":"formidable"}
+    ]'>
+  </dropdown>
+  <checkboxfield field="autoApply" label="Auto-apply dmg to target" size="xs"></checkboxfield>
+</div>
+
+<!-- Push section (hidden until canPush = 1) ────────────────────────────── -->
+<box field="pushSection">
+  <div style="background:#1f1200; border-top:2px solid #cc3333;
+    padding:8px 14px; display:flex; align-items:center; justify-content:space-between;">
+    <div>
+      <div style="font-size:11px; color:#cc3333; text-transform:uppercase;
+        letter-spacing:0.1em; font-weight:bold;">Push the roll</div>
+      <div style="font-size:10px; color:#664444; margin-top:2px;">
+        Re-roll non-1s — attribute banes cost Health or Resolve</div>
+    </div>
+    <button field="pushBtn" label="PUSH" variant="danger" size="sm"
+      onclick="yzePushRoll();">
+    </button>
+  </div>
+</box>
+
+<!-- Hidden fields: derived stats + push flag ────────────────────────────── -->
+<numberfield field="curHealth"  label="" defaultvalue="0" style="display:none;"></numberfield>
+<numberfield field="maxHealth"  label="" defaultvalue="0" style="display:none;"></numberfield>
+<numberfield field="curResolve" label="" defaultvalue="0" style="display:none;"></numberfield>
+<numberfield field="maxResolve" label="" defaultvalue="0" style="display:none;"></numberfield>
+<numberfield field="canPush"    label="" defaultvalue="0" style="display:none;"></numberfield>
+<numberfield field="hrInit"     label="" defaultvalue="0" style="display:none;"></numberfield>

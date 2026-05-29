@@ -1,0 +1,6 @@
+node_modules/
+.claude/
+.env
+settings.local.json
+*.local.json
+*.code-workspace

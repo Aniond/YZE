@@ -1,0 +1,466 @@
+<!-- ═══ PERSISTENT HEADER — copy verbatim to top of every tab ═══ -->
+<div class="yze-sheet">
+<style>
+  button[field="condPhysBreakP"] { background: #cc3333 !important; border-color: #cc3333 !important; color: #ffffff !important; }
+  button[field="condMentBreakP"] { background: #cc3333 !important; border-color: #cc3333 !important; color: #ffffff !important; }
+  button[field="condPhysMinusP"] { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+  button[field="condPhysPlusP"]  { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+  button[field="condMentMinusP"] { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+  button[field="condMentPlusP"]  { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+</style>
+
+<div style="padding:14px 18px 12px; background:#15110b;
+  border-bottom:2px solid #c8902a; position:relative;">
+  <div style="display:flex; gap:14px; align-items:flex-start;">
+    <portrait field="portrait" width="60" height="60"
+      style="border-radius:3px; border:1px solid #3a2e1c;
+        flex-shrink:0; cursor:pointer;"></portrait>
+    <div style="flex:1; min-width:0; padding-top:2px;">
+      <namefield field="name" label="" placeholder="Character name…"
+        style="font-family:Georgia,serif; font-size:22px;
+          color:#f0d9b5; font-weight:500;"></namefield>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:4px; flex-wrap:wrap;">
+        <stringfield field="archetype" label="" placeholder="Archetype / Role…"
+          style="flex:1; min-width:0; color:#c8902a; font-size:12px;"></stringfield>
+        <box field="brokenBadge">
+          <div onclick="setBrokenPlayer(false);"
+            style="background:#6e1f1f; border:1px solid #cc3333; color:#ffd9d9;
+              font-size:10px; font-weight:700; letter-spacing:0.14em;
+              text-transform:uppercase; padding:3px 10px; border-radius:3px;
+              cursor:pointer; white-space:nowrap;">Broken &times;</div>
+        </box>
+        <span style="font-size:10px; color:#e8b85a;
+          background:rgba(200,144,42,0.10); border:1px solid #7a571c;
+          padding:3px 8px; border-radius:2px;
+          font-family:Consolas,monospace; letter-spacing:0.08em; white-space:nowrap;
+          flex-shrink:0;">
+          <span style="color:#524535; margin-right:4px;">XP</span>
+          <calculated field="xpAvailable"></calculated>
+        </span>
+      </div>
+    </div>
+  </div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;">
+    <div style="background:#1c1610; border:1px solid rgba(200,144,42,0.20);
+      border-radius:5px; padding:8px 12px;
+      display:flex; align-items:center; gap:8px;">
+      <span style="font-size:9px; font-weight:700; letter-spacing:0.18em;
+        text-transform:uppercase; color:#c8902a;
+        width:52px; flex-shrink:0;">Health</span>
+      <canvas field="healthCanvas" autosize="true" width="160" height="14"
+        style="flex:1; height:14px; display:block; min-width:0;"
+        onload="drawHeader();"
+        onresize="drawHeader();"
+        onrecordchanged="drawHeader();"
+        onclick="onHealthPipClick();"></canvas>
+      <span style="font-family:Consolas,monospace; font-size:12px;
+        font-weight:600; color:#f0d9b5; white-space:nowrap; flex-shrink:0;">
+        <numberfield field="curHealth" label="" minvalue="0" defaultvalue="0"
+          variant="unstyled"
+          style="width:20px; display:inline-block; background:transparent;
+            border:none; color:#f0d9b5; text-align:right;"></numberfield>
+        <span style="color:#524535;">/</span>
+        <calculated field="maxHealth"></calculated>
+      </span>
+    </div>
+    <div style="background:#1c1610; border:1px solid rgba(154,122,212,0.20);
+      border-radius:5px; padding:8px 12px;
+      display:flex; align-items:center; gap:8px;">
+      <span style="font-size:9px; font-weight:700; letter-spacing:0.18em;
+        text-transform:uppercase; color:#9a7ad4;
+        width:52px; flex-shrink:0;">Resolve</span>
+      <canvas field="resolveCanvas" autosize="true" width="160" height="14"
+        style="flex:1; height:14px; display:block; min-width:0;"
+        onload="drawHeader();"
+        onresize="drawHeader();"
+        onrecordchanged="drawHeader();"
+        onclick="onResolvePipClick();"></canvas>
+      <span style="font-family:Consolas,monospace; font-size:12px;
+        font-weight:600; color:#f0d9b5; white-space:nowrap; flex-shrink:0;">
+        <numberfield field="curResolve" label="" minvalue="0" defaultvalue="0"
+          variant="unstyled"
+          style="width:20px; display:inline-block; background:transparent;
+            border:none; color:#f0d9b5; text-align:right;"></numberfield>
+        <span style="color:#524535;">/</span>
+        <calculated field="maxResolve"></calculated>
+      </span>
+    </div>
+  </div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      padding:9px 12px; display:flex; align-items:center; gap:7px;">
+      <span style="font-size:10px; font-weight:700; letter-spacing:0.12em;
+        text-transform:uppercase; color:#b8a288; flex:1;">Physical</span>
+      <button field="condPhysMinusP" label="&minus;" size="xs"
+        variant="outline" color="orange"
+        onclick="removeCondPlayer('physical');"></button>
+      <stringfield field="condPhysDisplay" label="" defaultvalue="0/3"
+        readonly="true"
+        style="font-family:Consolas,monospace; font-size:13px; font-weight:600;
+          color:#f0d9b5; width:32px; text-align:center;
+          background:transparent; border:none;"></stringfield>
+      <button field="condPhysPlusP" label="+" size="xs"
+        variant="outline" color="orange"
+        onclick="addCondPlayer('physical');"></button>
+      <button field="condPhysBreakP" label="Break" size="xs" color="red"
+        onclick="takeConditionPlayer('physical');"></button>
+    </div>
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      padding:9px 12px; display:flex; align-items:center; gap:7px;">
+      <span style="font-size:10px; font-weight:700; letter-spacing:0.12em;
+        text-transform:uppercase; color:#b8a288; flex:1;">Mental</span>
+      <button field="condMentMinusP" label="&minus;" size="xs"
+        variant="outline" color="orange"
+        onclick="removeCondPlayer('mental');"></button>
+      <stringfield field="condMentDisplay" label="" defaultvalue="0/3"
+        readonly="true"
+        style="font-family:Consolas,monospace; font-size:13px; font-weight:600;
+          color:#f0d9b5; width:32px; text-align:center;
+          background:transparent; border:none;"></stringfield>
+      <button field="condMentPlusP" label="+" size="xs"
+        variant="outline" color="orange"
+        onclick="addCondPlayer('mental');"></button>
+      <button field="condMentBreakP" label="Break" size="xs" color="red"
+        onclick="takeConditionPlayer('mental');"></button>
+    </div>
+  </div>
+  <checkboxfield field="cond_exhausted"    label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_battered"     label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_wounded"      label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_angry"        label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_scared"       label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_disheartened" label="" style="display:none;"></checkboxfield>
+</div>
+<!-- ═══ END PERSISTENT HEADER ═══ -->
+
+<script>
+var ROW_H = 44;
+
+var COL = {
+  bg:         '#1a1612',
+  bgAlt:      '#1e1a14',
+  bgDeep:     '#111009',
+  border:     '#2a2015',
+  gold:       '#c8902a',
+  goldDim:    'rgba(200,144,42,0.08)',
+  goldStroke: 'rgba(200,144,42,0.35)',
+  textPri:    '#f0d9b5',
+  textMid:    '#c8b090',
+  textMuted:  '#6a5540',
+  textDim:    '#3a2e22',
+  red:        '#cc6666',
+  redDim:     'rgba(204,51,51,0.15)',
+  redStroke:  'rgba(204,51,51,0.25)',
+  blue:       '#6699cc',
+  blueDim:    'rgba(60,100,180,0.15)',
+  blueStroke: 'rgba(60,100,180,0.25)',
+  green:      '#66aa77',
+  greenDim:   'rgba(60,140,80,0.15)',
+  greenStroke:'rgba(60,140,80,0.25)'
+};
+
+function yzeGearId() {
+  var s = [], h = '0123456789abcdef';
+  for (var i = 0; i < 36; i++) s[i] = h.charAt(Math.floor(Math.random() * 16));
+  s[14] = '4';
+  s[19] = h.charAt((parseInt(s[19], 16) & 0x3) | 0x8);
+  s[8] = s[13] = s[18] = s[23] = '-';
+  return s.join('');
+}
+
+function onDrop(type, recordLink) {
+  if (type !== 'gear') return;
+  var rec = recordLink.value;
+  if (!rec || !rec.data) return;
+  // Copy all fields from the source record (Sean's pattern: spread the full record)
+  var newItem = {};
+  for (var k in rec) {
+    if (Object.prototype.hasOwnProperty.call(rec, k)) newItem[k] = rec[k];
+  }
+  newItem._id = yzeGearId();
+  newItem.data = {
+    gearType:    rec.data.gearType    || 'equipment',
+    bonus:       rec.data.bonus       || 0,
+    damage:      rec.data.damage      || 0,
+    armorRating: rec.data.armorRating || 0,
+    linkedAttr:  rec.data.linkedAttr  || 'strength',
+    linkedSkill: rec.data.linkedSkill || 'Melee',
+    range:       rec.data.range       || 'engaged'
+  };
+  api.addValue('data.gearList', newItem, function() {
+    drawGearCanvas();
+  });
+}
+
+function drawGearCanvas() {
+  var c = api.getCanvas('gearCanvas');
+  if (!c) return;
+
+  var list = getGearList();
+  var W    = c.width;
+  var H    = c.height;
+  c.clearRect(0, 0, W, H);
+  c.clearTooltips();
+
+  var layout = buildGearLayout();
+
+  if (layout.rows.length === 0) {
+    c.setFillStyle(COL.bgDeep);
+    c.fillRect(0, 0, W, H);
+    c.setFillStyle(COL.textMuted);
+    c.setFont('400 11px sans-serif');
+    c.setTextAlign('center');
+    c.setTextBaseline('middle');
+    c.fillText(
+      list.length === 0
+        ? 'Drag armor or equipment from the compendium to add items'
+        : 'No armor or equipment — weapons are managed in the Combat tab',
+      W / 2, H / 2
+    );
+    return;
+  }
+
+  for (var r = 0; r < layout.rows.length; r++) {
+    var row = layout.rows[r];
+    if (row.kind === 'header') {
+      drawGearHeader(c, W, row);
+    } else {
+      drawGearItemRow(c, W, row, r);
+    }
+  }
+}
+
+// Group gear by type into an ordered list of header + item rows.
+// Each item row carries its original index in data.gearList for click routing.
+function buildGearLayout() {
+  var list = getGearList();
+  var cats = [
+    { key: 'armor',     label: 'ARMOR',     color: COL.blue,  stroke: COL.blueStroke },
+    { key: 'equipment', label: 'EQUIPMENT', color: COL.green, stroke: COL.greenStroke },
+    { key: 'other',     label: 'OTHER',     color: COL.gold,  stroke: COL.goldStroke }
+  ];
+  var HDR_H = 22;
+  var rows  = [];
+  var yCur  = 0;
+  for (var ci = 0; ci < cats.length; ci++) {
+    var cat = cats[ci];
+    var members = [];
+    for (var i = 0; i < list.length; i++) {
+      var t = (list[i].data && list[i].data.gearType) || 'equipment';
+      if (t !== 'weapon' && t !== 'armor' && t !== 'other') t = 'equipment';
+      if (t === cat.key) members.push({ item: list[i], idx: i });
+    }
+    if (members.length === 0) continue;
+    rows.push({ kind: 'header', cat: cat, y: yCur, h: HDR_H, count: members.length });
+    yCur += HDR_H;
+    for (var m = 0; m < members.length; m++) {
+      rows.push({ kind: 'item', cat: cat, item: members[m].item, idx: members[m].idx, y: yCur, h: ROW_H });
+      yCur += ROW_H;
+    }
+  }
+  return { rows: rows, totalH: yCur };
+}
+
+function drawGearHeader(c, W, row) {
+  var y   = row.y;
+  var cat = row.cat;
+  c.setFillStyle(COL.bgDeep);
+  c.fillRect(0, y, W, row.h);
+  // left accent bar
+  c.setFillStyle(cat.color);
+  c.fillRect(0, y, 3, row.h);
+  // label
+  c.setFillStyle(cat.color);
+  c.setFont('700 9px sans-serif');
+  c.setTextAlign('left');
+  c.setTextBaseline('middle');
+  c.fillText(cat.label, 12, y + row.h / 2);
+  // count
+  c.setFillStyle(COL.textMuted);
+  c.setFont('400 9px sans-serif');
+  c.setTextAlign('right');
+  c.fillText(String(row.count), W - 12, y + row.h / 2);
+  // bottom border
+  c.setFillStyle(cat.stroke);
+  c.fillRect(0, y + row.h - 1, W, 1);
+}
+
+function drawGearItemRow(c, W, row, stripeIdx) {
+  var item     = row.item;
+  var d        = item.data || {};
+  var y        = row.y;
+  var gearType = row.cat.key;
+  var cy       = y + Math.floor(ROW_H / 2);
+
+  // Row background + bottom border
+  c.setFillStyle(stripeIdx % 2 === 0 ? COL.bg : COL.bgAlt);
+  c.fillRect(0, y, W, ROW_H);
+  c.setFillStyle(COL.border);
+  c.fillRect(0, y + ROW_H - 1, W, 1);
+
+  // Portrait
+  var imgX = 6, imgY = y + Math.floor((ROW_H - 32) / 2);
+  var portraitUrl = item.portrait || (d && d.portraitUrl) || '';
+  if (portraitUrl) {
+    c.drawImage(portraitUrl, imgX, imgY, 32, 32);
+  } else {
+    c.setFillStyle('#2a1e10'); c.fillRect(imgX, imgY, 32, 32);
+    c.setStrokeStyle('#3a2e22'); c.setLineWidth(1); c.strokeRect(imgX, imgY, 32, 32);
+  }
+  c.tooltip(imgX, imgY, 32, 32, 'Click to open');
+
+  // Item name
+  c.setFillStyle(COL.textMid);
+  c.setFont('400 12px sans-serif');
+  c.setTextAlign('left');
+  c.setTextBaseline('middle');
+  c.fillText(item.name || 'Unnamed', 48, cy);
+
+  // Armor rating (armor rows only)
+  if (gearType === 'armor') {
+    var statX = W - 118;
+    c.setFont('400 9px sans-serif');
+    c.setTextAlign('left');
+    c.setFillStyle(COL.textMuted); c.fillText('Armor', statX, cy);
+    c.setFillStyle(COL.textMid);   c.fillText(String(d.armorRating || 0), statX + 38, cy);
+  }
+
+  // Delete ×
+  var delX = W - 16, delR = 5;
+  c.setStrokeStyle(COL.redStroke);
+  c.setLineWidth(1.5);
+  c.beginPath();
+  c.moveTo(delX - delR, cy - delR); c.lineTo(delX + delR, cy + delR);
+  c.moveTo(delX + delR, cy - delR); c.lineTo(delX - delR, cy + delR);
+  c.stroke();
+  c.tooltip(delX - delR - 5, y + 2, (delR + 5) * 2, ROW_H - 4, 'Remove from inventory');
+}
+
+function onGearCanvasClick() {
+  var x = event.x;
+  var y = event.y;
+  var rows = buildGearLayout().rows;
+  var row  = null;
+  for (var r = 0; r < rows.length; r++) {
+    if (y >= rows[r].y && y < rows[r].y + rows[r].h) { row = rows[r]; break; }
+  }
+  if (!row || row.kind !== 'item') return;
+
+  var item = row.item;
+  if (!item) return;
+  var c = api.getCanvas('gearCanvas');
+  var W = c ? c.width : 460;
+
+  if (x >= W - 30) {
+    deleteGearItem(row.idx, item);
+  } else if (x <= 42) {
+    api.openListRecord('data.gearList.' + row.idx, item.recordType || 'gear_entry');
+  }
+}
+
+function deleteGearItem(rowIdx, item) {
+  api.showConfirm(
+    'Remove Item',
+    'Remove ' + (item.name || 'this item') + ' from your inventory?',
+    'Remove', 'Cancel',
+    function() { api.removeValue('data.gearList', rowIdx, function() { drawGearCanvas(); }); }
+  );
+}
+
+function refreshGearPush() {
+  var canPush = parseInt(api.getValue('data.canPush') || '0', 10);
+  api.setHidden('pushSection', canPush !== 1);
+}
+
+function onGearChange() {
+  drawGearCanvas();
+  refreshGearPush();
+  drawHeader();
+  yzeEncumbranceCheck();
+}
+
+function initGearTab() {
+  drawGearCanvas();
+  refreshGearPush();
+  drawHeader();
+  yzeEncumbranceCheck();
+}
+</script>
+
+<div style="background:#1a1612; min-height:100%;">
+
+  <!-- Push section —————————————————————————————————————————————————————— -->
+  <box field="pushSection">
+    <div style="background:#1f1200; border-top:2px solid #cc3333;
+      padding:8px 14px; display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <div style="font-size:11px; color:#cc3333; text-transform:uppercase;
+          letter-spacing:0.1em; font-weight:bold;">Push the attack</div>
+        <div style="font-size:10px; color:#664444; margin-top:2px;">
+          Re-roll non-1s for more damage — banes hurt you and your weapon</div>
+      </div>
+      <button field="pushBtnGear" label="PUSH" variant="danger" size="sm"
+        onclick="yzePushRoll();"></button>
+    </div>
+  </box>
+
+  <!-- Encumbrance ────────────────────────────────────────────────────────── -->
+  <div style="margin:0 16px 10px; background:#1c1610; border:1px solid #2a2015;
+    border-radius:5px; padding:8px 12px;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+    <span style="font-size:9px; font-weight:700; letter-spacing:0.16em;
+      text-transform:uppercase; color:#7d6b54; flex-shrink:0;">Carry</span>
+    <stringfield field="encumbranceDisplay" label="" readonly="true" size="xs"
+      defaultvalue="0 / 0"
+      style="font-family:Consolas,monospace; font-size:13px; font-weight:600;
+        color:#f0d9b5; background:transparent; border:none;
+        width:56px; flex-shrink:0;">
+    </stringfield>
+    <checkboxfield field="hasBackpack" label="Backpack (–2 Mobility)" size="xs"
+      style="flex:1;"></checkboxfield>
+    <box field="encWarning">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.1em;
+        text-transform:uppercase; color:#cc3333;
+        background:rgba(204,51,51,0.12); border:1px solid rgba(204,51,51,0.35);
+        border-radius:2px; padding:2px 8px; white-space:nowrap;">
+        OVER LIMIT — -2 physical</div>
+    </box>
+  </div>
+
+  <canvas field="gearCanvas" autosize="true" width="460" height="440"
+    style="width:100%; height:440px; display:block; background:#1a1612;"
+    onload="initGearTab();"
+    onresize="drawGearCanvas();"
+    onrecordchanged="onGearChange();"
+    onclick="onGearCanvasClick();">
+  </canvas>
+
+  <div style="padding:6px 14px; background:#111009;
+    border-top:1px dashed #3a2e22; font-size:10px;
+    color:#6a5540; text-align:center; letter-spacing:0.06em;">
+    ↓ DROP GEAR HERE ↓
+  </div>
+
+  <list field="gearList" listtype="gear_slot"
+    style="min-height:28px; background:#111009;
+      border-bottom:1px dashed #3a2e22;"
+    onload="initGearTab();"
+    onrecordchanged="onGearChange();">
+  </list>
+
+  <div style="font-size:9px; color:#5a4a38; text-transform:uppercase;
+    letter-spacing:0.12em; padding:5px 14px 3px; background:#111009;
+    border-top:1px solid #2a2015; border-bottom:1px solid #2a2015;">
+    Notes</div>
+  <div style="padding:8px 14px; background:#1a1612;">
+    <richtextfield field="gearNotes" label="" height="120px"
+      placeholder="Additional gear notes...">
+    </richtextfield>
+  </div>
+
+  <div style="background:#0e0d0b; border-top:1px solid #2a2015;
+    padding:5px 14px; font-size:9px; color:#3a2e22; text-align:right;">
+    Powered by Year Zero Engine
+  </div>
+
+</div>

@@ -1,0 +1,118 @@
+<script>
+// Update discipline accent band on load and on change.
+function onDisciplineChange() {
+  var disc = api.getValue('data.discipline') || '';
+  var isAmber = (disc === 'Awareness' || disc === 'Healing' || disc === 'Shapeshifting');
+  api.setValues({
+    'fields.discBandAmber.hidden':  !isAmber,
+    'fields.discBandPurple.hidden':  isAmber
+  });
+}
+</script>
+
+<div style="background:#15110b; min-height:100%; padding:14px 16px;">
+
+  <!-- Discipline colour accent — one band shown at a time -->
+  <box field="discBandAmber">
+    <div style="height:3px; background:#c8902a; border-radius:2px 2px 0 0;
+      margin:-14px -16px 12px; opacity:0.7;"></div>
+  </box>
+  <box field="discBandPurple">
+    <div style="height:3px; background:#9a7ad4; border-radius:2px 2px 0 0;
+      margin:-14px -16px 12px; opacity:0.7;"></div>
+  </box>
+
+  <!-- Name -->
+  <namefield field="name" label="" bold="true" size="md"
+    placeholder="Spell name…"
+    style="font-family:Georgia,serif; font-size:20px;
+      color:#f0d9b5; margin-bottom:12px;">
+  </namefield>
+
+  <!-- Discipline + Rank row -->
+  <div style="display:flex; gap:10px; align-items:flex-end; margin-bottom:12px; flex-wrap:wrap;">
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:8px 12px; flex:1; min-width:160px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">Discipline</div>
+      <dropdown field="discipline" label="" size="sm"
+        onload="onDisciplineChange();"
+        onchange="onDisciplineChange();"
+        options='[
+          {"label":"Awareness",    "value":"Awareness"},
+          {"label":"Healing",      "value":"Healing"},
+          {"label":"Shapeshifting","value":"Shapeshifting"},
+          {"label":"Blood Magic",  "value":"Blood Magic"},
+          {"label":"Death Magic",  "value":"Death Magic"},
+          {"label":"Elementalism", "value":"Elementalism"},
+          {"label":"Symbolism",    "value":"Symbolism"}
+        ]'>
+      </dropdown>
+    </div>
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:8px 12px; flex:0 0 auto;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">Rank</div>
+      <numberfield field="rank" label="" size="sm"
+        minvalue="1" maxvalue="3" defaultvalue="1"
+        style="width:56px; color:#c8902a; font-weight:700;">
+      </numberfield>
+    </div>
+  </div>
+
+  <!-- Range + Duration row -->
+  <div style="display:flex; gap:10px; align-items:flex-end; margin-bottom:12px; flex-wrap:wrap;">
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:8px 12px; flex:1; min-width:130px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">Range</div>
+      <dropdown field="range" label="" size="sm"
+        options='[
+          {"label":"Personal",  "value":"Personal"},
+          {"label":"Engaged",   "value":"Engaged"},
+          {"label":"Short",     "value":"Short"},
+          {"label":"Medium",    "value":"Medium"},
+          {"label":"Long",      "value":"Long"},
+          {"label":"Extreme",   "value":"Extreme"},
+          {"label":"Unlimited", "value":"Unlimited"}
+        ]'>
+      </dropdown>
+    </div>
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:8px 12px; flex:1; min-width:130px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">Duration</div>
+      <dropdown field="duration" label="" size="sm"
+        options='[
+          {"label":"Immediate","value":"Immediate"},
+          {"label":"Round",    "value":"Round"},
+          {"label":"Stretch",  "value":"Stretch"},
+          {"label":"Shift",    "value":"Shift"},
+          {"label":"Varies",   "value":"Varies"},
+          {"label":"Special",  "value":"Special"}
+        ]'>
+      </dropdown>
+    </div>
+  </div>
+
+  <!-- Modifiers row -->
+  <div style="display:flex; gap:16px; margin-bottom:14px;">
+    <checkboxfield field="isRitual"     label="Ritual"                  size="xs"></checkboxfield>
+    <checkboxfield field="isPowerWord"  label="Power Word (fast action)" size="xs"></checkboxfield>
+  </div>
+
+  <!-- Description -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; margin-bottom:6px;">
+    Description</div>
+  <richtextfield field="description" label="" height="200px"
+    placeholder="Effect, WP cost, overcharge levels…">
+  </richtextfield>
+
+  <!-- Footer -->
+  <div style="margin-top:16px; font-size:9px; color:#3a2e22;
+    text-align:right; letter-spacing:0.06em;">
+    Powered by Year Zero Engine
+  </div>
+
+</div>

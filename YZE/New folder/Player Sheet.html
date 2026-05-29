@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Player Sheet — Redesign</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="player-sheet.css">
+</head>
+<body>
+
+<div class="banner">visual mockup · 680px floating window · 5 tabs · persistent header</div>
+
+<div class="sheet" data-broken="false" data-canpush="false" id="sheet">
+
+  <!-- ─── TITLE BAR ─── -->
+  <div class="titlebar">
+    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    <span class="title">Character Sheet</span>
+    <span class="chrome-btn" title="Pin">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 2h6v4l2 2v3H3V8l2-2V2zM8 11v3"/></svg>
+    </span>
+    <span class="chrome-btn" title="Close">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3l10 10M13 3L3 13"/></svg>
+    </span>
+  </div>
+
+  <!-- ─── PERSISTENT HEADER ─── -->
+  <div class="persistent">
+    <div class="identity-row">
+      <div class="portrait" title="Click to set portrait">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="9" r="3.5"/>
+          <path d="M5 20c1-4 4-6 7-6s6 2 7 6"/>
+        </svg>
+      </div>
+      <div class="id-body">
+        <input id="nameInput" class="name-input" placeholder="Character name…">
+        <div class="id-meta">
+          <input id="archetypeInput" class="archetype-input" placeholder="Archetype / Role…">
+          <span class="broken-flag">
+            <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8h12M8 2v12"/></svg>
+            Broken
+          </span>
+          <span class="xp-chip" title="Available XP">
+            <span class="label">XP</span><span id="xpDisplay">4</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vitals -->
+    <div class="vitals-row">
+      <div class="vital-bar" data-type="health" id="healthBar">
+        <span class="vb-label">Health</span>
+        <div class="vb-pips"></div>
+        <span class="vb-count">
+          <input data-cur value="4" type="number">
+          <span class="slash">/</span><span class="max" data-max>4</span>
+        </span>
+      </div>
+      <div class="vital-bar" data-type="resolve" id="resolveBar">
+        <span class="vb-label">Resolve</span>
+        <div class="vb-pips"></div>
+        <span class="vb-count">
+          <input data-cur value="5" type="number">
+          <span class="slash">/</span><span class="max" data-max>5</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Conditions strip -->
+    <div class="conditions-strip">
+      <div class="cond-mini" data-type="phys" data-count="0">
+        <span class="cm-label">Physical</span>
+        <div class="cm-counter">
+          <button onclick="adjustCondition('phys', -1)">−</button>
+          <span class="cm-value"><span data-val>0</span><span class="max">/3</span></span>
+          <button onclick="adjustCondition('phys', +1)">+</button>
+          <button class="break" onclick="breakNpc('phys')">Break</button>
+        </div>
+      </div>
+      <div class="cond-mini" data-type="ment" data-count="0">
+        <span class="cm-label">Mental</span>
+        <div class="cm-counter">
+          <button onclick="adjustCondition('ment', -1)">−</button>
+          <span class="cm-value"><span data-val>0</span><span class="max">/3</span></span>
+          <button onclick="adjustCondition('ment', +1)">+</button>
+          <button class="break" onclick="breakNpc('ment')">Break</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TABS ─── -->
+  <div class="tabnav" role="tablist">
+    <button class="tab active" data-tab="sheet">Sheet</button>
+    <button class="tab" data-tab="skills">Skills</button>
+    <button class="tab" data-tab="combat">Combat</button>
+    <button class="tab" data-tab="gear">Gear</button>
+    <button class="tab" data-tab="notes">Notes</button>
+  </div>
+
+  <!-- ─── SHEET PANE ─── -->
+  <div class="tabpane active" data-pane="sheet">
+    <div class="section-label">Attributes <span class="help">Tap a card to roll · pips set the value</span></div>
+    <div class="attr-grid" id="attrGrid"></div>
+
+    <div class="section-label">Critical Injury <span class="help">Roll when broken</span></div>
+    <div class="crit-row">
+      <span class="label">D66</span>
+      <button class="crit-btn" onclick="toast('Rolling Physical Critical (D66)')">Physical</button>
+      <button class="crit-btn" onclick="toast('Rolling Mental Critical (D66)')">Mental</button>
+      <span class="help">Physical at 0 Health · Mental at 0 Resolve</span>
+    </div>
+
+    <div class="section-label">Next Roll <span class="help">Cleared after each roll</span></div>
+    <div class="next-roll">
+      <div class="field-group">
+        <label>Modifier</label>
+        <input id="rollMod" value="0" type="number" min="-10" max="10">
+      </div>
+      <div class="field-group">
+        <label>Opposed</label>
+        <input id="opposed" value="0" type="number" placeholder="successes to beat">
+      </div>
+      <div class="field-group toggle-group">
+        <span id="autoApply" class="toggle" data-on="false"></span>
+        <span class="toggle-label">Auto-apply<br>damage</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SKILLS PANE ─── -->
+  <div class="tabpane" data-pane="skills">
+    <div class="section-label">Skills <span class="help">Grouped by attribute · pips set rank</span></div>
+    <div id="skillsContainer"></div>
+  </div>
+
+  <!-- ─── COMBAT PANE ─── -->
+  <div class="tabpane" data-pane="combat">
+    <div class="section-label">Equipped Weapon</div>
+    <div class="equipped-banner" id="equippedBanner"></div>
+
+    <div class="section-label">Weapons <span class="help">Tap pip to equip · drag from compendium to add</span></div>
+    <div class="weapons-grid" id="weaponsGrid"></div>
+
+    <div class="collapse" id="modsCollapse" data-open="false">
+      <div class="collapse-head" onclick="toggleModsCollapse()">
+        <svg class="collapse-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l6 5-6 5"/></svg>
+        <span class="collapse-title">Attack Modifiers</span>
+        <span id="modsSummary" class="collapse-summary">No modifiers</span>
+      </div>
+      <div class="collapse-body">
+        <div class="mods-grid">
+          <div id="modAim" class="mod-toggle" data-on="false" onclick="toggleMod('aim')">
+            <span class="checkbox"></span>
+            <span class="mod-label">Aim</span>
+            <span class="mod-value">+2</span>
+          </div>
+          <div id="modDefenseless" class="mod-toggle" data-on="false" onclick="toggleMod('defenseless')">
+            <span class="checkbox"></span>
+            <span class="mod-label">Defenseless target</span>
+            <span class="mod-value">+3</span>
+          </div>
+        </div>
+        <div class="mods-row">
+          <div class="field-group">
+            <label>Range</label>
+            <select id="modRange" onchange="setMod('range', this.value)">
+              <option value="short">Short (0)</option>
+              <option value="engaged">Engaged (−3)</option>
+              <option value="medium">Medium (−1)</option>
+              <option value="long">Long (−2)</option>
+              <option value="extreme">Extreme (−3)</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label>Light</label>
+            <select id="modLight" onchange="setMod('light', this.value)">
+              <option value="0">Normal (0)</option>
+              <option value="-1">Dim (−1)</option>
+              <option value="-2">Darkness (−2)</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label>Other</label>
+            <input id="modOther" type="number" value="0" min="-10" max="10" onchange="setMod('other', this.value)">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="defense-block">
+      <div class="section-label" style="margin-bottom:8px;">Defense <span class="help">Each 6 cancels 1 damage · cannot be pushed</span></div>
+      <div class="defense-row">
+        <span class="label">Armor</span>
+        <button class="defense-btn" onclick="rollArmor()">Roll Armor</button>
+        <select onchange="state.cover = +this.value">
+          <option value="0">Cover…</option>
+          <option value="3">Barrier (3)</option>
+          <option value="4">Furniture (4)</option>
+          <option value="5">Wooden Door (5)</option>
+          <option value="6">Tree Trunk (6)</option>
+          <option value="8">Wooden Wall (8)</option>
+          <option value="10">Stone Wall (10)</option>
+        </select>
+        <button class="defense-btn" onclick="rollCover()">Roll Cover</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── GEAR PANE ─── -->
+  <div class="tabpane" data-pane="gear">
+    <div class="gear-section" data-cat="armor">
+      <div class="gear-section-head">
+        <span class="accent"></span>
+        <span class="ss-label">Armor</span>
+        <span class="count" id="armorCount">0</span>
+      </div>
+      <div class="gear-list" id="armorList"></div>
+    </div>
+
+    <div class="gear-section" data-cat="equipment">
+      <div class="gear-section-head">
+        <span class="accent"></span>
+        <span class="ss-label">Equipment</span>
+        <span class="count" id="equipmentCount">0</span>
+      </div>
+      <div class="gear-list" id="equipmentList"></div>
+    </div>
+
+    <div class="gear-section" data-cat="other">
+      <div class="gear-section-head">
+        <span class="accent"></span>
+        <span class="ss-label">Other</span>
+        <span class="count" id="otherCount">0</span>
+      </div>
+      <div class="gear-list" id="otherList"></div>
+    </div>
+
+    <div class="dropzone">↓ Drop gear from the compendium ↓</div>
+
+    <div class="gear-notes">
+      <div class="section-label" style="margin-bottom:8px;">Notes</div>
+      <textarea id="gearNotes" placeholder="Ammo, repairs, encumbrance notes…" oninput="state.gearNotes = this.value"></textarea>
+    </div>
+  </div>
+
+  <!-- ─── NOTES PANE ─── -->
+  <div class="tabpane" data-pane="notes">
+    <div class="notes-grid">
+
+      <div class="notes-block">
+        <div class="nb-head">
+          <svg class="nb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="9" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></svg>
+          <span class="nb-title">Appearance &amp; Bio</span>
+        </div>
+        <textarea id="note_appearance" placeholder="Looks, age, mannerisms, background…" oninput="state.notes.appearance = this.value"></textarea>
+      </div>
+
+      <div class="notes-block">
+        <div class="nb-head">
+          <svg class="nb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 20c.5-3 3-5 5-5s4 2 4 2 1-2 4-2 4 2 5 5"/></svg>
+          <span class="nb-title">Relationships</span>
+        </div>
+        <textarea id="note_relationships" placeholder="Allies, rivals, debts owed, ties…" oninput="state.notes.relationships = this.value"></textarea>
+      </div>
+
+      <div class="notes-block">
+        <div class="nb-head">
+          <svg class="nb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>
+          <span class="nb-title">Secrets</span>
+        </div>
+        <textarea id="note_secrets" placeholder="Hidden agendas, untold history…" oninput="state.notes.secrets = this.value"></textarea>
+      </div>
+
+      <div class="xp-block">
+        <div class="nb-head">
+          <svg class="nb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l3 6 6 1-4.5 4 1 6L12 17l-5.5 3 1-6L3 10l6-1 3-6z"/></svg>
+          <span class="nb-title">Experience</span>
+        </div>
+        <div class="xp-stats">
+          <div class="xp-stat">
+            <div class="lbl">Earned</div>
+            <input id="xpEarned" value="0" type="number" min="0" onchange="updateXP()">
+          </div>
+          <div class="xp-stat">
+            <div class="lbl">Spent</div>
+            <input id="xpSpent" value="0" type="number" min="0" onchange="updateXP()">
+          </div>
+          <div class="xp-stat" data-pos="true">
+            <div class="lbl">Available</div>
+            <input id="xpAvail" value="0" type="number" min="0" readonly>
+          </div>
+        </div>
+        <textarea id="note_xpLog" placeholder="Session log of XP gains and purchases…" oninput="state.notes.xpLog = this.value" style="min-height:80px;"></textarea>
+      </div>
+
+      <div class="notes-block full">
+        <div class="nb-head">
+          <svg class="nb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h12l4 4v12H4z"/><path d="M16 4v4h4"/><path d="M7 12h10M7 16h7"/></svg>
+          <span class="nb-title">Session Notes</span>
+        </div>
+        <textarea id="note_freeform" placeholder="Loose thoughts, session-by-session notes, plot hooks…" oninput="state.notes.freeform = this.value" style="min-height:140px;"></textarea>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── PUSH BANNER ─── -->
+  <div class="push-banner">
+    <div class="push-text">
+      <strong>Push the roll</strong>
+      Re-roll non-1s · attribute banes cost Health or Resolve
+    </div>
+    <button class="push-btn" onclick="doPush()">Push</button>
+  </div>
+
+</div>
+
+<!-- ─── FLOATING ROLL DOCK ─── -->
+<div class="dock">
+  <button class="dock-fab" id="dockFab" title="Quick rolls">
+    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M16 3l11 6v14l-11 6L5 23V9l11-6z"/>
+      <circle cx="16" cy="16" r="2" fill="currentColor"/>
+      <circle cx="10" cy="12" r="1.4" fill="currentColor"/>
+      <circle cx="22" cy="20" r="1.4" fill="currentColor"/>
+    </svg>
+  </button>
+  <div class="dock-menu" id="dockMenu">
+    <div class="group">
+      <div class="group-label">Attribute Rolls</div>
+      <div class="dock-row">
+        <button class="dock-btn" onclick="rollAttr('strength')">Roll STR</button>
+        <button class="dock-btn" onclick="rollAttr('agility')">Roll AGI</button>
+        <button class="dock-btn" onclick="rollAttr('wits')">Roll WIT</button>
+        <button class="dock-btn" onclick="rollAttr('empathy')">Roll EMP</button>
+      </div>
+    </div>
+    <div class="group">
+      <div class="group-label">Criticals</div>
+      <div class="dock-row">
+        <button class="dock-btn" onclick="toast('Rolling Physical Critical')">Phys Crit</button>
+        <button class="dock-btn" onclick="toast('Rolling Mental Critical')">Mental Crit</button>
+      </div>
+    </div>
+    <div class="group">
+      <div class="group-label">Defense</div>
+      <div class="dock-row">
+        <button class="dock-btn" onclick="rollArmor()">Roll Armor</button>
+        <button class="dock-btn" onclick="rollCover()">Roll Cover</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="player-sheet.js"></script>
+</body>
+</html>

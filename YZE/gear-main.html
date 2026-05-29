@@ -1,0 +1,231 @@
+<script>
+  // ── Sean's list-item context helpers (Tranche 0 fix) ─────────────────────
+  // Inside a list-item template, api.getValue('data.X') reads the TOP-LEVEL
+  // owning record. To read this item's OWN fields use ctx.dataPrefix instead.
+  function getNearestParentDataPath(dp) {
+    var parts = dp.split('.data');
+    return parts.length > 1 ? parts.slice(0, -1).join('.data') : '';
+  }
+
+  function getItemContext() {
+    var itemDataPath = getNearestParentDataPath(dataPath);
+    var item         = itemDataPath ? api.getValue(itemDataPath) : record;
+    var dp           = itemDataPath ? itemDataPath + '.data'     : 'data';
+    var fp           = itemDataPath ? itemDataPath + '.fields'   : 'fields';
+    return { item: item, dataPrefix: dp, fieldsPath: fp };
+  }
+
+  function onTypeChange() {
+    var ctx = getItemContext();
+    var t   = api.getValue(ctx.dataPrefix + '.gearType') || 'weapon';
+    api.setValues({
+      'fields.weaponFields.hidden': t !== 'weapon',
+      'fields.armorFields.hidden':  t !== 'armor',
+      'fields.weightField.hidden':  t === 'other'
+    });
+  }
+
+  function rollAttack() {
+    var ctx         = getItemContext();
+    var itemName    = api.getValue(ctx.dataPrefix + '.name')        || 'Weapon';
+    var gearBonus   = parseInt(api.getValue(ctx.dataPrefix + '.bonus')  || '0', 10);
+    var damage      = parseInt(api.getValue(ctx.dataPrefix + '.damage') || '0', 10);
+    var range       = api.getValue(ctx.dataPrefix + '.range')       || 'engaged';
+    var linkedSkill = api.getValue(ctx.dataPrefix + '.linkedSkill') || 'Melee';
+    var linkedAttr  = api.getValue(ctx.dataPrefix + '.linkedAttr')  || 'strength';
+
+    // Read the character's attribute from the TOP-LEVEL record (confirmed by Sean).
+    // dmgKey handles games with per-attribute damage; in YZE dmgVal is always 0.
+    var dmgKey  = 'dmg' + linkedAttr.charAt(0).toUpperCase() + linkedAttr.slice(1);
+    var attrVal = parseInt(api.getValue('data.' + linkedAttr) || '0', 10);
+    var dmgVal  = parseInt(api.getValue('data.' + dmgKey)     || '0', 10);
+    var effAttr = Math.max(0, attrVal - dmgVal);
+
+    if (effAttr === 0 && gearBonus === 0) {
+      api.showNotification('No dice to roll!', 'red', 'Cannot Attack');
+      return;
+    }
+
+    api.roll(
+      (effAttr + gearBonus) + 'd6',
+      {
+        attrKey:    linkedAttr,
+        attrCount:  effAttr,
+        skillCount: 0,
+        gearCount:  gearBonus,
+        baseDamage: damage,
+        skillName:  itemName,
+        range:      range,
+        isAttack:   true
+      },
+      'yze_combat'
+    );
+  }
+</script>
+
+<div style="background:#1a1612; min-height:100%;">
+
+  <div style="background:#111009; border-bottom:2px solid #c8902a;
+    padding:10px 14px; display:flex; align-items:center; gap:10px;">
+    <portrait field="portrait" width="56" height="56"
+      style="border-radius:3px; border:1px solid #3a2e22;
+        flex-shrink:0; cursor:pointer;">
+    </portrait>
+    <div style="flex:1;">
+      <namefield field="name" label="" size="md" bold="true"
+        placeholder="Item name..."
+        style="font-size:16px; color:#f0d9b5;">
+      </namefield>
+      <div style="margin-top:5px;">
+        <dropdown field="gearType" label="" size="xs"
+          onchange="onTypeChange();"
+          onload="onTypeChange();"
+          options='[
+            {"label":"Weapon",    "value":"weapon"},
+            {"label":"Armor",     "value":"armor"},
+            {"label":"Equipment", "value":"equipment"},
+            {"label":"Other",     "value":"other"}
+          ]'>
+        </dropdown>
+      </div>
+    </div>
+  </div>
+
+  <box field="weaponFields">
+    <div style="font-size:9px; color:#5a4a38; text-transform:uppercase;
+      letter-spacing:0.12em; padding:5px 14px 3px; background:#111009;
+      border-bottom:1px solid #2a2015;">Combat stats</div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr;
+      gap:1px; background:#2a2015; border-bottom:1px solid #2a2015;">
+      <div style="background:#1a1612; padding:8px 12px;">
+        <div style="font-size:8px; color:#5a4a38; text-transform:uppercase;
+          letter-spacing:0.1em; margin-bottom:3px;">Damage</div>
+        <numberfield field="damage" label="" size="sm" minvalue="0"
+          maxvalue="12" defaultvalue="1"
+          style="font-size:20px; font-weight:bold; color:#f0d9b5;">
+        </numberfield>
+      </div>
+      <div style="background:#1a1612; padding:8px 12px;">
+        <div style="font-size:8px; color:#5a4a38; text-transform:uppercase;
+          letter-spacing:0.1em; margin-bottom:3px;">Gear Bonus</div>
+        <numberfield field="bonus" label="" size="sm" minvalue="0"
+          maxvalue="6" defaultvalue="0"
+          style="font-size:20px; font-weight:bold; color:#c8902a;">
+        </numberfield>
+      </div>
+    </div>
+
+    <div style="font-size:9px; color:#5a4a38; text-transform:uppercase;
+      letter-spacing:0.12em; padding:5px 14px 3px; background:#111009;
+      border-bottom:1px solid #2a2015;">Range</div>
+    <div style="padding:8px 14px; background:#1a1612;
+      border-bottom:1px solid #2a2015;">
+      <dropdown field="range" label="" size="xs"
+        options='[
+          {"label":"Engaged", "value":"engaged"},
+          {"label":"Short",   "value":"short"},
+          {"label":"Medium",  "value":"medium"},
+          {"label":"Long",    "value":"long"},
+          {"label":"Extreme", "value":"extreme"}
+        ]'>
+      </dropdown>
+    </div>
+
+    <div style="font-size:9px; color:#5a4a38; text-transform:uppercase;
+      letter-spacing:0.12em; padding:5px 14px 3px; background:#111009;
+      border-bottom:1px solid #2a2015;">Linked skill</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr;
+      gap:1px; background:#2a2015; border-bottom:1px solid #2a2015;">
+      <div style="background:#1a1612; padding:8px 12px;">
+        <div style="font-size:8px; color:#5a4a38; text-transform:uppercase;
+          letter-spacing:0.1em; margin-bottom:3px;">Skill</div>
+        <stringfield field="linkedSkill" label="" size="sm"
+          defaultvalue="Melee" placeholder="e.g. Melee or Marksmanship"
+          style="font-size:13px; color:#c8b090;">
+        </stringfield>
+      </div>
+      <div style="background:#1a1612; padding:8px 12px;">
+        <div style="font-size:8px; color:#5a4a38; text-transform:uppercase;
+          letter-spacing:0.1em; margin-bottom:3px;">Attribute</div>
+        <dropdown field="linkedAttr" label="" size="xs"
+          options='[
+            {"label":"Strength", "value":"strength"},
+            {"label":"Agility",  "value":"agility"},
+            {"label":"Wits",     "value":"wits"},
+            {"label":"Empathy",  "value":"empathy"}
+          ]'>
+        </dropdown>
+      </div>
+    </div>
+
+    <div style="padding:8px 14px; background:#111009;
+      border-bottom:1px solid #2a2015; display:flex;
+      align-items:center; justify-content:space-between;">
+      <div style="font-size:10px; color:#6a5540;">
+        Attr + skill + gear bonus dice vs target
+      </div>
+      <div onclick="rollAttack();"
+        style="font-size:10px; color:#c8902a;
+          border:1px solid rgba(200,144,42,0.35);
+          padding:5px 16px; border-radius:2px;
+          text-transform:uppercase; letter-spacing:0.08em;
+          cursor:pointer; background:rgba(200,144,42,0.06);">
+        Roll Attack
+      </div>
+    </div>
+  </box>
+
+  <box field="armorFields">
+    <div style="font-size:9px; color:#5a4a38; text-transform:uppercase;
+      letter-spacing:0.12em; padding:5px 14px 3px; background:#111009;
+      border-bottom:1px solid #2a2015;">Protection</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr;
+      gap:1px; background:#2a2015; border-bottom:1px solid #2a2015;">
+      <div style="background:#1a1612; padding:8px 12px;">
+        <div style="font-size:8px; color:#5a4a38; text-transform:uppercase;
+          letter-spacing:0.1em; margin-bottom:3px;">Armor Rating</div>
+        <numberfield field="armorRating" label="" size="sm" minvalue="0"
+          maxvalue="6" defaultvalue="0"
+          style="font-size:20px; font-weight:bold; color:#f0d9b5;">
+        </numberfield>
+      </div>
+      <div style="background:#1a1612; padding:8px 12px;">
+        <div style="font-size:8px; color:#5a4a38; text-transform:uppercase;
+          letter-spacing:0.1em; margin-bottom:3px;">Weight</div>
+        <numberfield field="weight" label="" size="sm" minvalue="0"
+          defaultvalue="1"
+          style="font-size:20px; font-weight:bold; color:#f0d9b5;">
+        </numberfield>
+      </div>
+    </div>
+  </box>
+
+  <box field="weightField">
+    <div style="font-size:9px; color:#5a4a38; text-transform:uppercase;
+      letter-spacing:0.12em; padding:5px 14px 3px; background:#111009;
+      border-bottom:1px solid #2a2015;">Properties</div>
+    <div style="padding:8px 14px; background:#1a1612;
+      border-bottom:1px solid #2a2015;">
+      <numberfield field="weight" label="Weight" size="sm"
+        minvalue="0" defaultvalue="1">
+      </numberfield>
+    </div>
+  </box>
+
+  <div style="font-size:9px; color:#5a4a38; text-transform:uppercase;
+    letter-spacing:0.12em; padding:5px 14px 3px; background:#111009;
+    border-bottom:1px solid #2a2015;">Description</div>
+  <div style="padding:8px 14px; background:#1a1612;">
+    <richtextfield field="description" label="" height="120px"
+      placeholder="Special properties, bonuses, notes...">
+    </richtextfield>
+  </div>
+
+  <div style="background:#0e0d0b; border-top:1px solid #2a2015;
+    padding:5px 14px; font-size:9px; color:#3a2e22;
+    letter-spacing:0.06em; text-align:right;">
+    Powered by Year Zero Engine
+  </div>
+
+</div>

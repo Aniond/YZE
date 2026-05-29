@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Environment & credentials
+credentials
+.env
+.env.local
+.env.*.local
+
+# Claude Code settings with credentials
+.claude/settings.local.json
+*.local.json
+
+# Claude Code session data
+.claude/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/settings.json
+*.code-workspace
+
+# Logs
+*.log
+npm-debug.log*
+
+# Reference rulebooks (copyrighted PDFs — never commit)
+reference/
+
+# Sean's source rulesets — reference only, not part of this project
+Source/
+
+# AI-generated Kult sheet — not part of the YZE project
+kult-divinity-lost/
+
+# Backup files
+*.bak

@@ -1,0 +1,285 @@
+<script>
+// Roll Stamina against a hazard. fieldName = the data field holding the dice count.
+function rollHazard(fieldName, skillName) {
+  var n = parseInt(api.getValue('data.' + fieldName) || '3', 10);
+  if (isNaN(n) || n < 1) n = 1;
+  api.roll(n + 'd6', { skillName: skillName, attrCount: n,
+    attrKey: 'strength', skillCount: 0, gearCount: 0 }, 'yze_pool');
+}
+</script>
+
+<div style="background:#15110b; min-height:100%; padding:14px 16px;">
+
+  <!-- Title -->
+  <div style="font-family:Georgia,serif; font-size:18px; font-weight:500;
+    color:#f0d9b5; margin-bottom:2px;">Environmental Hazards</div>
+  <div style="font-size:10px; color:#524535; font-style:italic; margin-bottom:16px;">
+    GM reference — SRD p.24–25. Each roll uses Stamina unless noted.
+    Dice pool: set dice count to match the hazard's intensity/virulence.</div>
+
+  <!-- ── FIRE ──────────────────────────────────────────────────────────── -->
+  <div style="background:#1c1610; border:1px solid #2a2015;
+    border-left:3px solid #cc3333; border-radius:5px;
+    padding:11px 14px; margin-bottom:10px;">
+    <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+      text-transform:uppercase; color:#cc3333; margin-bottom:6px;">Fire</div>
+    <div style="font-size:10px; color:#b8a288; margin-bottom:6px;">
+      Roll for the fire's intensity. Each success = 1 damage. If damaged,
+      you catch fire and burn again on your turn each round (intensity rises
+      by 1 each round). Fire goes out when an attack inflicts no damage.
+      Put out with Mobility (slow action; +2 with blanket).<br>
+      <span style="color:#524535;">Broken by fire: death save every round until saved by Healing.
+      Crits not rolled — unique death-save sequence applies.</span>
+    </div>
+    <div style="font-size:9px; color:#7d6b54; margin-bottom:8px;">
+      Intensity guide (dice pool / step dice):
+      3(D)=torch/clothes · 6(C)=campfire/burning building · 9(B)=bonfire · 12(A)=furnace
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+        <numberfield field="fireDice" label="Intensity" size="xs" variant="unstyled"
+          minvalue="1" maxvalue="12" defaultvalue="6" style="width:80px;">
+        </numberfield>
+      </div>
+      <button field="fireRollBtn" label="Roll vs Fire" size="xs"
+        color="default" variant="outline"
+        onclick="rollHazard('fireDice','Stamina vs Fire');"></button>
+    </div>
+  </div>
+
+  <!-- ── FALLING ───────────────────────────────────────────────────────── -->
+  <div style="background:#1c1610; border:1px solid #2a2015;
+    border-left:3px solid #c8902a; border-radius:5px;
+    padding:11px 14px; margin-bottom:10px;">
+    <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+      text-transform:uppercase; color:#c8902a; margin-bottom:6px;">Falling</div>
+    <div style="font-size:10px; color:#b8a288;">
+      Damage = meters fallen ÷ 2, rounding fractions down. Armor mitigates.
+      Controlled jump: roll Mobility — each success reduces damage by 1.
+    </div>
+    <div style="font-size:9px; color:#524535; margin-top:5px; font-style:italic;">
+      Example: falling 6 m = 3 damage. No Stamina roll — damage is automatic.
+    </div>
+  </div>
+
+  <!-- ── DROWNING ──────────────────────────────────────────────────────── -->
+  <div style="background:#1c1610; border:1px solid #2a2015;
+    border-left:3px solid #5a8ac8; border-radius:5px;
+    padding:11px 14px; margin-bottom:10px;">
+    <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+      text-transform:uppercase; color:#5a8ac8; margin-bottom:6px;">Drowning</div>
+    <div style="font-size:10px; color:#b8a288; margin-bottom:6px;">
+      Stamina roll every <em>stretch</em> to stay afloat. Metal armor = sink automatically.
+      Under water: Stamina every <em>round</em> to hold breath. Fail = 1 Strength damage
+      per round until saved. Broken while drowning = die after one stretch.
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button field="drownRollBtn" label="Stamina vs Drowning" size="xs"
+        color="default" variant="outline"
+        onclick="rollHazard('drowningDice','Stamina vs Drowning');"></button>
+      <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+        <numberfield field="drowningDice" label="Dice" size="xs" variant="unstyled"
+          minvalue="1" maxvalue="10" defaultvalue="3" style="width:60px;">
+        </numberfield>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── POISON ────────────────────────────────────────────────────────── -->
+  <div style="background:#1c1610; border:1px solid #2a2015;
+    border-left:3px solid #6aa07a; border-radius:5px;
+    padding:11px 14px; margin-bottom:10px;">
+    <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+      text-transform:uppercase; color:#6aa07a; margin-bottom:6px;">Poison</div>
+    <div style="font-size:10px; color:#b8a288; margin-bottom:6px;">
+      Opposed Stamina vs toxicity. Fail = effect below. Antidotes halt effects.<br>
+      <span style="color:#7d6b54; font-size:9px;">
+        Toxicity: weak=3(D) · strong=6(C) · extremely potent=9(B)+</span>
+    </div>
+    <div style="font-size:10px; color:#b8a288; margin-bottom:6px;">
+      <strong style="color:#c8902a;">Lethal:</strong> 1 damage/round until broken, then roll again or die.<br>
+      <strong style="color:#c8902a;">Paralyzing:</strong> No move or actions for one stretch.<br>
+      <strong style="color:#c8902a;">Sleeping:</strong> Fall asleep for one shift.
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+        <numberfield field="poisonDice" label="Toxicity" size="xs" variant="unstyled"
+          minvalue="1" maxvalue="12" defaultvalue="6" style="width:80px;">
+        </numberfield>
+      </div>
+      <button field="poisonRollBtn" label="Stamina vs Poison" size="xs"
+        color="default" variant="outline"
+        onclick="rollHazard('poisonDice','Stamina vs Poison');"></button>
+    </div>
+  </div>
+
+  <!-- ── DISEASE ───────────────────────────────────────────────────────── -->
+  <div style="background:#1c1610; border:1px solid #2a2015;
+    border-left:3px solid #a070c8; border-radius:5px;
+    padding:11px 14px; margin-bottom:10px;">
+    <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+      text-transform:uppercase; color:#a070c8; margin-bottom:6px;">Disease</div>
+    <div style="font-size:10px; color:#b8a288; margin-bottom:6px;">
+      Opposed Stamina vs virulence (infection roll). Typical virulence: 6(C).
+      Fail = ill: 1 damage, no natural healing, roll again each day — each
+      fail = 1 more damage. Broken while sick = die next day without aid.
+      Succeed = no longer ill. Healer rolls instead of patient with +2 modifier.
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+        <numberfield field="diseaseDice" label="Virulence" size="xs" variant="unstyled"
+          minvalue="1" maxvalue="12" defaultvalue="6" style="width:80px;">
+        </numberfield>
+      </div>
+      <button field="diseaseRollBtn" label="Stamina vs Disease" size="xs"
+        color="default" variant="outline"
+        onclick="rollHazard('diseaseDice','Stamina vs Disease');"></button>
+    </div>
+  </div>
+
+  <!-- ── COLD ──────────────────────────────────────────────────────────── -->
+  <div style="background:#1c1610; border:1px solid #2a2015;
+    border-left:3px solid #5a8ac8; border-radius:5px;
+    padding:11px 14px; margin-bottom:10px;">
+    <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+      text-transform:uppercase; color:#5a8ac8; margin-bottom:6px;">Cold</div>
+    <div style="font-size:10px; color:#b8a288; margin-bottom:6px;">
+      Stamina roll at intervals (frequency increases with severity: chilly day=per day,
+      winter=per shift, extreme=per stretch). Extra protection like a blanket gives +2.<br>
+      Fail = 1 damage + 1 stress, no natural healing. Keep rolling. Broken while
+      hypothermic = die the next time you must roll. Recovery only after warming up.
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+        <numberfield field="coldDice" label="Dice" size="xs" variant="unstyled"
+          minvalue="1" maxvalue="10" defaultvalue="3" style="width:60px;">
+        </numberfield>
+      </div>
+      <button field="coldRollBtn" label="Stamina vs Cold" size="xs"
+        color="default" variant="outline"
+        onclick="rollHazard('coldDice','Stamina vs Cold');"></button>
+    </div>
+  </div>
+
+  <!-- ── STARVATION ────────────────────────────────────────────────────── -->
+  <div style="background:#1c1610; border:1px solid #2a2015;
+    border-left:3px solid #c8902a; border-radius:5px;
+    padding:11px 14px; margin-bottom:10px;">
+    <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+      text-transform:uppercase; color:#c8902a; margin-bottom:6px;">Starvation</div>
+    <div style="font-size:10px; color:#b8a288;">
+      Must eat 1 ration per day. Starving: no Strength healing. After 1 week without
+      food: 1 damage per week. Broken while starving = die after another week.
+      Eating ends starvation immediately. <em style="color:#524535;">Stress (other attributes) heals normally.</em>
+    </div>
+  </div>
+
+  <!-- ── SLEEP DEPRIVATION ─────────────────────────────────────────────── -->
+  <div style="background:#1c1610; border:1px solid #2a2015;
+    border-left:3px solid #7d6b54; border-radius:5px;
+    padding:11px 14px; margin-bottom:10px;">
+    <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+      text-transform:uppercase; color:#7d6b54; margin-bottom:6px;">Sleep Deprivation</div>
+    <div style="font-size:10px; color:#b8a288;">
+      Must sleep 1 shift per day. Without sleep: cannot heal Wits damage. Broken by
+      Wits stress while deprived = collapse, sleep 1 shift, cannot be woken.
+      Recover after sleeping at least 1 shift.
+    </div>
+  </div>
+
+  <!-- ── EXPLOSIONS ────────────────────────────────────────────────────── -->
+  <div style="background:#1c1610; border:1px solid #2a2015;
+    border-left:3px solid #cc3333; border-radius:5px;
+    padding:11px 14px; margin-bottom:14px;">
+    <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+      text-transform:uppercase; color:#cc3333; margin-bottom:6px;">Explosions</div>
+    <div style="font-size:10px; color:#b8a288; margin-bottom:4px;">
+      Blast power = dice to roll. Short range: roll blast dice — each success = 1 damage
+      (base damage + extras). Engaged range: target suffers +1 extra damage minimum.
+      Medium range: blast power reduced by 6 (if nothing blocks). Armor protects.
+    </div>
+    <div style="font-size:9px; color:#524535; margin-bottom:8px;">
+      Blast power / base damage: 3(D)=1 · 6(C)=2 · 9(B)=3 · 12(A)=4
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+        <numberfield field="blastDice" label="Blast Power" size="xs" variant="unstyled"
+          minvalue="1" maxvalue="12" defaultvalue="6" style="width:80px;">
+        </numberfield>
+      </div>
+      <button field="blastRollBtn" label="Roll Blast" size="xs"
+        color="red"
+        onclick="rollHazard('blastDice','Explosion');"></button>
+    </div>
+  </div>
+
+  <!-- ── MOUNTS ────────────────────────────────────────────────────────── -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; margin-bottom:8px;
+    display:flex; align-items:center; gap:10px;">
+    <span>Mounts</span>
+    <span style="flex:1; height:1px;
+      background:linear-gradient(90deg,#2a2015,transparent);"></span>
+    <span style="font-size:9px; color:#524535; font-weight:400;
+      letter-spacing:0; text-transform:none;">SRD p.25</span>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px;">
+
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:10px 12px;">
+      <div style="font-size:9px; font-weight:700; color:#c8902a;
+        letter-spacing:0.12em; text-transform:uppercase; margin-bottom:4px;">Movement</div>
+      <div style="font-size:10px; color:#b8a288;">
+        Mobility roll each move action: each success = +1 additional zone moved.
+        Use mount's Agility, not rider's. Cannot enter Cramped zones.
+        Cluttered zones: max 1 zone per action.
+      </div>
+    </div>
+
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:10px 12px;">
+      <div style="font-size:9px; font-weight:700; color:#c8902a;
+        letter-spacing:0.12em; text-transform:uppercase; margin-bottom:4px;">Close Combat</div>
+      <div style="font-size:10px; color:#b8a288;">
+        One-handed weapons only from horseback. Opponents choose to attack
+        rider or mount. Attacks against a mounted rider suffer -1 penalty.
+      </div>
+    </div>
+
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:10px 12px;">
+      <div style="font-size:9px; font-weight:700; color:#c8902a;
+        letter-spacing:0.12em; text-transform:uppercase; margin-bottom:4px;">Ranged Combat</div>
+      <div style="font-size:10px; color:#b8a288;">
+        All ranged attacks from horseback suffer -2. Opponents choose to
+        target rider or mount.
+      </div>
+    </div>
+
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:10px 12px;">
+      <div style="font-size:9px; font-weight:700; color:#c8902a;
+        letter-spacing:0.12em; text-transform:uppercase; margin-bottom:4px;">Damage</div>
+      <div style="font-size:10px; color:#b8a288;">
+        Mount takes damage normally; recovers like a PC. Strength reduced
+        to 0 = perished (no crit roll). Mounts generally lack Wits or Empathy.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div style="font-size:9px; color:#3a2e22; text-align:right; letter-spacing:0.06em;">
+    Powered by Year Zero Engine
+  </div>
+
+  <!-- Hidden dice count fields (stored so values persist) -->
+  <numberfield field="fireDice"      label="" defaultvalue="6"  style="display:none;"></numberfield>
+  <numberfield field="drowningDice"  label="" defaultvalue="3"  style="display:none;"></numberfield>
+  <numberfield field="poisonDice"    label="" defaultvalue="6"  style="display:none;"></numberfield>
+  <numberfield field="diseaseDice"   label="" defaultvalue="6"  style="display:none;"></numberfield>
+  <numberfield field="coldDice"      label="" defaultvalue="3"  style="display:none;"></numberfield>
+  <numberfield field="blastDice"     label="" defaultvalue="6"  style="display:none;"></numberfield>
+
+</div>

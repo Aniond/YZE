@@ -1,0 +1,962 @@
+<script>
+  // ════════════════════════════════════════════════════════════════════════
+  // YZE NPC sheet. Roll functions and field names are read by the shared roll
+  // handlers (yze-pool / yze-combat / yze-armor / yze-crit / yze-push) and
+  // common.js — do NOT rename. ES5 only (var, function(){}, string concat).
+  // ════════════════════════════════════════════════════════════════════════
+
+  var NPC_ATTR_DEFS = [
+    { key: 'strength', label: 'STRENGTH', rollLabel: 'Strength' },
+    { key: 'agility',  label: 'AGILITY',  rollLabel: 'Agility'  },
+    { key: 'wits',     label: 'WITS',     rollLabel: 'Wits'     },
+    { key: 'empathy',  label: 'EMPATHY',  rollLabel: 'Empathy'  }
+  ];
+
+  function rollNpcSkill(skillName, attrKey, diceCount) {
+    // Conditions remove dice (SRD p.21) — same field names as the PC sheet, so
+    // yzeCondPenalty in common.js reads this NPC's condition checkboxes.
+    var pen     = yzeCondPenalty(attrKey);
+    var counts  = yzeApplyPenalty({ attr: diceCount, skill: 0, gear: 0 }, pen);
+
+    // Ad-hoc modifier (help/difficulty) + opposed (successes to beat) — SRD p.10-11.
+    var mod        = yzeReadModifier() + yzeReadDifficulty();
+    var opposed    = yzeReadOpposed();
+    var difficulty = api.getValue('data.difficulty') || 'average';
+    yzeApplyModifier(counts, mod);
+    var total   = counts.attr + counts.skill + counts.gear;
+
+    if (total <= 0) {
+      api.showNotification((pen > 0 || mod < 0)
+        ? 'Modifiers removed all dice — no roll possible.'
+        : 'No dice to roll!', 'red', 'Cannot Roll');
+      return;
+    }
+
+    var tags = [];
+    if (pen > 0)     tags.push('-' + pen + ' cond');
+    if (mod !== 0)   tags.push((mod > 0 ? '+' : '') + mod + ' mod');
+    if (opposed > 0) tags.push('vs ' + opposed);
+    var label = skillName + (tags.length ? ' (' + tags.join(', ') + ')' : '');
+
+    api.roll(total + 'd6', {
+      attrKey:    attrKey,
+      attrCount:  counts.attr,
+      skillCount: counts.skill,
+      gearCount:  counts.gear,
+      skillName:  label,
+      condPenalty: pen,
+      mod:        mod,
+      opposed:    opposed,
+      difficulty: difficulty
+    }, 'yze_pool');
+
+    api.setValues({ 'data.rollMod': 0, 'data.opposed': 0, 'data.difficulty': 'average' });
+  }
+
+  // Automated NPC attack (per action slot). Builds attribute + bonus-dice pool,
+  // applies conditions + ad-hoc modifier, then fires yze_combat — the same handler
+  // PCs use, so it does armor soak on the target, damage application (gated by the
+  // Auto-apply toggle), target locking, and push. `idx` is the action number 1-4.
+  function rollNpcAttack(idx) {
+    var attrKey = api.getValue('data.atkAttr' + idx)  || 'strength';
+    var bonus   = parseInt(api.getValue('data.atkBonus' + idx) || '0', 10);
+    var dmg      = parseInt(api.getValue('data.atkDmg' + idx)  || '0', 10);
+    var range   = api.getValue('data.atkRange' + idx) || 'engaged';
+    var nameVal = api.getValue('data.action' + idx + 'name') || 'Attack';
+
+    var base    = getNpcAttr(attrKey);
+    var pen     = yzeCondPenalty(attrKey);
+    // Bonus dice are gear-type (can take gear banes), matching a weapon's bonus.
+    var counts  = yzeApplyPenalty({ attr: base, skill: 0, gear: bonus }, pen);
+    var mod        = yzeReadModifier() + yzeReadDifficulty();
+    var difficulty = api.getValue('data.difficulty') || 'average';
+    yzeApplyModifier(counts, mod);
+    var pool    = counts.attr + counts.skill + counts.gear;
+
+    if (pool <= 0) {
+      api.showNotification((pen > 0 || mod < 0)
+        ? 'Modifiers removed all dice — no attack possible.'
+        : 'No dice to roll — set an attribute or bonus!', 'red', 'Cannot Attack');
+      return;
+    }
+
+    var tags = [];
+    if (pen > 0)   tags.push('-' + pen + ' cond');
+    if (mod !== 0) tags.push((mod > 0 ? '+' : '') + mod + ' mod');
+    var label = nameVal + (tags.length ? ' (' + tags.join(', ') + ')' : '');
+
+    api.roll(pool + 'd6', {
+      attrKey:    attrKey,
+      attrCount:  counts.attr,
+      skillCount: counts.skill,
+      gearCount:  counts.gear,
+      baseDamage: dmg,
+      skillName:  label,
+      range:      range,
+      weaponId:   '',
+      isAttack:   true,
+      condPenalty: pen,
+      mod:        mod,
+      difficulty: difficulty
+    }, 'yze_combat');
+
+    api.setValues({ 'data.rollMod': 0, 'data.difficulty': 'average' });
+  }
+
+  // D66 critical injury — rolled as 2d6 (tens / ones). Default physical.
+  function rollNpcCrit(critType) {
+    api.roll('2d6', { critType: critType || 'physical' }, 'yze_crit');
+  }
+
+  // Acquire a condition (SRD p.21). Three of a type is -3 to that group's rolls;
+  // the FOURTH breaks the NPC and triggers a crit of that type. NPCs track Health
+  // only (no Resolve pool), so a physical break zeroes Health while a mental break
+  // just flags Broken — both roll the matching crit.
+  function takeCondition(type) {
+    var boxes = (type === 'mental')
+      ? ['cond_angry', 'cond_scared', 'cond_disheartened']
+      : ['cond_exhausted', 'cond_battered', 'cond_wounded'];
+    function on(f) { var v = api.getValue('data.' + f); return (v === true || v === 1 || v === '1' || v === 'true'); }
+
+    for (var i = 0; i < boxes.length; i++) {
+      if (!on(boxes[i])) { api.setValue('data.' + boxes[i], true, refreshCondUI); return; }
+    }
+
+    var label = (type === 'mental') ? 'mental' : 'physical';
+    var upd = { 'data.isBroken': true };
+    if (type !== 'mental') upd['data.curHealth'] = 0;
+    api.setValues(upd, function() {
+      drawNpcHealth();
+      refreshBroken();
+      refreshCondUI();
+      api.showNotification('Fourth ' + label + ' condition - NPC is BROKEN!', 'red', 'Broken');
+      rollNpcCrit(type);
+    });
+  }
+
+  function getNpcAttr(key) {
+    return parseInt(api.getValue('data.' + key) || '0', 10);
+  }
+
+  // Speed shows the Agility value (YZE movement is Agility-based). Mirror it into
+  // the read-only Speed field, guarded so it never loops via onrecordchanged.
+  function syncSpeed() {
+    var agi = String(getNpcAttr('agility'));
+    if ((api.getValue('data.speed') || '') !== agi) {
+      api.setValues({ 'data.speed': agi });
+    }
+  }
+
+  // ── Attribute strip (canvas: big value + tap-to-roll) ──────────────────────
+  function drawNpcAttrs() {
+    // api.getCanvas() returns the 2D context directly — no .getContext('2d').
+    var c = api.getCanvas('npcAttrCanvas');
+    if (!c) return;
+    var W = c.width;
+    var H = c.height;
+    c.clearRect(0, 0, W, H);
+    c.clearTooltips();
+
+    var colSurface = '#1c1610';
+    var colBg      = '#1a140d';
+    var colBorder  = '#2a2015';
+    var colLabel   = '#7d6b54';
+    var colText    = '#f0d9b5';
+    var colPrimary = '#c8902a';
+    var colW = Math.floor(W / 4);
+
+    for (var i = 0; i < NPC_ATTR_DEFS.length; i++) {
+      var attr = NPC_ATTR_DEFS[i];
+      var val  = parseInt(api.getValue('data.' + attr.key) || '0', 10);
+      var x    = i * colW;
+
+      c.setFillStyle(i % 2 === 0 ? colSurface : colBg);
+      c.fillRect(x, 0, colW, H);
+
+      if (i < 3) {
+        c.setFillStyle(colBorder);
+        c.fillRect(x + colW - 1, 0, 1, H);
+      }
+
+      c.setFillStyle(colLabel);
+      c.setFont('700 9px sans-serif');
+      c.setTextAlign('center');
+      c.setTextBaseline('top');
+      c.fillText(attr.label, x + colW / 2, 9);
+
+      c.setFillStyle(val > 0 ? colText : colLabel);
+      c.setFont('700 30px Georgia, serif');
+      c.setTextBaseline('middle');
+      c.fillText(String(val), x + colW / 2, H / 2 + 5);
+
+      c.setFillStyle(colPrimary);
+      c.setFont('400 8px sans-serif');
+      c.setTextBaseline('bottom');
+      c.fillText('TAP TO ROLL', x + colW / 2, H - 6);
+
+      c.tooltip(x, 0, colW, H, 'Roll ' + attr.rollLabel + ' (' + val + 'd6)');
+    }
+  }
+
+  function onNpcAttrClick() {
+    // Canvas click coords come from event.x / event.y (not passed args).
+    var c = api.getCanvas('npcAttrCanvas');
+    if (!c) return;
+    var colW = Math.floor(c.width / 4);
+    var idx  = Math.floor(event.x / colW);
+    if (idx < 0 || idx >= NPC_ATTR_DEFS.length) return;
+    var attr = NPC_ATTR_DEFS[idx];
+    var val  = parseInt(api.getValue('data.' + attr.key) || '0', 10);
+    rollNpcSkill(attr.rollLabel, attr.key, val);
+  }
+
+  // ── Health pip strip (canvas: click a pip to set current Health) ───────────
+  function drawNpcHealth() {
+    var c = api.getCanvas('npcHealthCanvas');
+    if (!c) return;
+    var W = c.width;
+    var H = c.height;
+    c.clearRect(0, 0, W, H);
+    c.clearTooltips();
+
+    var cur = parseInt(api.getValue('data.curHealth') || '0', 10);
+    var max = parseInt(api.getValue('data.maxHealth') || '6', 10);
+    if (max <= 0) return;
+
+    var colPrimary = '#c8902a';
+    var colEmpty   = '#1c1610';
+    var colBorder  = '#2a2015';
+
+    var pipW   = 12;
+    var pipH   = 12;
+    var gap    = 5;
+    var r      = 3;
+    var startX = 0;
+    var y      = Math.floor((H - pipH) / 2);
+
+    for (var i = 0; i < max; i++) {
+      var x      = startX + i * (pipW + gap);
+      var filled = (i < cur);
+      var isCrit = (cur > 0 && i === cur - 1 && cur < max);
+
+      if (isCrit) {
+        c.setFillStyle('#cc3333');
+      } else if (filled) {
+        c.setFillStyle(colPrimary);
+      } else {
+        c.setFillStyle(colEmpty);
+      }
+
+      c.beginPath();
+      c.moveTo(x + r, y);
+      c.lineTo(x + pipW - r, y);
+      c.arc(x + pipW - r, y + r, r, -Math.PI / 2, 0);
+      c.lineTo(x + pipW, y + pipH - r);
+      c.arc(x + pipW - r, y + pipH - r, r, 0, Math.PI / 2);
+      c.lineTo(x + r, y + pipH);
+      c.arc(x + r, y + pipH - r, r, Math.PI / 2, Math.PI);
+      c.lineTo(x, y + r);
+      c.arc(x + r, y + r, r, Math.PI, -Math.PI / 2);
+      c.closePath();
+      c.fill();
+
+      if (!filled) {
+        c.setStrokeStyle(colBorder);
+        c.setLineWidth(1);
+        c.beginPath();
+        c.moveTo(x + r, y);
+        c.lineTo(x + pipW - r, y);
+        c.arc(x + pipW - r, y + r, r, -Math.PI / 2, 0);
+        c.lineTo(x + pipW, y + pipH - r);
+        c.arc(x + pipW - r, y + pipH - r, r, 0, Math.PI / 2);
+        c.lineTo(x + r, y + pipH);
+        c.arc(x + r, y + pipH - r, r, Math.PI / 2, Math.PI);
+        c.lineTo(x, y + r);
+        c.arc(x + r, y + r, r, Math.PI, -Math.PI / 2);
+        c.closePath();
+        c.stroke();
+      }
+
+      c.tooltip(x, y, pipW, pipH, filled ? 'Remove 1 health' : 'Add 1 health');
+    }
+  }
+
+  function onNpcHealthClick() {
+    var cur  = parseInt(api.getValue('data.curHealth') || '0', 10);
+    var max  = parseInt(api.getValue('data.maxHealth') || '6', 10);
+    var pipW = 12;
+    var gap  = 5;
+    for (var i = 0; i < max; i++) {
+      var px = i * (pipW + gap);
+      if (event.x >= px && event.x <= px + pipW) {
+        var newVal = (i < cur) ? i : i + 1;
+        api.setValue('data.curHealth', newVal, function() { drawNpcHealth(); });
+        return;
+      }
+    }
+  }
+
+  // ── Conditions (counter UI over the 6 hidden named checkboxes) ─────────────
+  function condBoxes(type) {
+    return (type === 'mental')
+      ? ['cond_angry', 'cond_scared', 'cond_disheartened']
+      : ['cond_exhausted', 'cond_battered', 'cond_wounded'];
+  }
+
+  function condCount(type) {
+    var fields = condBoxes(type), n = 0;
+    for (var i = 0; i < fields.length; i++) {
+      var v = api.getValue('data.' + fields[i]);
+      if (v === true || v === 1 || v === '1' || v === 'true') n++;
+    }
+    return n;
+  }
+
+  // + : set the next unchecked condition (fixed order). All three set -> Break.
+  function addCond(type) {
+    var fields = condBoxes(type);
+    for (var i = 0; i < fields.length; i++) {
+      var v = api.getValue('data.' + fields[i]);
+      if (!(v === true || v === 1 || v === '1' || v === 'true')) {
+        api.setValue('data.' + fields[i], true, refreshCondUI);
+        return;
+      }
+    }
+    takeCondition(type === 'mental' ? 'mental' : 'physical');
+  }
+
+  // - : clear the highest-set condition.
+  function removeCond(type) {
+    var fields = condBoxes(type);
+    for (var i = fields.length - 1; i >= 0; i--) {
+      var v = api.getValue('data.' + fields[i]);
+      if (v === true || v === 1 || v === '1' || v === 'true') {
+        api.setValue('data.' + fields[i], false, refreshCondUI);
+        return;
+      }
+    }
+  }
+
+  // Mirror the counts into the display stringfields. Guarded so it never loops
+  // when called from onrecordchanged (only writes when the value actually changed).
+  function refreshCondUI() {
+    var p = condCount('physical') + '/3';
+    var m = condCount('mental') + '/3';
+    var upd = {};
+    if (api.getValue('data.condPhysDisplay') !== p) upd['data.condPhysDisplay'] = p;
+    if (api.getValue('data.condMentDisplay') !== m) upd['data.condMentDisplay'] = m;
+    var has = false; for (var k in upd) { if (upd.hasOwnProperty(k)) { has = true; break; } }
+    if (has) api.setValues(upd);
+  }
+
+  // ── Broken badge (isBroken stored on a hidden checkbox) ────────────────────
+  function isBrokenNow() {
+    var b = api.getValue('data.isBroken');
+    return (b === true || b === 1 || b === '1' || b === 'true');
+  }
+
+  function setBroken(v) {
+    api.setValues({ 'data.isBroken': !!v }, function() { refreshBroken(); });
+  }
+
+  function refreshBroken() {
+    var broken = isBrokenNow();
+    api.setValues({
+      'fields.brokenBadge.hidden': !broken,
+      'fields.brokenSet.hidden':    broken
+    });
+  }
+
+  // ── Tabs ───────────────────────────────────────────────────────────────────
+  function showTab(name) {
+    api.setValues({
+      'fields.paneStats.hidden':   name !== 'stats',
+      'fields.paneActions.hidden': name !== 'actions',
+      'fields.paneNotes.hidden':   name !== 'notes',
+      'data.activeTab':            name
+    });
+  }
+
+  // ── Action card collapse ────────────────────────────────────────────────────
+  function applyActionCollapse() {
+    var upd = {};
+    for (var i = 1; i <= 4; i++) {
+      var on = parseInt(api.getValue('data.action' + i + 'Open') || '0', 10);
+      upd['fields.action' + i + 'Body.hidden'] = (on !== 1);
+    }
+    api.setValues(upd);
+  }
+
+  function toggleAction(idx) {
+    var key = 'data.action' + idx + 'Open';
+    var on  = parseInt(api.getValue(key) || '0', 10);
+    var upd = {};
+    upd[key] = on ? 0 : 1;
+    upd['fields.action' + idx + 'Body.hidden'] = on ? true : false;
+    api.setValues(upd);
+  }
+
+  // Push (SRD: NPCs push just like PCs). yze_pool / yze_combat store the roll
+  // context and set data.canPush; the shared yzePushRoll() (common.js) re-rolls.
+  function refreshNpcPush() {
+    var canPush = parseInt(api.getValue('data.canPush') || '0', 10);
+    api.setValues({ 'fields.pushSection.hidden': canPush !== 1 });
+  }
+
+  // Runs on the (always-visible-at-load) attribute canvas onload.
+  function initNpc() {
+    showTab(api.getValue('data.activeTab') || 'stats');
+    applyActionCollapse();
+    refreshCondUI();
+    refreshBroken();
+    drawNpcAttrs();
+    drawNpcHealth();
+    refreshNpcPush();
+    syncSpeed();
+  }
+
+  function onNpcChange() {
+    drawNpcAttrs();
+    drawNpcHealth();
+    refreshNpcPush();
+    refreshCondUI();
+    refreshBroken();
+    syncSpeed();
+  }
+</script>
+
+<!-- Outer wrapper is sacrificial: Realm drops/replaces the sheet's OUTERMOST
+     node on render, so a class on it never matches. The real scope class lives
+     on the INNER div below so it survives (same reason Kult's .gothic-* classes
+     work — they're on inner divs, never the root). -->
+<div style="background:#15110b; min-height:100%; color:#f0d9b5;">
+<div class="yze-sheet">
+
+<!-- THEME OVERRIDE
+     Realm VTT strips settings.themes, so the default primary stays blue/indigo.
+     APPROACH (confirmed by Sean):
+       - BUTTONS: set color= attribute on the element. Omit variant="filled".
+       - INPUTS: scope via .yze-sheet wrapper → target Mantine child class names
+         directly. Generic `input` selector loses the specificity battle;
+         `.mantine-NumberInput-input` etc. wins. -->
+<style>
+  /* variant="unstyled" strips Mantine — bare input wins with simple selector */
+  .yze-sheet input {
+    background-color: #1a140d;
+    border: 1px solid #3a2e1c;
+    border-radius: 4px;
+    color: #f0d9b5;
+    padding: 2px 6px;
+  }
+</style>
+
+<!-- ═══ IDENTITY STRIP ═══ -->
+<div style="background:#0a0805; border-bottom:2px solid #c8902a;
+  padding:12px 16px; display:flex; align-items:center; gap:14px;">
+
+  <portrait field="portrait" width="64" height="64"
+    style="border-radius:4px; border:1px solid #524024; flex-shrink:0;">
+  </portrait>
+
+  <div style="flex:1; min-width:0;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <namefield field="name" label="" size="md" bold="true"
+        placeholder="NPC name..."
+        style="font-family:Georgia, serif; font-size:19px; color:#f0d9b5;
+          letter-spacing:0.02em; flex:1; min-width:0;">
+      </namefield>
+
+      <!-- Broken badge — shown only when isBroken (click to clear) -->
+      <box field="brokenBadge">
+        <div onclick="setBroken(false);"
+          style="background:#6e1f1f; border:1px solid #cc3333; color:#ffd9d9;
+            font-size:10px; font-weight:700; letter-spacing:0.14em;
+            text-transform:uppercase; padding:4px 10px; border-radius:3px;
+            cursor:pointer;">Broken &times;</div>
+      </box>
+      <!-- When not broken — faint "mark broken" affordance -->
+      <box field="brokenSet">
+        <div onclick="setBroken(true);"
+          style="border:1px solid #3a2e1c; color:#524535; font-size:9px;
+            letter-spacing:0.12em; text-transform:uppercase; padding:4px 9px;
+            border-radius:3px; cursor:pointer;">Mark Broken</div>
+      </box>
+    </div>
+
+    <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+      <stringfield field="category" label="" size="xs"
+        placeholder="Beast / Human / Machine..."
+        style="font-size:10px; color:#b8a288; background:#1a140d;
+          border:1px solid #2a2015; padding:3px 8px; border-radius:3px;
+          flex:1; min-width:0;">
+      </stringfield>
+      <selectfield field="threatLevel" label="" size="xs"
+        options="low:Low Threat,med:Medium Threat,high:High Threat"
+        defaultvalue="med"
+        style="font-size:10px; background:#1a140d; border:1px solid #3a2e1c;
+          border-radius:3px; color:#c8902a;">
+      </selectfield>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TAB NAV ═══ -->
+<div style="display:flex; gap:0; background:#0a0805;
+  border-bottom:1px solid #2a2015;">
+  <button field="tabStats" label="Stats" size="sm" variant="subtle"    onclick="showTab('stats');"
+    style="flex:1; border-radius:0; color:#b8a288;
+      border-bottom:2px solid #c8902a;"></button>
+  <button field="tabActions" label="Actions" size="sm" variant="subtle"    onclick="showTab('actions');"
+    style="flex:1; border-radius:0; color:#7d6b54;"></button>
+  <button field="tabNotes" label="Notes" size="sm" variant="subtle"    onclick="showTab('notes');"
+    style="flex:1; border-radius:0; color:#7d6b54;"></button>
+</div>
+
+<!-- ═══════════════════════ STATS PANE ═══════════════════════ -->
+<box field="paneStats">
+
+  <!-- Attributes -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; padding:14px 18px 8px;
+    display:flex; align-items:center; gap:10px;">
+    <span>Attributes</span>
+    <span style="flex:1; height:1px;
+      background:linear-gradient(90deg,#2a2015,transparent);"></span>
+    <span style="font-size:10px; font-weight:400; letter-spacing:0;
+      text-transform:none; color:#524535;">Tap a card to roll</span>
+  </div>
+
+  <div style="margin:0 16px; border:1px solid #2a2015; border-radius:5px;
+    overflow:hidden; background:#1c1610;">
+    <canvas field="npcAttrCanvas" width="500" height="76"
+      style="width:100%; height:76px; display:block;"
+      onload="initNpc();"
+      onrecordchanged="onNpcChange();"
+      onclick="onNpcAttrClick();">
+    </canvas>
+    <!-- Inline setters — change a value and the strip above repaints (onchange) -->
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+      background:#2a2015; border-top:1px solid #2a2015;">
+      <div style="background:#15110b; padding:5px 6px; display:flex;
+        align-items:center; justify-content:center; gap:5px;">
+        <span style="font-size:8px; color:#524535; letter-spacing:0.1em;">SET</span>
+        <numberfield field="strength" label="" size="xs" variant="unstyled" minvalue="0" maxvalue="12"
+          defaultvalue="3" style="width:48px;" onchange="drawNpcAttrs();"></numberfield>
+      </div>
+      <div style="background:#15110b; padding:5px 6px; display:flex;
+        align-items:center; justify-content:center; gap:5px;">
+        <span style="font-size:8px; color:#524535; letter-spacing:0.1em;">SET</span>
+        <numberfield field="agility" label="" size="xs" variant="unstyled" minvalue="0" maxvalue="12"
+          defaultvalue="3" style="width:48px;" onchange="drawNpcAttrs(); syncSpeed();"></numberfield>
+      </div>
+      <div style="background:#15110b; padding:5px 6px; display:flex;
+        align-items:center; justify-content:center; gap:5px;">
+        <span style="font-size:8px; color:#524535; letter-spacing:0.1em;">SET</span>
+        <numberfield field="wits" label="" size="xs" variant="unstyled" minvalue="0" maxvalue="12"
+          defaultvalue="3" style="width:48px;" onchange="drawNpcAttrs();"></numberfield>
+      </div>
+      <div style="background:#15110b; padding:5px 6px; display:flex;
+        align-items:center; justify-content:center; gap:5px;">
+        <span style="font-size:8px; color:#524535; letter-spacing:0.1em;">SET</span>
+        <numberfield field="empathy" label="" size="xs" variant="unstyled" minvalue="0" maxvalue="12"
+          defaultvalue="1" style="width:48px;" onchange="drawNpcAttrs();"></numberfield>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vitals -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; padding:14px 18px 8px;
+    display:flex; align-items:center; gap:10px;">
+    <span>Vitals</span>
+    <span style="flex:1; height:1px;
+      background:linear-gradient(90deg,#2a2015,transparent);"></span>
+  </div>
+
+  <div style="margin:0 16px; display:grid;
+    grid-template-columns:2fr 1fr 1fr; gap:8px;">
+
+    <!-- Health -->
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      padding:9px 12px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.16em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:6px;">
+        Health <span style="font-weight:400; letter-spacing:0; color:#524535;
+          text-transform:none;">&mdash; click pips to set</span></div>
+      <canvas field="npcHealthCanvas" width="220" height="16"
+        style="width:100%; height:16px; display:block;"
+        onload="drawNpcHealth();"
+        onrecordchanged="drawNpcHealth();"
+        onclick="onNpcHealthClick();">
+      </canvas>
+    </div>
+
+    <!-- Armor -->
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      padding:9px 10px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.16em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:6px;">Armor</div>
+      <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px; display:inline-flex;">
+        <numberfield field="armor" label="" size="sm" variant="unstyled" minvalue="0" maxvalue="10"
+          defaultvalue="0"
+          style="font-family:Georgia,serif; font-size:18px; color:#f0d9b5;
+            width:56px;"></numberfield>
+      </div>
+    </div>
+
+    <!-- Speed — mirrors the Agility value (movement is Agility-based in YZE) -->
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      padding:9px 10px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.16em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:6px;">Speed</div>
+      <stringfield field="speed" label="" size="sm" readonly="true"
+        style="font-family:Georgia,serif; font-size:18px; color:#f0d9b5;">
+      </stringfield>
+    </div>
+  </div>
+
+  <!-- Conditions -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; padding:14px 18px 8px;
+    display:flex; align-items:center; gap:10px;">
+    <span>Conditions</span>
+    <span style="flex:1; height:1px;
+      background:linear-gradient(90deg,#2a2015,transparent);"></span>
+    <span style="font-size:10px; font-weight:400; letter-spacing:0;
+      text-transform:none; color:#524535;">&minus;1 per condition; 4th breaks</span>
+  </div>
+
+  <div style="margin:0 16px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+    <!-- Physical -->
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      padding:10px 12px; display:flex; align-items:center; gap:8px;">
+      <span style="font-size:10px; font-weight:700; letter-spacing:0.12em;
+        text-transform:uppercase; color:#b8a288; flex:1;">Physical</span>
+      <button field="condPhysMinus" label="&minus;" size="xs" variant="outline" color="orange"       onclick="removeCond('physical');"></button>
+      <stringfield field="condPhysDisplay" label="" defaultvalue="0/3"
+        readonly="true"
+        style="font-family:Consolas,monospace; font-size:13px; font-weight:600;
+          color:#f0d9b5; width:34px; text-align:center; background:transparent;
+          border:none;"></stringfield>
+      <button field="condPhysPlus" label="+" size="xs" variant="outline" color="orange"       onclick="addCond('physical');"></button>
+      <button field="condPhysBreak" label="Break" size="xs" color="red"       onclick="takeCondition('physical');"></button>
+    </div>
+    <!-- Mental -->
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      padding:10px 12px; display:flex; align-items:center; gap:8px;">
+      <span style="font-size:10px; font-weight:700; letter-spacing:0.12em;
+        text-transform:uppercase; color:#b8a288; flex:1;">Mental</span>
+      <button field="condMentMinus" label="&minus;" size="xs" variant="outline" color="orange"       onclick="removeCond('mental');"></button>
+      <stringfield field="condMentDisplay" label="" defaultvalue="0/3"
+        readonly="true"
+        style="font-family:Consolas,monospace; font-size:13px; font-weight:600;
+          color:#f0d9b5; width:34px; text-align:center; background:transparent;
+          border:none;"></stringfield>
+      <button field="condMentPlus" label="+" size="xs" variant="outline" color="orange"       onclick="addCond('mental');"></button>
+      <button field="condMentBreak" label="Break" size="xs" color="red"       onclick="takeCondition('mental');"></button>
+    </div>
+  </div>
+
+  <!-- Hidden named condition checkboxes — back the -1 penalty in common.js -->
+  <checkboxfield field="cond_exhausted"    label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_battered"     label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_wounded"      label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_angry"        label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_scared"       label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_disheartened" label="" style="display:none;"></checkboxfield>
+
+  <!-- Next Roll -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; padding:14px 18px 8px;
+    display:flex; align-items:center; gap:10px;">
+    <span>Next Roll</span>
+    <span style="flex:1; height:1px;
+      background:linear-gradient(90deg,#2a2015,transparent);"></span>
+    <span style="font-size:10px; font-weight:400; letter-spacing:0;
+      text-transform:none; color:#524535;">cleared after each roll</span>
+  </div>
+
+  <div style="margin:0 16px 16px; background:#1c1610; border:1px solid #2a2015;
+    border-radius:5px; padding:10px 12px; display:flex; align-items:center;
+    gap:12px; flex-wrap:wrap;">
+    <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+      <numberfield field="rollMod" label="Modifier" size="xs" variant="unstyled" defaultvalue="0"
+        minvalue="-10" maxvalue="10" style="width:92px;"></numberfield>
+    </div>
+    <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+      <numberfield field="opposed" label="Opposed" size="xs" variant="unstyled" defaultvalue="0"
+        minvalue="0" maxvalue="20" style="width:96px;"></numberfield>
+    </div>
+    <dropdown field="difficulty" label="Difficulty" size="xs" defaultvalue="average"
+      style="width:130px; flex-shrink:0;"
+      options='[
+        {"label":"Trivial (+3)",   "value":"trivial"},
+        {"label":"Simple (+2)",    "value":"simple"},
+        {"label":"Easy (+1)",      "value":"easy"},
+        {"label":"Average",        "value":"average"},
+        {"label":"Demanding (-1)", "value":"demanding"},
+        {"label":"Hard (-2)",      "value":"hard"},
+        {"label":"Formidable (-3)","value":"formidable"}
+      ]'>
+    </dropdown>
+    <checkboxfield field="autoApply" label="Auto-apply dmg to target"
+      size="xs"></checkboxfield>
+  </div>
+</box>
+
+<!-- ═══════════════════════ ACTIONS PANE ═══════════════════════ -->
+<box field="paneActions">
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; padding:14px 18px 8px;">
+    Actions
+  </div>
+
+  <div style="margin:0 16px 16px; display:flex; flex-direction:column; gap:8px;">
+
+    <!-- Action 1 -->
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      overflow:hidden;">
+      <div style="display:flex; align-items:center; gap:10px; padding:10px 12px;
+        cursor:pointer;" onclick="toggleAction(1);">
+        <span style="color:#524535; font-size:13px;">&#9656;</span>
+        <stringfield field="action1name" label="" placeholder="Action name..."
+          style="flex:1; font-family:Georgia,serif; font-size:14px; color:#f0d9b5;
+            background:transparent; border:none;"></stringfield>
+        <selectfield field="action1type" label=""
+          options="slow:Slow,fast:Fast,reactive:Reactive,none:--"
+          defaultvalue="slow" size="xs" style="font-size:9px;"></selectfield>
+        <button field="atkBtn1" label="Atk" variant="filled" size="xs"
+          onclick="event.stopPropagation(); rollNpcAttack(1);"></button>
+      </div>
+      <box field="action1Body">
+        <div style="border-top:1px solid #2a2015; padding:12px; background:#15110b;
+          display:flex; flex-direction:column; gap:8px;">
+          <stringfield field="action1desc" label="" placeholder="Description..."
+            style="background:#1a140d; border:1px solid #2a2015; border-radius:3px;
+              padding:7px 9px; color:#b8a288; font-style:italic;"></stringfield>
+          <stringfield field="action1dice" label=""
+            placeholder="e.g. STR + 2 gear  -  Dmg 3"
+            style="background:rgba(200,144,42,0.06); border:1px dashed #7a571c;
+              border-radius:3px; padding:5px 8px; color:#c8902a;
+              font-family:Consolas,monospace; font-size:11px;"></stringfield>
+          <div style="display:grid; grid-template-columns:64px 64px 64px 1fr auto;
+            gap:8px; align-items:end;">
+            <selectfield field="atkAttr1" label="Attr" size="xs"
+              options="strength:STR,agility:AGI,wits:WIT,empathy:EMP"
+              defaultvalue="strength"></selectfield>
+            <numberfield field="atkBonus1" label="+Dice" size="xs" variant="unstyled"
+              minvalue="0" maxvalue="10" defaultvalue="0"></numberfield>
+            <numberfield field="atkDmg1" label="Dmg" size="xs" variant="unstyled"
+              minvalue="0" maxvalue="20" defaultvalue="0"></numberfield>
+            <selectfield field="atkRange1" label="Range" size="xs"
+              options="engaged:Engaged,short:Short,medium:Medium,long:Long,extreme:Extreme"
+              defaultvalue="engaged"></selectfield>
+            <button field="atkRoll1" label="Roll Attack" size="sm"
+              variant="filled" onclick="rollNpcAttack(1);"></button>
+          </div>
+        </div>
+      </box>
+    </div>
+
+    <!-- Action 2 -->
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      overflow:hidden;">
+      <div style="display:flex; align-items:center; gap:10px; padding:10px 12px;
+        cursor:pointer;" onclick="toggleAction(2);">
+        <span style="color:#524535; font-size:13px;">&#9656;</span>
+        <stringfield field="action2name" label="" placeholder="Action name..."
+          style="flex:1; font-family:Georgia,serif; font-size:14px; color:#f0d9b5;
+            background:transparent; border:none;"></stringfield>
+        <selectfield field="action2type" label=""
+          options="slow:Slow,fast:Fast,reactive:Reactive,none:--"
+          defaultvalue="fast" size="xs" style="font-size:9px;"></selectfield>
+        <button field="atkBtn2" label="Atk" variant="filled" size="xs"
+          onclick="event.stopPropagation(); rollNpcAttack(2);"></button>
+      </div>
+      <box field="action2Body">
+        <div style="border-top:1px solid #2a2015; padding:12px; background:#15110b;
+          display:flex; flex-direction:column; gap:8px;">
+          <stringfield field="action2desc" label="" placeholder="Description..."
+            style="background:#1a140d; border:1px solid #2a2015; border-radius:3px;
+              padding:7px 9px; color:#b8a288; font-style:italic;"></stringfield>
+          <stringfield field="action2dice" label=""
+            placeholder="e.g. WIT roll  -  1 success"
+            style="background:rgba(200,144,42,0.06); border:1px dashed #7a571c;
+              border-radius:3px; padding:5px 8px; color:#c8902a;
+              font-family:Consolas,monospace; font-size:11px;"></stringfield>
+          <div style="display:grid; grid-template-columns:64px 64px 64px 1fr auto;
+            gap:8px; align-items:end;">
+            <selectfield field="atkAttr2" label="Attr" size="xs"
+              options="strength:STR,agility:AGI,wits:WIT,empathy:EMP"
+              defaultvalue="strength"></selectfield>
+            <numberfield field="atkBonus2" label="+Dice" size="xs" variant="unstyled"
+              minvalue="0" maxvalue="10" defaultvalue="0"></numberfield>
+            <numberfield field="atkDmg2" label="Dmg" size="xs" variant="unstyled"
+              minvalue="0" maxvalue="20" defaultvalue="0"></numberfield>
+            <selectfield field="atkRange2" label="Range" size="xs"
+              options="engaged:Engaged,short:Short,medium:Medium,long:Long,extreme:Extreme"
+              defaultvalue="engaged"></selectfield>
+            <button field="atkRoll2" label="Roll Attack" size="sm"
+              variant="filled" onclick="rollNpcAttack(2);"></button>
+          </div>
+        </div>
+      </box>
+    </div>
+
+    <!-- Action 3 -->
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      overflow:hidden;">
+      <div style="display:flex; align-items:center; gap:10px; padding:10px 12px;
+        cursor:pointer;" onclick="toggleAction(3);">
+        <span style="color:#524535; font-size:13px;">&#9656;</span>
+        <stringfield field="action3name" label="" placeholder="Action name..."
+          style="flex:1; font-family:Georgia,serif; font-size:14px; color:#f0d9b5;
+            background:transparent; border:none;"></stringfield>
+        <selectfield field="action3type" label=""
+          options="slow:Slow,fast:Fast,reactive:Reactive,none:--"
+          defaultvalue="slow" size="xs" style="font-size:9px;"></selectfield>
+        <button field="atkBtn3" label="Atk" variant="filled" size="xs"
+          onclick="event.stopPropagation(); rollNpcAttack(3);"></button>
+      </div>
+      <box field="action3Body">
+        <div style="border-top:1px solid #2a2015; padding:12px; background:#15110b;
+          display:flex; flex-direction:column; gap:8px;">
+          <stringfield field="action3desc" label="" placeholder="Description..."
+            style="background:#1a140d; border:1px solid #2a2015; border-radius:3px;
+              padding:7px 9px; color:#b8a288; font-style:italic;"></stringfield>
+          <stringfield field="action3dice" label=""
+            placeholder="e.g. STR vs STR opposed"
+            style="background:rgba(200,144,42,0.06); border:1px dashed #7a571c;
+              border-radius:3px; padding:5px 8px; color:#c8902a;
+              font-family:Consolas,monospace; font-size:11px;"></stringfield>
+          <div style="display:grid; grid-template-columns:64px 64px 64px 1fr auto;
+            gap:8px; align-items:end;">
+            <selectfield field="atkAttr3" label="Attr" size="xs"
+              options="strength:STR,agility:AGI,wits:WIT,empathy:EMP"
+              defaultvalue="strength"></selectfield>
+            <numberfield field="atkBonus3" label="+Dice" size="xs" variant="unstyled"
+              minvalue="0" maxvalue="10" defaultvalue="0"></numberfield>
+            <numberfield field="atkDmg3" label="Dmg" size="xs" variant="unstyled"
+              minvalue="0" maxvalue="20" defaultvalue="0"></numberfield>
+            <selectfield field="atkRange3" label="Range" size="xs"
+              options="engaged:Engaged,short:Short,medium:Medium,long:Long,extreme:Extreme"
+              defaultvalue="engaged"></selectfield>
+            <button field="atkRoll3" label="Roll Attack" size="sm"
+              variant="filled" onclick="rollNpcAttack(3);"></button>
+          </div>
+        </div>
+      </box>
+    </div>
+
+    <!-- Action 4 -->
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      overflow:hidden;">
+      <div style="display:flex; align-items:center; gap:10px; padding:10px 12px;
+        cursor:pointer;" onclick="toggleAction(4);">
+        <span style="color:#524535; font-size:13px;">&#9656;</span>
+        <stringfield field="action4name" label="" placeholder="Action name..."
+          style="flex:1; font-family:Georgia,serif; font-size:14px; color:#f0d9b5;
+            background:transparent; border:none;"></stringfield>
+        <selectfield field="action4type" label=""
+          options="slow:Slow,fast:Fast,reactive:Reactive,none:--"
+          defaultvalue="slow" size="xs" style="font-size:9px;"></selectfield>
+        <button field="atkBtn4" label="Atk" variant="filled" size="xs"
+          onclick="event.stopPropagation(); rollNpcAttack(4);"></button>
+      </div>
+      <box field="action4Body">
+        <div style="border-top:1px solid #2a2015; padding:12px; background:#15110b;
+          display:flex; flex-direction:column; gap:8px;">
+          <stringfield field="action4desc" label="" placeholder="Description..."
+            style="background:#1a140d; border:1px solid #2a2015; border-radius:3px;
+              padding:7px 9px; color:#b8a288; font-style:italic;"></stringfield>
+          <stringfield field="action4dice" label=""
+            placeholder="e.g. No roll required"
+            style="background:rgba(200,144,42,0.06); border:1px dashed #7a571c;
+              border-radius:3px; padding:5px 8px; color:#c8902a;
+              font-family:Consolas,monospace; font-size:11px;"></stringfield>
+          <div style="display:grid; grid-template-columns:64px 64px 64px 1fr auto;
+            gap:8px; align-items:end;">
+            <selectfield field="atkAttr4" label="Attr" size="xs"
+              options="strength:STR,agility:AGI,wits:WIT,empathy:EMP"
+              defaultvalue="strength"></selectfield>
+            <numberfield field="atkBonus4" label="+Dice" size="xs" variant="unstyled"
+              minvalue="0" maxvalue="10" defaultvalue="0"></numberfield>
+            <numberfield field="atkDmg4" label="Dmg" size="xs" variant="unstyled"
+              minvalue="0" maxvalue="20" defaultvalue="0"></numberfield>
+            <selectfield field="atkRange4" label="Range" size="xs"
+              options="engaged:Engaged,short:Short,medium:Medium,long:Long,extreme:Extreme"
+              defaultvalue="engaged"></selectfield>
+            <button field="atkRoll4" label="Roll Attack" size="sm"
+              variant="filled" onclick="rollNpcAttack(4);"></button>
+          </div>
+        </div>
+      </box>
+    </div>
+
+  </div>
+</box>
+
+<!-- ═══════════════════════ NOTES PANE ═══════════════════════ -->
+<box field="paneNotes">
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; padding:14px 18px 8px;">
+    Abilities &amp; Traits
+  </div>
+  <div style="padding:0 16px 12px;">
+    <richtextfield field="abilities" label="" height="120px"
+      placeholder="Passive traits, immunities, special rules...">
+    </richtextfield>
+  </div>
+
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; padding:6px 18px 8px;">
+    GM Notes
+  </div>
+  <div style="padding:0 16px 16px;">
+    <richtextfield field="gmNotes" label="" height="160px"
+      placeholder="Behaviour, tactics, loot, story hooks...">
+    </richtextfield>
+  </div>
+</box>
+
+<!-- ═══ PUSH BANNER (data.canPush === 1) ═══ -->
+<box field="pushSection">
+  <div style="background:#1f1200; border-top:2px solid #cc3333;
+    padding:9px 16px; display:flex; align-items:center;
+    justify-content:space-between;">
+    <div>
+      <div style="font-size:11px; color:#cc3333; text-transform:uppercase;
+        letter-spacing:0.12em; font-weight:bold; font-family:Georgia,serif;">
+        Push the Roll</div>
+      <div style="font-size:10px; color:#7d6b54; margin-top:2px;">
+        Re-roll non-1s; attribute banes cost Health (NPCs are Health-only)</div>
+    </div>
+    <button field="pushBtnNpc" label="PUSH" color="red" size="sm"
+      onclick="yzePushRoll();"></button>
+  </div>
+</box>
+
+<!-- ═══ FOOTER ═══ -->
+<div style="background:#0a0805; border-top:1px solid #2a2015;
+  padding:6px 16px; text-align:right; font-size:9px; color:#3a2e1c;
+  letter-spacing:0.06em;">
+  Powered by Year Zero Engine
+</div>
+
+<!-- ═══ HIDDEN STATE / STORAGE FIELDS ═══ -->
+<checkboxfield field="isBroken" label="" style="display:none;"></checkboxfield>
+<numberfield field="canPush" label="" defaultvalue="0" style="display:none;"></numberfield>
+<!-- Health is shown/edited via the pip strip; max sizes the track (hidden). -->
+<numberfield field="curHealth" label="" defaultvalue="0" style="display:none;"></numberfield>
+<numberfield field="maxHealth" label="" defaultvalue="6" style="display:none;"></numberfield>
+<!-- Initiative is set by the card draw (onRollInitiative) and read by the combat
+     tracker; no manual field needed, but it must exist in the schema. -->
+<numberfield field="initiative" label="" defaultvalue="0" style="display:none;"></numberfield>
+<stringfield field="activeTab" label="" defaultvalue="stats" style="display:none;"></stringfield>
+<numberfield field="action1Open" label="" defaultvalue="1" style="display:none;"></numberfield>
+<numberfield field="action2Open" label="" defaultvalue="0" style="display:none;"></numberfield>
+<numberfield field="action3Open" label="" defaultvalue="0" style="display:none;"></numberfield>
+<numberfield field="action4Open" label="" defaultvalue="0" style="display:none;"></numberfield>
+
+</div>
+</div>

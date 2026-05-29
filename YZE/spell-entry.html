@@ -1,0 +1,91 @@
+<script>
+// Local wrapper: reads this record's fields and calls castSpell() from common.js.
+function onCastSpell() {
+  castSpell(
+    parseInt(api.getValue('data.wpSpend')    || '1', 10),
+    api.getValue('data.name')                || 'Spell',
+    parseInt(api.getValue('data.rank')       || '1', 10),
+    api.getValue('data.discipline')          || ''
+  );
+}
+
+// Discipline badge color: amber for Awareness/Healing/Shapeshifting, purple for others.
+function onSpellEntryLoad() {
+  var disc = api.getValue('data.discipline') || '';
+  var isAmber = (disc === 'Awareness' || disc === 'Healing' || disc === 'Shapeshifting');
+  api.setValues({
+    'fields.discBadgeAmber.hidden':  !isAmber,
+    'fields.discBadgePurple.hidden':  isAmber
+  });
+}
+</script>
+
+<div style="display:flex; align-items:center; gap:6px; min-height:44px;
+  width:100%; padding:4px 8px; box-sizing:border-box;
+  background:#1a1612; border-bottom:1px solid #2a2015;">
+
+  <!-- Name -->
+  <namefield field="name" label="" size="xs" bold="true"
+    placeholder="Spell…"
+    style="flex:1; min-width:0; color:#f0d9b5;"
+    onload="onSpellEntryLoad();"
+    onrecordchanged="onSpellEntryLoad();">
+  </namefield>
+
+  <!-- Discipline badge — amber variant -->
+  <box field="discBadgeAmber">
+    <div style="font-size:8px; font-weight:700; letter-spacing:0.06em;
+      color:#c8902a; background:rgba(200,144,42,0.10);
+      border:1px solid #7a571c; border-radius:2px;
+      padding:2px 6px; white-space:nowrap; flex-shrink:0;">
+      <stringfield field="discipline" label="" readonly="true" size="xs"
+        style="background:transparent; border:none; color:#c8902a;
+          font-size:8px; font-weight:700; display:inline; width:auto;">
+      </stringfield>
+    </div>
+  </box>
+
+  <!-- Discipline badge — purple variant -->
+  <box field="discBadgePurple">
+    <div style="font-size:8px; font-weight:700; letter-spacing:0.06em;
+      color:#9a7ad4; background:rgba(154,122,212,0.10);
+      border:1px solid #5a3a8a; border-radius:2px;
+      padding:2px 6px; white-space:nowrap; flex-shrink:0;">
+      <stringfield field="discipline" label="" readonly="true" size="xs"
+        style="background:transparent; border:none; color:#9a7ad4;
+          font-size:8px; font-weight:700; display:inline; width:auto;">
+      </stringfield>
+    </div>
+  </box>
+
+  <!-- Rank badge -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.06em;
+    color:#7d6b54; background:#111009;
+    border:1px solid #2a2015; border-radius:2px;
+    padding:2px 6px; white-space:nowrap; flex-shrink:0;">R
+    <numberfield field="rank" label="" size="xs"
+      minvalue="1" maxvalue="3" defaultvalue="1" hidecontrols="true"
+      style="width:12px; background:transparent; border:none;
+        color:#7d6b54; font-size:9px; font-weight:700;
+        display:inline-block; text-align:left;">
+    </numberfield>
+  </div>
+
+  <!-- WP stepper -->
+  <div style="display:flex; align-items:center; gap:3px; flex-shrink:0;">
+    <span style="font-size:9px; color:#7d6b54; letter-spacing:0.08em;
+      text-transform:uppercase;">WP</span>
+    <numberfield field="wpSpend" label="" size="xs"
+      minvalue="1" maxvalue="10" defaultvalue="1"
+      style="width:40px; flex-shrink:0;">
+    </numberfield>
+  </div>
+
+  <!-- Cast button -->
+  <button field="castBtn" label="Cast" size="xs"
+    color="blue"
+    onclick="onCastSpell();"></button>
+
+  <deletebutton style="flex-shrink:0; margin-left:2px;"></deletebutton>
+
+</div>

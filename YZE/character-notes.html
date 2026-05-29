@@ -1,0 +1,403 @@
+<!-- ═══ PERSISTENT HEADER — copy verbatim to top of every tab ═══ -->
+<div class="yze-sheet">
+<style>
+  button[field="condPhysBreakP"] { background: #cc3333 !important; border-color: #cc3333 !important; color: #ffffff !important; }
+  button[field="condMentBreakP"] { background: #cc3333 !important; border-color: #cc3333 !important; color: #ffffff !important; }
+  button[field="condPhysMinusP"] { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+  button[field="condPhysPlusP"]  { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+  button[field="condMentMinusP"] { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+  button[field="condMentPlusP"]  { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+</style>
+
+<div style="padding:14px 18px 12px; background:#15110b;
+  border-bottom:2px solid #c8902a; position:relative;">
+  <div style="display:flex; gap:14px; align-items:flex-start;">
+    <portrait field="portrait" width="60" height="60"
+      style="border-radius:3px; border:1px solid #3a2e1c;
+        flex-shrink:0; cursor:pointer;"></portrait>
+    <div style="flex:1; min-width:0; padding-top:2px;">
+      <namefield field="name" label="" placeholder="Character name…"
+        style="font-family:Georgia,serif; font-size:22px;
+          color:#f0d9b5; font-weight:500;"></namefield>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:4px; flex-wrap:wrap;">
+        <stringfield field="archetype" label="" placeholder="Archetype / Role…"
+          style="flex:1; min-width:0; color:#c8902a; font-size:12px;"></stringfield>
+        <box field="brokenBadge">
+          <div onclick="setBrokenPlayer(false);"
+            style="background:#6e1f1f; border:1px solid #cc3333; color:#ffd9d9;
+              font-size:10px; font-weight:700; letter-spacing:0.14em;
+              text-transform:uppercase; padding:3px 10px; border-radius:3px;
+              cursor:pointer; white-space:nowrap;">Broken &times;</div>
+        </box>
+        <span style="font-size:10px; color:#e8b85a;
+          background:rgba(200,144,42,0.10); border:1px solid #7a571c;
+          padding:3px 8px; border-radius:2px;
+          font-family:Consolas,monospace; letter-spacing:0.08em; white-space:nowrap;
+          flex-shrink:0;">
+          <span style="color:#524535; margin-right:4px;">XP</span>
+          <calculated field="xpAvailable"></calculated>
+        </span>
+      </div>
+    </div>
+  </div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;">
+    <div style="background:#1c1610; border:1px solid rgba(200,144,42,0.20);
+      border-radius:5px; padding:8px 12px;
+      display:flex; align-items:center; gap:8px;">
+      <span style="font-size:9px; font-weight:700; letter-spacing:0.18em;
+        text-transform:uppercase; color:#c8902a;
+        width:52px; flex-shrink:0;">Health</span>
+      <canvas field="healthCanvas" autosize="true" width="160" height="14"
+        style="flex:1; height:14px; display:block; min-width:0;"
+        onload="drawHeader();"
+        onresize="drawHeader();"
+        onrecordchanged="drawHeader();"
+        onclick="onHealthPipClick();"></canvas>
+      <span style="font-family:Consolas,monospace; font-size:12px;
+        font-weight:600; color:#f0d9b5; white-space:nowrap; flex-shrink:0;">
+        <numberfield field="curHealth" label="" minvalue="0" defaultvalue="0"
+          variant="unstyled"
+          style="width:20px; display:inline-block; background:transparent;
+            border:none; color:#f0d9b5; text-align:right;"></numberfield>
+        <span style="color:#524535;">/</span>
+        <calculated field="maxHealth"></calculated>
+      </span>
+    </div>
+    <div style="background:#1c1610; border:1px solid rgba(154,122,212,0.20);
+      border-radius:5px; padding:8px 12px;
+      display:flex; align-items:center; gap:8px;">
+      <span style="font-size:9px; font-weight:700; letter-spacing:0.18em;
+        text-transform:uppercase; color:#9a7ad4;
+        width:52px; flex-shrink:0;">Resolve</span>
+      <canvas field="resolveCanvas" autosize="true" width="160" height="14"
+        style="flex:1; height:14px; display:block; min-width:0;"
+        onload="drawHeader();"
+        onresize="drawHeader();"
+        onrecordchanged="drawHeader();"
+        onclick="onResolvePipClick();"></canvas>
+      <span style="font-family:Consolas,monospace; font-size:12px;
+        font-weight:600; color:#f0d9b5; white-space:nowrap; flex-shrink:0;">
+        <numberfield field="curResolve" label="" minvalue="0" defaultvalue="0"
+          variant="unstyled"
+          style="width:20px; display:inline-block; background:transparent;
+            border:none; color:#f0d9b5; text-align:right;"></numberfield>
+        <span style="color:#524535;">/</span>
+        <calculated field="maxResolve"></calculated>
+      </span>
+    </div>
+  </div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      padding:9px 12px; display:flex; align-items:center; gap:7px;">
+      <span style="font-size:10px; font-weight:700; letter-spacing:0.12em;
+        text-transform:uppercase; color:#b8a288; flex:1;">Physical</span>
+      <button field="condPhysMinusP" label="&minus;" size="xs"
+        variant="outline" color="orange"
+        onclick="removeCondPlayer('physical');"></button>
+      <stringfield field="condPhysDisplay" label="" defaultvalue="0/3"
+        readonly="true"
+        style="font-family:Consolas,monospace; font-size:13px; font-weight:600;
+          color:#f0d9b5; width:32px; text-align:center;
+          background:transparent; border:none;"></stringfield>
+      <button field="condPhysPlusP" label="+" size="xs"
+        variant="outline" color="orange"
+        onclick="addCondPlayer('physical');"></button>
+      <button field="condPhysBreakP" label="Break" size="xs" color="red"
+        onclick="takeConditionPlayer('physical');"></button>
+    </div>
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      padding:9px 12px; display:flex; align-items:center; gap:7px;">
+      <span style="font-size:10px; font-weight:700; letter-spacing:0.12em;
+        text-transform:uppercase; color:#b8a288; flex:1;">Mental</span>
+      <button field="condMentMinusP" label="&minus;" size="xs"
+        variant="outline" color="orange"
+        onclick="removeCondPlayer('mental');"></button>
+      <stringfield field="condMentDisplay" label="" defaultvalue="0/3"
+        readonly="true"
+        style="font-family:Consolas,monospace; font-size:13px; font-weight:600;
+          color:#f0d9b5; width:32px; text-align:center;
+          background:transparent; border:none;"></stringfield>
+      <button field="condMentPlusP" label="+" size="xs"
+        variant="outline" color="orange"
+        onclick="addCondPlayer('mental');"></button>
+      <button field="condMentBreakP" label="Break" size="xs" color="red"
+        onclick="takeConditionPlayer('mental');"></button>
+    </div>
+  </div>
+  <checkboxfield field="cond_exhausted"    label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_battered"     label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_wounded"      label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_angry"        label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_scared"       label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_disheartened" label="" style="display:none;"></checkboxfield>
+</div>
+<!-- ═══ END PERSISTENT HEADER ═══ -->
+
+<script>
+function toggleXpRef() {
+  var cur    = api.getValue('data.xpRefOpen');
+  var isOpen = (cur === true || cur === 1 || cur === '1' || cur === 'true');
+  api.setValues({ 'data.xpRefOpen': !isOpen, 'fields.xpRefPanel.hidden': isOpen });
+}
+</script>
+
+<div style="padding:14px 16px; background:#15110b; min-height:100%;">
+
+  <!-- Personality Traits — 2-column grid (SRD p.6) -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+
+    <!-- PRIDE -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:12px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:8px;">Pride</div>
+      <stringfield field="pride" label="" size="xs"
+        placeholder="What are you most proud of?"
+        style="width:100%; margin-bottom:8px;"></stringfield>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <box field="prideBtn">
+          <button field="usePrideBtn" label="Use Pride" size="xs"
+            color="orange" variant="outline"
+            onclick="usePride();"></button>
+        </box>
+        <span style="font-size:10px; color:#524535; font-style:italic;">
+          1 free success — once per session</span>
+      </div>
+    </div>
+
+    <!-- BUDDY -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:12px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:8px;">Buddy</div>
+      <stringfield field="buddy" label="" size="xs"
+        placeholder="The PC you feel closest to…"
+        style="width:100%;"></stringfield>
+    </div>
+
+    <!-- WEAKNESS -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:12px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:8px;">Weakness</div>
+      <richtextfield field="weakness" label="" height="100px"
+        placeholder="Your Achilles heel…"></richtextfield>
+    </div>
+
+    <!-- BIG DREAM -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:12px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:8px;">Big Dream</div>
+      <richtextfield field="bigDream" label="" height="100px"
+        placeholder="Your long-term goal…"></richtextfield>
+    </div>
+
+    <!-- DARK SECRET (secretsNotes — field name preserved for backward compat) -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:12px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:8px;">Dark Secret</div>
+      <richtextfield field="secretsNotes" label="" height="100px"
+        placeholder="What haunts you…"></richtextfield>
+    </div>
+
+    <!-- RELATIONSHIPS (relNotes — field name preserved for backward compat) -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:12px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:8px;">Relationships</div>
+      <richtextfield field="relNotes" label="" height="100px"
+        placeholder="One sentence per PC…"></richtextfield>
+    </div>
+
+  </div>
+
+  <!-- Appearance & Bio (bioNotes — kept for backward compat) -->
+  <div style="background:#1c1610; border:1px solid #2a2015;
+    border-radius:5px; padding:12px; margin-top:12px;">
+    <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+      text-transform:uppercase; color:#7d6b54; margin-bottom:8px;">
+      Appearance &amp; Bio</div>
+    <richtextfield field="bioNotes" label="" height="100px"
+      placeholder="Looks, age, mannerisms, background…"></richtextfield>
+  </div>
+
+  <!-- Experience -->
+  <div style="background:#1c1610; border:1px solid #2a2015;
+    border-radius:5px; padding:12px; margin-top:12px;">
+
+    <!-- Header row: label + "?" reference toggle -->
+    <div style="display:flex; align-items:center; margin-bottom:8px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+        text-transform:uppercase; color:#7d6b54; flex:1;">Experience</div>
+      <button field="xpRefToggle" label="?" size="xs"
+        color="default" variant="outline"
+        onclick="toggleXpRef();"></button>
+    </div>
+
+    <!-- Earned / Spent / Available -->
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr;
+      gap:8px; margin-bottom:8px;">
+      <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+        <numberfield field="xp" label="Earned" size="xs" variant="unstyled"
+          minvalue="0" defaultvalue="0" style="width:100%;"></numberfield>
+      </div>
+      <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+        <numberfield field="xpSpent" label="Spent" size="xs" variant="unstyled"
+          minvalue="0" defaultvalue="0" style="width:100%;"></numberfield>
+      </div>
+      <div style="background:#1a140d; border:1px solid #3a2e1c;
+        border-radius:4px; padding:4px 8px;">
+        <div style="font-size:9px; color:#7d6b54; letter-spacing:0.08em;
+          margin-bottom:2px;">Available</div>
+        <calculated field="xpAvailable"></calculated>
+      </div>
+    </div>
+
+    <richtextfield field="xpLog" label="" height="80px"
+      placeholder="Session log of XP gains and purchases…"></richtextfield>
+
+    <div style="margin-top:8px;">
+      <button field="resetPrideBtn" label="New Session — Reset Pride"
+        size="xs" color="orange" variant="outline"
+        onclick="resetPrideForSession();"></button>
+    </div>
+
+    <!-- Collapsible XP reference panel (hidden by default) -->
+    <box field="xpRefPanel">
+      <div style="margin-top:10px; padding:10px 12px; background:#111009;
+        border:1px solid #2a2015; border-radius:4px;">
+
+        <!-- Skill costs -->
+        <div style="font-size:9px; font-weight:700; letter-spacing:0.18em;
+          text-transform:uppercase; color:#7d6b54; margin-bottom:6px;">
+          Skill Costs</div>
+        <div style="display:grid; grid-template-columns:auto 1fr;
+          gap:2px 14px; font-size:10px; margin-bottom:10px;">
+          <span style="color:#8a7055;">Rank 1</span><span style="color:#524535;">5 XP</span>
+          <span style="color:#8a7055;">Rank 2</span><span style="color:#524535;">10 XP</span>
+          <span style="color:#8a7055;">Rank 3</span><span style="color:#524535;">15 XP</span>
+          <span style="color:#8a7055;">Rank 4</span><span style="color:#524535;">20 XP</span>
+          <span style="color:#8a7055;">Rank 5</span><span style="color:#524535;">25 XP</span>
+        </div>
+
+        <!-- Specialty cost -->
+        <div style="font-size:10px; margin-bottom:12px; padding-bottom:10px;
+          border-bottom:1px solid #2a2015;">
+          <span style="color:#8a7055;">Specialty</span>
+          <span style="color:#524535; margin-left:14px;">10 XP</span>
+          <span style="color:#3a2e22; font-style:italic;"> — requires a teacher or trainer</span>
+        </div>
+
+        <!-- End-of-session questions -->
+        <div style="font-size:9px; font-weight:700; letter-spacing:0.18em;
+          text-transform:uppercase; color:#7d6b54; margin-bottom:6px;">
+          End of Session — Earn 1 XP Each:</div>
+        <div style="font-size:10px; color:#524535; display:flex;
+          flex-direction:column; gap:3px;">
+          <div>&#8226; Did you participate in a fight?</div>
+          <div>&#8226; Did you discover something new and important?</div>
+          <div>&#8226; Did you make friends with an NPC?</div>
+          <div>&#8226; Did you find a new home or safe haven?</div>
+          <div>&#8226; Did you defeat a powerful enemy?</div>
+          <div>&#8226; Did you perform an extraordinary act?</div>
+        </div>
+
+      </div>
+    </box>
+
+  </div>
+
+  <!-- Session Notes — full width -->
+  <div style="background:#1c1610; border:1px solid #2a2015;
+    border-radius:5px; padding:12px; margin-top:12px;">
+    <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+      text-transform:uppercase; color:#7d6b54; margin-bottom:8px;">
+      Session Notes</div>
+    <richtextfield field="notes" label="" height="180px"
+      placeholder="Loose thoughts, session-by-session notes, plot hooks…"></richtextfield>
+  </div>
+
+  <!-- Consumables ─────────────────────────────────────────────────────── -->
+  <div style="background:#1c1610; border:1px solid #2a2015;
+    border-radius:5px; padding:12px; margin-top:12px;">
+    <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+      text-transform:uppercase; color:#7d6b54; margin-bottom:8px;
+      display:flex; align-items:center; gap:10px;">
+      <span>Consumables</span>
+      <span style="flex:1; height:1px;
+        background:linear-gradient(90deg,#2a2015,transparent);"></span>
+      <span style="font-size:9px; color:#524535; font-weight:400;
+        letter-spacing:0; text-transform:none;">D6 — reduce on 1–2</span>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:6px;">
+
+      <!-- Slot 1 -->
+      <div style="display:flex; align-items:center; gap:6px;">
+        <stringfield field="supply1Name" label="" size="xs"
+          placeholder="Food / Water / Ammo…"
+          style="flex:1; min-width:0;"></stringfield>
+        <div style="background:#1a140d; border:1px solid #3a2e1c;
+          border-radius:4px; flex-shrink:0;">
+          <numberfield field="supply1Rating" label="Supply" size="xs"
+            variant="unstyled" minvalue="0" maxvalue="6" defaultvalue="3"
+            style="width:62px;"></numberfield>
+        </div>
+        <button field="supply1Btn" label="Roll" size="xs"
+          color="default" variant="outline"
+          onclick="rollSupply('supply1Rating','supply1Name');"></button>
+      </div>
+
+      <!-- Slot 2 -->
+      <div style="display:flex; align-items:center; gap:6px;">
+        <stringfield field="supply2Name" label="" size="xs"
+          placeholder="Food / Water / Ammo…"
+          style="flex:1; min-width:0;"></stringfield>
+        <div style="background:#1a140d; border:1px solid #3a2e1c;
+          border-radius:4px; flex-shrink:0;">
+          <numberfield field="supply2Rating" label="Supply" size="xs"
+            variant="unstyled" minvalue="0" maxvalue="6" defaultvalue="3"
+            style="width:62px;"></numberfield>
+        </div>
+        <button field="supply2Btn" label="Roll" size="xs"
+          color="default" variant="outline"
+          onclick="rollSupply('supply2Rating','supply2Name');"></button>
+      </div>
+
+      <!-- Slot 3 -->
+      <div style="display:flex; align-items:center; gap:6px;">
+        <stringfield field="supply3Name" label="" size="xs"
+          placeholder="Food / Water / Ammo…"
+          style="flex:1; min-width:0;"></stringfield>
+        <div style="background:#1a140d; border:1px solid #3a2e1c;
+          border-radius:4px; flex-shrink:0;">
+          <numberfield field="supply3Rating" label="Supply" size="xs"
+            variant="unstyled" minvalue="0" maxvalue="6" defaultvalue="3"
+            style="width:62px;"></numberfield>
+        </div>
+        <button field="supply3Btn" label="Roll" size="xs"
+          color="default" variant="outline"
+          onclick="rollSupply('supply3Rating','supply3Name');"></button>
+      </div>
+
+      <!-- Slot 4 -->
+      <div style="display:flex; align-items:center; gap:6px;">
+        <stringfield field="supply4Name" label="" size="xs"
+          placeholder="Food / Water / Ammo…"
+          style="flex:1; min-width:0;"></stringfield>
+        <div style="background:#1a140d; border:1px solid #3a2e1c;
+          border-radius:4px; flex-shrink:0;">
+          <numberfield field="supply4Rating" label="Supply" size="xs"
+            variant="unstyled" minvalue="0" maxvalue="6" defaultvalue="3"
+            style="width:62px;"></numberfield>
+        </div>
+        <button field="supply4Btn" label="Roll" size="xs"
+          color="default" variant="outline"
+          onclick="rollSupply('supply4Rating','supply4Name');"></button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

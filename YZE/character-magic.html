@@ -1,0 +1,286 @@
+<!-- ═══ PERSISTENT HEADER — copy verbatim to top of every tab ═══ -->
+<div class="yze-sheet">
+<style>
+  button[field="condPhysBreakP"] { background: #cc3333 !important; border-color: #cc3333 !important; color: #ffffff !important; }
+  button[field="condMentBreakP"] { background: #cc3333 !important; border-color: #cc3333 !important; color: #ffffff !important; }
+  button[field="condPhysMinusP"] { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+  button[field="condPhysPlusP"]  { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+  button[field="condMentMinusP"] { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+  button[field="condMentPlusP"]  { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+</style>
+
+<div style="padding:14px 18px 12px; background:#15110b;
+  border-bottom:2px solid #c8902a; position:relative;">
+  <div style="display:flex; gap:14px; align-items:flex-start;">
+    <portrait field="portrait" width="60" height="60"
+      style="border-radius:3px; border:1px solid #3a2e1c;
+        flex-shrink:0; cursor:pointer;"></portrait>
+    <div style="flex:1; min-width:0; padding-top:2px;">
+      <namefield field="name" label="" placeholder="Character name…"
+        style="font-family:Georgia,serif; font-size:22px;
+          color:#f0d9b5; font-weight:500;"></namefield>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:4px; flex-wrap:wrap;">
+        <stringfield field="archetype" label="" placeholder="Archetype / Role…"
+          style="flex:1; min-width:0; color:#c8902a; font-size:12px;"></stringfield>
+        <box field="brokenBadge">
+          <div onclick="setBrokenPlayer(false);"
+            style="background:#6e1f1f; border:1px solid #cc3333; color:#ffd9d9;
+              font-size:10px; font-weight:700; letter-spacing:0.14em;
+              text-transform:uppercase; padding:3px 10px; border-radius:3px;
+              cursor:pointer; white-space:nowrap;">Broken &times;</div>
+        </box>
+        <span style="font-size:10px; color:#e8b85a;
+          background:rgba(200,144,42,0.10); border:1px solid #7a571c;
+          padding:3px 8px; border-radius:2px;
+          font-family:Consolas,monospace; letter-spacing:0.08em; white-space:nowrap;
+          flex-shrink:0;">
+          <span style="color:#524535; margin-right:4px;">XP</span>
+          <calculated field="xpAvailable"></calculated>
+        </span>
+      </div>
+    </div>
+  </div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;">
+    <div style="background:#1c1610; border:1px solid rgba(200,144,42,0.20);
+      border-radius:5px; padding:8px 12px;
+      display:flex; align-items:center; gap:8px;">
+      <span style="font-size:9px; font-weight:700; letter-spacing:0.18em;
+        text-transform:uppercase; color:#c8902a;
+        width:52px; flex-shrink:0;">Health</span>
+      <canvas field="healthCanvas" autosize="true" width="160" height="14"
+        style="flex:1; height:14px; display:block; min-width:0;"
+        onload="drawHeader();"
+        onresize="drawHeader();"
+        onrecordchanged="drawHeader();"
+        onclick="onHealthPipClick();"></canvas>
+      <span style="font-family:Consolas,monospace; font-size:12px;
+        font-weight:600; color:#f0d9b5; white-space:nowrap; flex-shrink:0;">
+        <numberfield field="curHealth" label="" minvalue="0" defaultvalue="0"
+          variant="unstyled"
+          style="width:20px; display:inline-block; background:transparent;
+            border:none; color:#f0d9b5; text-align:right;"></numberfield>
+        <span style="color:#524535;">/</span>
+        <calculated field="maxHealth"></calculated>
+      </span>
+    </div>
+    <div style="background:#1c1610; border:1px solid rgba(154,122,212,0.20);
+      border-radius:5px; padding:8px 12px;
+      display:flex; align-items:center; gap:8px;">
+      <span style="font-size:9px; font-weight:700; letter-spacing:0.18em;
+        text-transform:uppercase; color:#9a7ad4;
+        width:52px; flex-shrink:0;">Resolve</span>
+      <canvas field="resolveCanvas" autosize="true" width="160" height="14"
+        style="flex:1; height:14px; display:block; min-width:0;"
+        onload="drawHeader();"
+        onresize="drawHeader();"
+        onrecordchanged="drawHeader();"
+        onclick="onResolvePipClick();"></canvas>
+      <span style="font-family:Consolas,monospace; font-size:12px;
+        font-weight:600; color:#f0d9b5; white-space:nowrap; flex-shrink:0;">
+        <numberfield field="curResolve" label="" minvalue="0" defaultvalue="0"
+          variant="unstyled"
+          style="width:20px; display:inline-block; background:transparent;
+            border:none; color:#f0d9b5; text-align:right;"></numberfield>
+        <span style="color:#524535;">/</span>
+        <calculated field="maxResolve"></calculated>
+      </span>
+    </div>
+  </div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      padding:9px 12px; display:flex; align-items:center; gap:7px;">
+      <span style="font-size:10px; font-weight:700; letter-spacing:0.12em;
+        text-transform:uppercase; color:#b8a288; flex:1;">Physical</span>
+      <button field="condPhysMinusP" label="&minus;" size="xs"
+        variant="outline" color="orange"
+        onclick="removeCondPlayer('physical');"></button>
+      <stringfield field="condPhysDisplay" label="" defaultvalue="0/3"
+        readonly="true"
+        style="font-family:Consolas,monospace; font-size:13px; font-weight:600;
+          color:#f0d9b5; width:32px; text-align:center;
+          background:transparent; border:none;"></stringfield>
+      <button field="condPhysPlusP" label="+" size="xs"
+        variant="outline" color="orange"
+        onclick="addCondPlayer('physical');"></button>
+      <button field="condPhysBreakP" label="Break" size="xs" color="red"
+        onclick="takeConditionPlayer('physical');"></button>
+    </div>
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      padding:9px 12px; display:flex; align-items:center; gap:7px;">
+      <span style="font-size:10px; font-weight:700; letter-spacing:0.12em;
+        text-transform:uppercase; color:#b8a288; flex:1;">Mental</span>
+      <button field="condMentMinusP" label="&minus;" size="xs"
+        variant="outline" color="orange"
+        onclick="removeCondPlayer('mental');"></button>
+      <stringfield field="condMentDisplay" label="" defaultvalue="0/3"
+        readonly="true"
+        style="font-family:Consolas,monospace; font-size:13px; font-weight:600;
+          color:#f0d9b5; width:32px; text-align:center;
+          background:transparent; border:none;"></stringfield>
+      <button field="condMentPlusP" label="+" size="xs"
+        variant="outline" color="orange"
+        onclick="addCondPlayer('mental');"></button>
+      <button field="condMentBreakP" label="Break" size="xs" color="red"
+        onclick="takeConditionPlayer('mental');"></button>
+    </div>
+  </div>
+  <checkboxfield field="cond_exhausted"    label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_battered"     label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_wounded"      label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_angry"        label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_scared"       label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_disheartened" label="" style="display:none;"></checkboxfield>
+</div>
+<!-- ═══ END PERSISTENT HEADER ═══ -->
+
+<!-- ═══ MAGIC TAB BODY ═══ -->
+<div style="background:#15110b; min-height:100%; padding:14px 16px;">
+
+  <!-- ── Willpower Points ─────────────────────────────────────────────── -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; margin-bottom:8px;
+    display:flex; align-items:center; gap:10px;">
+    <span>Willpower Points</span>
+    <span style="flex:1; height:1px;
+      background:linear-gradient(90deg,#2a2015,transparent);"></span>
+    <span style="font-size:9px; color:#524535; font-weight:400;
+      letter-spacing:0; text-transform:none;">spend to cast spells</span>
+  </div>
+  <div style="background:#1c1610; border:1px solid rgba(154,122,212,0.30);
+    border-radius:5px; padding:12px 16px; margin-bottom:16px;
+    display:flex; align-items:center; gap:14px;">
+    <numberfield field="wp" label="WP" size="md"
+      minvalue="0" maxvalue="10" defaultvalue="0"
+      style="width:80px; font-size:22px; font-family:Georgia,serif;
+        color:#9a7ad4; font-weight:700;">
+    </numberfield>
+    <div style="font-size:10px; color:#524535; font-style:italic;">
+      Gained by taking Resolve damage on a push.<br>
+      Lost when casting spells.
+    </div>
+  </div>
+
+  <!-- ── Disciplines ──────────────────────────────────────────────────── -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; margin-bottom:8px;
+    display:flex; align-items:center; gap:10px;">
+    <span>Disciplines</span>
+    <span style="flex:1; height:1px;
+      background:linear-gradient(90deg,#2a2015,transparent);"></span>
+    <span style="font-size:9px; color:#524535; font-weight:400;
+      letter-spacing:0; text-transform:none;">check to learn · set rank 1-3</span>
+  </div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:16px;">
+
+    <!-- Amber disciplines — Awareness, Healing, Shapeshifting -->
+    <div style="display:flex; flex-direction:column; gap:4px;">
+      <div style="font-size:8px; font-weight:700; letter-spacing:0.16em;
+        text-transform:uppercase; color:#c8902a; margin-bottom:2px;">Druidic</div>
+
+      <div style="display:flex; align-items:center; gap:8px; padding:5px 8px;
+        background:rgba(200,144,42,0.06); border:1px solid rgba(200,144,42,0.15);
+        border-left:2px solid #c8902a; border-radius:3px;">
+        <checkboxfield field="disc_awareness" label="Awareness" size="xs"
+          style="flex:1;"></checkboxfield>
+        <numberfield field="rank_awareness" label="" size="xs"
+          minvalue="1" maxvalue="3" defaultvalue="1"
+          style="width:38px; flex-shrink:0;"></numberfield>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:8px; padding:5px 8px;
+        background:rgba(200,144,42,0.06); border:1px solid rgba(200,144,42,0.15);
+        border-left:2px solid #c8902a; border-radius:3px;">
+        <checkboxfield field="disc_healing" label="Healing" size="xs"
+          style="flex:1;"></checkboxfield>
+        <numberfield field="rank_healing" label="" size="xs"
+          minvalue="1" maxvalue="3" defaultvalue="1"
+          style="width:38px; flex-shrink:0;"></numberfield>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:8px; padding:5px 8px;
+        background:rgba(200,144,42,0.06); border:1px solid rgba(200,144,42,0.15);
+        border-left:2px solid #c8902a; border-radius:3px;">
+        <checkboxfield field="disc_shapeshifting" label="Shapeshifting" size="xs"
+          style="flex:1;"></checkboxfield>
+        <numberfield field="rank_shapeshifting" label="" size="xs"
+          minvalue="1" maxvalue="3" defaultvalue="1"
+          style="width:38px; flex-shrink:0;"></numberfield>
+      </div>
+    </div>
+
+    <!-- Purple disciplines — Blood, Death, Elementalism, Symbolism -->
+    <div style="display:flex; flex-direction:column; gap:4px;">
+      <div style="font-size:8px; font-weight:700; letter-spacing:0.16em;
+        text-transform:uppercase; color:#9a7ad4; margin-bottom:2px;">Sorcery</div>
+
+      <div style="display:flex; align-items:center; gap:8px; padding:5px 8px;
+        background:rgba(154,122,212,0.06); border:1px solid rgba(154,122,212,0.15);
+        border-left:2px solid #9a7ad4; border-radius:3px;">
+        <checkboxfield field="disc_blood" label="Blood Magic" size="xs"
+          style="flex:1;"></checkboxfield>
+        <numberfield field="rank_blood" label="" size="xs"
+          minvalue="1" maxvalue="3" defaultvalue="1"
+          style="width:38px; flex-shrink:0;"></numberfield>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:8px; padding:5px 8px;
+        background:rgba(154,122,212,0.06); border:1px solid rgba(154,122,212,0.15);
+        border-left:2px solid #9a7ad4; border-radius:3px;">
+        <checkboxfield field="disc_death" label="Death Magic" size="xs"
+          style="flex:1;"></checkboxfield>
+        <numberfield field="rank_death" label="" size="xs"
+          minvalue="1" maxvalue="3" defaultvalue="1"
+          style="width:38px; flex-shrink:0;"></numberfield>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:8px; padding:5px 8px;
+        background:rgba(154,122,212,0.06); border:1px solid rgba(154,122,212,0.15);
+        border-left:2px solid #9a7ad4; border-radius:3px;">
+        <checkboxfield field="disc_elementalism" label="Elementalism" size="xs"
+          style="flex:1;"></checkboxfield>
+        <numberfield field="rank_elementalism" label="" size="xs"
+          minvalue="1" maxvalue="3" defaultvalue="1"
+          style="width:38px; flex-shrink:0;"></numberfield>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:8px; padding:5px 8px;
+        background:rgba(154,122,212,0.06); border:1px solid rgba(154,122,212,0.15);
+        border-left:2px solid #9a7ad4; border-radius:3px;">
+        <checkboxfield field="disc_symbolism" label="Symbolism" size="xs"
+          style="flex:1;"></checkboxfield>
+        <numberfield field="rank_symbolism" label="" size="xs"
+          minvalue="1" maxvalue="3" defaultvalue="1"
+          style="width:38px; flex-shrink:0;"></numberfield>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Known Spells ─────────────────────────────────────────────────── -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; margin-bottom:6px;
+    display:flex; align-items:center; gap:10px;">
+    <span>Known Spells</span>
+    <span style="flex:1; height:1px;
+      background:linear-gradient(90deg,#2a2015,transparent);"></span>
+    <span style="font-size:9px; color:#524535; font-weight:400;
+      letter-spacing:0; text-transform:none;">drag from compendium to add</span>
+  </div>
+
+  <list field="spellList" listtype="spell_entry"
+    emptylisttext="Drag spells from the compendium to add them">
+  </list>
+
+  <!-- ── Mishap Roll ───────────────────────────────────────────────────── -->
+  <div style="margin-top:14px; padding:10px 14px;
+    background:#1c1610; border:1px solid rgba(204,51,51,0.25);
+    border-radius:5px; display:flex; align-items:center; gap:10px;">
+    <div style="flex:1; font-size:10px; color:#524535; font-style:italic;">
+      Roll when a spell produces a mishap (1 on a magic die)
+    </div>
+    <button field="mishapRollBtn" label="Mishap Roll" size="xs"
+      color="red"
+      onclick="api.roll('1d12', {}, 'yze_mishap');"></button>
+  </div>
+
+</div>

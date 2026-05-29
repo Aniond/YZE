@@ -1,0 +1,50 @@
+<div style="background:#15110b; min-height:100%; padding:14px 16px;">
+
+  <!-- Name -->
+  <namefield field="name" label="" bold="true" size="md"
+    placeholder="Specialty name…"
+    style="font-family:Georgia,serif; font-size:20px;
+      color:#f0d9b5; margin-bottom:10px;">
+  </namefield>
+
+  <!-- Cost / rank row -->
+  <div style="display:flex; gap:10px; align-items:flex-end; margin-bottom:14px;">
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:8px 12px; flex:0 0 auto;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">XP Cost</div>
+      <numberfield field="xpCost" label="" size="sm"
+        minvalue="0" defaultvalue="10"
+        style="width:60px; color:#c8902a; font-weight:700;">
+      </numberfield>
+    </div>
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:8px 12px; flex:0 0 auto;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">Max Ranks</div>
+      <numberfield field="maxRanks" label="" size="sm"
+        minvalue="1" maxvalue="10" defaultvalue="1"
+        style="width:60px;">
+      </numberfield>
+    </div>
+    <div style="font-size:10px; color:#524535; font-style:italic; padding-bottom:8px;">
+      Set Max Ranks &gt; 1 for specialties that can be taken multiple times.
+    </div>
+  </div>
+
+  <!-- Description -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; margin-bottom:6px;">
+    Description
+  </div>
+  <richtextfield field="description" label="" height="180px"
+    placeholder="Describe what this specialty lets the character do…">
+  </richtextfield>
+
+  <!-- Footer -->
+  <div style="margin-top:16px; font-size:9px; color:#3a2e22;
+    text-align:right; letter-spacing:0.06em;">
+    Powered by Year Zero Engine
+  </div>
+
+</div>

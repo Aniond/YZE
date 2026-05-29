@@ -1,0 +1,49 @@
+<script>
+// Show rank stepper only when the specialty can be taken more than once.
+function onSpecialtyEntryLoad() {
+  var maxR = parseInt(api.getValue('data.maxRanks') || '1', 10);
+  api.setValues({ 'fields.rankSection.hidden': maxR <= 1 });
+}
+</script>
+
+<div style="display:flex; align-items:center; gap:8px; min-height:44px;
+  width:100%; padding:4px 8px; box-sizing:border-box;
+  background:#1a1612; border-bottom:1px solid #2a2015;">
+
+  <!-- Name -->
+  <namefield field="name" label="" size="xs" bold="true"
+    placeholder="Specialty…"
+    style="flex:1; min-width:0; color:#f0d9b5;"
+    onload="onSpecialtyEntryLoad();"
+    onrecordchanged="onSpecialtyEntryLoad();">
+  </namefield>
+
+  <!-- Rank stepper — hidden unless maxRanks > 1 -->
+  <box field="rankSection">
+    <div style="display:flex; align-items:center; gap:4px; flex-shrink:0;">
+      <span style="font-size:9px; color:#7d6b54; letter-spacing:0.08em;
+        text-transform:uppercase;">Rank</span>
+      <numberfield field="ranks" label="" size="xs"
+        minvalue="1" maxvalue="3" defaultvalue="1"
+        style="width:44px; flex-shrink:0;">
+      </numberfield>
+    </div>
+  </box>
+
+  <!-- XP cost badge -->
+  <div style="display:flex; align-items:center; gap:3px; flex-shrink:0;
+    font-size:9px; font-weight:700; letter-spacing:0.06em;
+    color:#c8902a; background:rgba(200,144,42,0.10);
+    border:1px solid #7a571c; border-radius:2px; padding:3px 7px;">
+    <numberfield field="xpCost" label="" size="xs" defaultvalue="10"
+      minvalue="0" hidecontrols="true"
+      style="width:22px; background:transparent; border:none;
+        color:#c8902a; font-size:9px; font-weight:700; text-align:right;
+        display:inline-block;">
+    </numberfield>
+    <span>XP</span>
+  </div>
+
+  <deletebutton style="flex-shrink:0; margin-left:2px;"></deletebutton>
+
+</div>

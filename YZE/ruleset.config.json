@@ -1,0 +1,329 @@
+{
+  "name": "Year Zero Engine",
+  "description": "Powered by Year Zero Engine — Free Tabletop License",
+  "version": 2,
+  "records": [
+    {
+      "name": "Characters",
+      "type": "characters",
+      "minX": 680,
+      "minY": 780,
+      "tabs": [
+        {
+          "name": "Character",
+          "file": "character-main.html"
+        },
+        {
+          "name": "Skills",
+          "file": "character-skills.html"
+        },
+        {
+          "name": "Combat",
+          "file": "character-combat.html"
+        },
+        {
+          "name": "Gear",
+          "file": "character-gear.html"
+        },
+        {
+          "name": "Notes",
+          "file": "character-notes.html"
+        },
+        {
+          "name": "Talents",
+          "file": "character-talents.html"
+        },
+        {
+          "name": "Magic",
+          "file": "character-magic.html"
+        }
+      ],
+      "hideFromCompendium": false,
+      "isList": false,
+      "hasToken": true,
+      "icon": "GiCharacter"
+    },
+    {
+      "name": "NPCs",
+      "type": "npcs",
+      "minX": 560,
+      "minY": 600,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "npc-main.html"
+        }
+      ],
+      "hideFromCompendium": false,
+      "isList": false,
+      "hasToken": true,
+      "icon": "GiPerson"
+    },
+    {
+      "name": "Skills",
+      "type": "skills",
+      "minX": 440,
+      "minY": 300,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "skills-main.html"
+        }
+      ],
+      "hideFromCompendium": false,
+      "isList": true,
+      "allowedListTypes": [
+        "characters"
+      ],
+      "icon": "GiBookmarklet"
+    },
+    {
+      "name": "Gear",
+      "type": "gear",
+      "minX": 440,
+      "minY": 360,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "gear-main.html"
+        }
+      ],
+      "hideFromCompendium": false,
+      "isList": false,
+      "icon": "GiBackpack"
+    },
+    {
+      "name": "Gear Entry",
+      "type": "gear_entry",
+      "minX": 440,
+      "minY": 360,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "gear-entry.html"
+        }
+      ],
+      "hideFromCompendium": true,
+      "isList": true,
+      "allowedListTypes": [
+        "gear"
+      ],
+      "icon": "GiBackpack"
+    },
+    {
+      "name": "Hazards Reference",
+      "type": "hazards_ref",
+      "minX": 500,
+      "minY": 600,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "hazards-reference.html"
+        }
+      ],
+      "hideFromCompendium": false,
+      "isList": false,
+      "icon": "GiHazardSign"
+    },
+    {
+      "name": "Chase Reference",
+      "type": "chase_ref",
+      "minX": 500,
+      "minY": 600,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "chase-reference.html"
+        }
+      ],
+      "hideFromCompendium": false,
+      "isList": false,
+      "icon": "GiRunningShoe"
+    },
+    {
+      "name": "Vehicles",
+      "type": "vehicles",
+      "minX": 560,
+      "minY": 500,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "vehicle-main.html"
+        }
+      ],
+      "hideFromCompendium": false,
+      "isList": false,
+      "hasToken": true,
+      "icon": "GiSteeringWheel"
+    },
+    {
+      "name": "Spells",
+      "type": "spells",
+      "minX": 460,
+      "minY": 380,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "spell-main.html"
+        }
+      ],
+      "hideFromCompendium": false,
+      "isList": false,
+      "icon": "GiSpellBook"
+    },
+    {
+      "name": "Spell Entry",
+      "type": "spell_entry",
+      "minX": 460,
+      "minY": 300,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "spell-entry.html"
+        }
+      ],
+      "hideFromCompendium": true,
+      "isList": true,
+      "allowedListTypes": [
+        "characters"
+      ],
+      "icon": "GiSpellBook"
+    },
+    {
+      "name": "Specialty",
+      "type": "specialty",
+      "minX": 460,
+      "minY": 320,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "specialty-main.html"
+        }
+      ],
+      "hideFromCompendium": false,
+      "isList": true,
+      "allowedListTypes": [
+        "characters"
+      ],
+      "icon": "GiStarMedal"
+    },
+    {
+      "name": "Gear Slot",
+      "type": "gear_slot",
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "gear-slot.html"
+        }
+      ],
+      "hideFromCompendium": true,
+      "isList": true,
+      "allowedListTypes": [
+        "characters"
+      ],
+      "icon": "GiBackpack"
+    }
+  ],
+  "settings": {
+    "healthIndicator": {
+      "disabled": false,
+      "maxHealthField": "maxHealth",
+      "currentHealthField": "curHealth",
+      "color": [
+        {
+          "percentage": 0,
+          "color": "#4A0000",
+          "label": "Broken"
+        },
+        {
+          "percentage": 1,
+          "color": "#8B0000",
+          "label": "Critical"
+        },
+        {
+          "percentage": 25,
+          "color": "#CC4400",
+          "label": "Hurt"
+        },
+        {
+          "percentage": 50,
+          "color": "#FF8C00",
+          "label": "Injured"
+        },
+        {
+          "percentage": 75,
+          "color": "#B8860B",
+          "label": "Battered"
+        },
+        {
+          "percentage": 100,
+          "color": "#3CB371",
+          "label": "Healthy"
+        }
+      ]
+    },
+    "combatTracker": {
+      "initiative": "initiative",
+      "initiativeMode": "standard",
+      "order": "asc",
+      "onTurnStart": {
+        "file": "rollhandlers/onTurnStart.js"
+      },
+      "onRollInitiative": {
+        "file": "rollhandlers/onRollInitiative.js"
+      }
+    },
+    "otherSettings": {
+      "commonScript": {
+        "file": "common.js"
+      }
+    },
+    "rollTypes": [
+      {
+        "name": "yze_pool",
+        "file": "rollhandlers/yze-pool.js"
+      },
+      {
+        "name": "yze_push",
+        "file": "rollhandlers/yze-push.js"
+      },
+      {
+        "name": "yze_combat",
+        "file": "rollhandlers/yze-combat.js"
+      },
+      {
+        "name": "yze_crit",
+        "file": "rollhandlers/yze-crit.js"
+      },
+      {
+        "name": "yze_armor",
+        "file": "rollhandlers/yze-armor.js"
+      },
+      {
+        "name": "yze_panic",
+        "file": "rollhandlers/yze-panic.js"
+      },
+      {
+        "name": "yze_spell",
+        "file": "rollhandlers/yze-spell.js"
+      },
+      {
+        "name": "yze_mishap",
+        "file": "rollhandlers/yze-mishap.js"
+      },
+      {
+        "name": "yze_vehicle_crit",
+        "file": "rollhandlers/yze-vehicle-crit.js"
+      },
+      {
+        "name": "yze_foot_obstacle",
+        "file": "rollhandlers/yze-foot-obstacle.js"
+      },
+      {
+        "name": "yze_vehicle_obstacle",
+        "file": "rollhandlers/yze-vehicle-obstacle.js"
+      }
+    ],
+    "themes": []
+  }
+}

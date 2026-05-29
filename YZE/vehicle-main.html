@@ -1,0 +1,292 @@
+<script>
+function toggleVehicleRef() {
+  var cur    = api.getValue('data.vehicleRefOpen');
+  var isOpen = (cur === true || cur === 1 || cur === '1' || cur === 'true');
+  api.setValues({ 'data.vehicleRefOpen': !isOpen, 'fields.vehicleRefPanel.hidden': isOpen });
+}
+
+function rollRam() {
+  var hull   = parseInt(api.getValue('data.hull') || '4', 10);
+  var ramDmg = Math.ceil(hull / 2);
+  api.showNotification(
+    'Ram damage rating: ' + ramDmg + ' (Hull ' + hull + ' / 2)',
+    'red', 'Ram Attack'
+  );
+}
+
+function rollComponentDamage() {
+  var name = api.getValue('data.name') || 'Vehicle';
+  api.roll('1d12', { vehicleName: name }, 'yze_vehicle_crit');
+}
+
+function rollRepair() {
+  api.roll('1d6', { skillName: 'Repair (Crafting)' }, 'yze_pool');
+}
+</script>
+
+<div style="background:#15110b; min-height:100%;">
+
+  <!-- ── Identity strip ─────────────────────────────────────────────────── -->
+  <div style="background:#0a0805; border-bottom:2px solid #c8902a;
+    padding:12px 16px; display:flex; align-items:center; gap:14px;">
+
+    <portrait field="portrait" width="64" height="64"
+      style="border-radius:4px; border:1px solid #524024; flex-shrink:0;">
+    </portrait>
+
+    <div style="flex:1; min-width:0;">
+      <namefield field="name" label="" size="md" bold="true"
+        placeholder="Vehicle name…"
+        style="font-family:Georgia,serif; font-size:19px; color:#f0d9b5;
+          letter-spacing:0.02em;">
+      </namefield>
+      <div style="margin-top:5px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <dropdown field="vehicleType" label="" size="xs"
+          style="font-size:11px; color:#c8902a;"
+          options='[
+            {"label":"Car",                        "value":"Car"},
+            {"label":"Truck",                      "value":"Truck"},
+            {"label":"Motorcycle",                 "value":"Motorcycle"},
+            {"label":"Dirtbike",                   "value":"Dirtbike"},
+            {"label":"Pickup Truck",               "value":"Pickup Truck"},
+            {"label":"Armored Personnel Carrier",  "value":"Armored Personnel Carrier"},
+            {"label":"Battle Tank",                "value":"Battle Tank"},
+            {"label":"Helicopter",                 "value":"Helicopter"},
+            {"label":"Custom",                     "value":"Custom"}
+          ]'>
+        </dropdown>
+        <checkboxfield field="isWrecked" label="Wrecked" size="xs"
+          style="color:#cc3333;"></checkboxfield>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Core Stats ──────────────────────────────────────────────────────── -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; padding:14px 18px 8px;
+    display:flex; align-items:center; gap:10px;">
+    <span>Stats</span>
+    <span style="flex:1; height:1px;
+      background:linear-gradient(90deg,#2a2015,transparent);"></span>
+  </div>
+
+  <div style="margin:0 16px 14px;
+    display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px;">
+
+    <!-- Hull -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:9px 12px; text-align:center;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.16em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">Hull</div>
+      <numberfield field="hull" label="" size="sm"
+        minvalue="0" maxvalue="20" defaultvalue="4"
+        style="font-size:18px; font-family:Georgia,serif;
+          color:#f0d9b5; font-weight:700; width:100%;">
+      </numberfield>
+    </div>
+
+    <!-- Current Hull -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:9px 12px; text-align:center;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.16em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">Current Hull</div>
+      <numberfield field="curHull" label="" size="sm"
+        minvalue="0" maxvalue="20" defaultvalue="4"
+        style="font-size:18px; font-family:Georgia,serif;
+          color:#c8902a; font-weight:700; width:100%;">
+      </numberfield>
+    </div>
+
+    <!-- Armor -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:9px 12px; text-align:center;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.16em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">Armor</div>
+      <numberfield field="armor" label="" size="sm"
+        minvalue="0" maxvalue="15" defaultvalue="0"
+        style="font-size:18px; font-family:Georgia,serif;
+          color:#f0d9b5; font-weight:700; width:100%;">
+      </numberfield>
+    </div>
+
+    <!-- Passengers -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:9px 12px; text-align:center;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.16em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">Passengers</div>
+      <numberfield field="passengers" label="" size="sm"
+        minvalue="0" maxvalue="20" defaultvalue="4"
+        style="font-size:18px; font-family:Georgia,serif;
+          color:#f0d9b5; font-weight:700; width:100%;">
+      </numberfield>
+    </div>
+
+  </div>
+
+  <div style="margin:0 16px 14px;
+    display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px;">
+
+    <!-- Maneuverability -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:9px 12px; text-align:center;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.16em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">Maneuver</div>
+      <numberfield field="maneuverability" label="" size="sm"
+        minvalue="-3" maxvalue="5" defaultvalue="0" showsign="true"
+        style="font-size:18px; font-family:Georgia,serif;
+          color:#f0d9b5; font-weight:700; width:100%;">
+      </numberfield>
+    </div>
+
+    <!-- Speed Road -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:9px 12px; text-align:center;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.16em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">Speed (Road)</div>
+      <numberfield field="travelSpeedRoad" label="" size="sm"
+        minvalue="0" defaultvalue="3"
+        style="font-size:18px; font-family:Georgia,serif;
+          color:#f0d9b5; font-weight:700; width:100%;">
+      </numberfield>
+    </div>
+
+    <!-- Speed Off-Road -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:9px 12px; text-align:center;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.16em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">Speed (Off-Road)</div>
+      <numberfield field="travelSpeedOffRoad" label="" size="sm"
+        minvalue="0" defaultvalue="0"
+        style="font-size:18px; font-family:Georgia,serif;
+          color:#f0d9b5; font-weight:700; width:100%;">
+      </numberfield>
+    </div>
+
+    <!-- Altitude -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:9px 12px; text-align:center;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.16em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">Altitude (zones)</div>
+      <numberfield field="altitude" label="" size="sm"
+        minvalue="0" defaultvalue="0"
+        style="font-size:18px; font-family:Georgia,serif;
+          color:#9a7ad4; font-weight:700; width:100%;">
+      </numberfield>
+    </div>
+
+  </div>
+
+  <!-- ── Vehicle Reference (collapsible) ────────────────────────────────── -->
+  <div style="margin:0 16px 14px; border:1px solid #2a2015; border-radius:5px; overflow:hidden;">
+    <div onclick="toggleVehicleRef();"
+      style="background:#1c1610; padding:9px 14px;
+        display:flex; align-items:center; gap:10px; cursor:pointer;">
+      <span style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+        text-transform:uppercase; color:#7d6b54; flex:1;">Vehicle Reference</span>
+      <button field="vehicleRefToggle" label="?" size="xs"
+        color="default" variant="outline"
+        onclick="event.stopPropagation(); toggleVehicleRef();"></button>
+    </div>
+    <box field="vehicleRefPanel">
+      <div style="padding:10px 14px; background:#111009;
+        border-top:1px solid #2a2015; font-size:10px; color:#8a7055;">
+        <div style="font-size:9px; font-weight:700; letter-spacing:0.16em;
+          text-transform:uppercase; color:#7d6b54; margin-bottom:8px;">
+          Typical Vehicles (SRD p.26)</div>
+        <div style="display:grid; grid-template-columns:auto 1fr 1fr 1fr 1fr 1fr 1fr;
+          gap:2px 10px; font-size:9px;">
+          <span style="color:#5a4a38; font-weight:700;">Vehicle</span>
+          <span style="color:#5a4a38; font-weight:700;">Pass.</span>
+          <span style="color:#5a4a38; font-weight:700;">Manvr.</span>
+          <span style="color:#5a4a38; font-weight:700;">Hull</span>
+          <span style="color:#5a4a38; font-weight:700;">Armor</span>
+          <span style="color:#5a4a38; font-weight:700;">Rd</span>
+          <span style="color:#5a4a38; font-weight:700;">Off</span>
+
+          <span style="color:#c8b090;">Car</span>             <span>4</span>  <span>+2</span> <span>4</span>  <span>0</span>  <span>3</span> <span>—</span>
+          <span style="color:#c8b090;">Truck</span>           <span>8</span>  <span>0</span>  <span>8</span>  <span>0</span>  <span>2</span> <span>1</span>
+          <span style="color:#c8b090;">Motorcycle</span>      <span>1</span>  <span>+3</span> <span>2</span>  <span>0</span>  <span>3</span> <span>—</span>
+          <span style="color:#c8b090;">Dirtbike</span>        <span>1</span>  <span>+3</span> <span>2</span>  <span>0</span>  <span>3</span> <span>3</span>
+          <span style="color:#c8b090;">Pickup</span>          <span>2</span>  <span>+1</span> <span>6</span>  <span>0</span>  <span>2</span> <span>2</span>
+          <span style="color:#c8b090;">APC</span>             <span>8</span>  <span>0</span>  <span>10</span> <span>8</span>  <span>2</span> <span>2</span>
+          <span style="color:#c8b090;">Battle Tank</span>     <span>—</span>  <span>-2</span> <span>16</span> <span>10</span> <span>1</span> <span>1</span>
+          <span style="color:#c8b090;">Helicopter</span>      <span>4</span>  <span>+2</span> <span>8</span>  <span>4</span>  <span>4</span> <span>4</span>
+        </div>
+        <div style="margin-top:8px; font-size:9px; color:#524535; font-style:italic;">
+          Speed = hexes per shift. — = cannot travel off-road.
+          Ram damage = &#x2308;Hull / 2&#x2309;. Component damage triggers at half Hull in one hit.
+        </div>
+      </div>
+    </box>
+  </div>
+
+  <!-- ── Combat ─────────────────────────────────────────────────────────── -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; padding:0 18px 8px;
+    display:flex; align-items:center; gap:10px;">
+    <span>Combat</span>
+    <span style="flex:1; height:1px;
+      background:linear-gradient(90deg,#2a2015,transparent);"></span>
+  </div>
+
+  <div style="margin:0 16px 14px; background:#1c1610; border:1px solid #2a2015;
+    border-radius:5px; padding:10px 14px;
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+    <div style="flex:1; font-size:10px; color:#524535;">
+      Ram = &#x2308;Hull / 2&#x2309; damage. Component damage when single hit &#x2265; Hull / 2.
+    </div>
+    <button field="ramBtn" label="Ram Attack" size="xs"
+      color="red"
+      onclick="rollRam();"></button>
+    <button field="compDmgBtn" label="Component Damage" size="xs"
+      color="default" variant="outline"
+      onclick="rollComponentDamage();"></button>
+  </div>
+
+  <!-- ── Repairs ────────────────────────────────────────────────────────── -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; padding:0 18px 8px;
+    display:flex; align-items:center; gap:10px;">
+    <span>Repairs</span>
+    <span style="flex:1; height:1px;
+      background:linear-gradient(90deg,#2a2015,transparent);"></span>
+  </div>
+
+  <div style="margin:0 16px 14px; background:#1c1610; border:1px solid #2a2015;
+    border-radius:5px; padding:10px 14px;
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+    <div style="flex:1;">
+      <div style="font-size:10px; color:#524535;">Each success removes 1 hull damage.</div>
+      <div style="font-size:9px; color:#3a2e22; font-style:italic; margin-top:2px;">
+        One roll per shift. Requires tools. Failed roll permanently reduces hull if at 0.</div>
+    </div>
+    <button field="repairBtn" label="Repair (Crafting Roll)" size="xs"
+      color="default" variant="outline"
+      onclick="rollRepair();"></button>
+  </div>
+
+  <!-- ── Notes ──────────────────────────────────────────────────────────── -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; padding:0 18px 8px;
+    display:flex; align-items:center; gap:10px;">
+    <span>Notes</span>
+    <span style="flex:1; height:1px;
+      background:linear-gradient(90deg,#2a2015,transparent);"></span>
+  </div>
+
+  <div style="margin:0 16px 16px;">
+    <richtextfield field="notes" label="" height="120px"
+      placeholder="Cargo, modifications, crew, history…">
+    </richtextfield>
+  </div>
+
+  <!-- ── Footer ─────────────────────────────────────────────────────────── -->
+  <div style="background:#0e0d0b; border-top:1px solid #2a2015;
+    padding:5px 14px; font-size:9px; color:#3a2e22; text-align:right;">
+    Powered by Year Zero Engine
+  </div>
+
+  <!-- Hidden state fields -->
+  <numberfield field="vehicleRefOpen" label="" defaultvalue="0" style="display:none;"></numberfield>
+
+</div>

@@ -1,0 +1,548 @@
+<!-- ═══ PERSISTENT HEADER — copy verbatim to top of every tab ═══ -->
+<div class="yze-sheet">
+<style>
+  button[field="condPhysBreakP"] { background: #cc3333 !important; border-color: #cc3333 !important; color: #ffffff !important; }
+  button[field="condMentBreakP"] { background: #cc3333 !important; border-color: #cc3333 !important; color: #ffffff !important; }
+  button[field="condPhysMinusP"] { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+  button[field="condPhysPlusP"]  { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+  button[field="condMentMinusP"] { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+  button[field="condMentPlusP"]  { background: transparent !important; border-color: #c8902a !important; color: #c8902a !important; }
+</style>
+
+<div style="padding:14px 18px 12px; background:#15110b;
+  border-bottom:2px solid #c8902a; position:relative;">
+  <div style="display:flex; gap:14px; align-items:flex-start;">
+    <portrait field="portrait" width="60" height="60"
+      style="border-radius:3px; border:1px solid #3a2e1c;
+        flex-shrink:0; cursor:pointer;"></portrait>
+    <div style="flex:1; min-width:0; padding-top:2px;">
+      <namefield field="name" label="" placeholder="Character name…"
+        style="font-family:Georgia,serif; font-size:22px;
+          color:#f0d9b5; font-weight:500;"></namefield>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:4px; flex-wrap:wrap;">
+        <stringfield field="archetype" label="" placeholder="Archetype / Role…"
+          style="flex:1; min-width:0; color:#c8902a; font-size:12px;"></stringfield>
+        <box field="brokenBadge">
+          <div onclick="setBrokenPlayer(false);"
+            style="background:#6e1f1f; border:1px solid #cc3333; color:#ffd9d9;
+              font-size:10px; font-weight:700; letter-spacing:0.14em;
+              text-transform:uppercase; padding:3px 10px; border-radius:3px;
+              cursor:pointer; white-space:nowrap;">Broken &times;</div>
+        </box>
+        <span style="font-size:10px; color:#e8b85a;
+          background:rgba(200,144,42,0.10); border:1px solid #7a571c;
+          padding:3px 8px; border-radius:2px;
+          font-family:Consolas,monospace; letter-spacing:0.08em; white-space:nowrap;
+          flex-shrink:0;">
+          <span style="color:#524535; margin-right:4px;">XP</span>
+          <calculated field="xpAvailable"></calculated>
+        </span>
+      </div>
+    </div>
+  </div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;">
+    <div style="background:#1c1610; border:1px solid rgba(200,144,42,0.20);
+      border-radius:5px; padding:8px 12px;
+      display:flex; align-items:center; gap:8px;">
+      <span style="font-size:9px; font-weight:700; letter-spacing:0.18em;
+        text-transform:uppercase; color:#c8902a;
+        width:52px; flex-shrink:0;">Health</span>
+      <canvas field="healthCanvas" autosize="true" width="160" height="14"
+        style="flex:1; height:14px; display:block; min-width:0;"
+        onload="drawHeader();"
+        onresize="drawHeader();"
+        onrecordchanged="drawHeader();"
+        onclick="onHealthPipClick();"></canvas>
+      <span style="font-family:Consolas,monospace; font-size:12px;
+        font-weight:600; color:#f0d9b5; white-space:nowrap; flex-shrink:0;">
+        <numberfield field="curHealth" label="" minvalue="0" defaultvalue="0"
+          variant="unstyled"
+          style="width:20px; display:inline-block; background:transparent;
+            border:none; color:#f0d9b5; text-align:right;"></numberfield>
+        <span style="color:#524535;">/</span>
+        <calculated field="maxHealth"></calculated>
+      </span>
+    </div>
+    <div style="background:#1c1610; border:1px solid rgba(154,122,212,0.20);
+      border-radius:5px; padding:8px 12px;
+      display:flex; align-items:center; gap:8px;">
+      <span style="font-size:9px; font-weight:700; letter-spacing:0.18em;
+        text-transform:uppercase; color:#9a7ad4;
+        width:52px; flex-shrink:0;">Resolve</span>
+      <canvas field="resolveCanvas" autosize="true" width="160" height="14"
+        style="flex:1; height:14px; display:block; min-width:0;"
+        onload="drawHeader();"
+        onresize="drawHeader();"
+        onrecordchanged="drawHeader();"
+        onclick="onResolvePipClick();"></canvas>
+      <span style="font-family:Consolas,monospace; font-size:12px;
+        font-weight:600; color:#f0d9b5; white-space:nowrap; flex-shrink:0;">
+        <numberfield field="curResolve" label="" minvalue="0" defaultvalue="0"
+          variant="unstyled"
+          style="width:20px; display:inline-block; background:transparent;
+            border:none; color:#f0d9b5; text-align:right;"></numberfield>
+        <span style="color:#524535;">/</span>
+        <calculated field="maxResolve"></calculated>
+      </span>
+    </div>
+  </div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      padding:9px 12px; display:flex; align-items:center; gap:7px;">
+      <span style="font-size:10px; font-weight:700; letter-spacing:0.12em;
+        text-transform:uppercase; color:#b8a288; flex:1;">Physical</span>
+      <button field="condPhysMinusP" label="&minus;" size="xs"
+        variant="outline" color="orange"
+        onclick="removeCondPlayer('physical');"></button>
+      <stringfield field="condPhysDisplay" label="" defaultvalue="0/3"
+        readonly="true"
+        style="font-family:Consolas,monospace; font-size:13px; font-weight:600;
+          color:#f0d9b5; width:32px; text-align:center;
+          background:transparent; border:none;"></stringfield>
+      <button field="condPhysPlusP" label="+" size="xs"
+        variant="outline" color="orange"
+        onclick="addCondPlayer('physical');"></button>
+      <button field="condPhysBreakP" label="Break" size="xs" color="red"
+        onclick="takeConditionPlayer('physical');"></button>
+    </div>
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px;
+      padding:9px 12px; display:flex; align-items:center; gap:7px;">
+      <span style="font-size:10px; font-weight:700; letter-spacing:0.12em;
+        text-transform:uppercase; color:#b8a288; flex:1;">Mental</span>
+      <button field="condMentMinusP" label="&minus;" size="xs"
+        variant="outline" color="orange"
+        onclick="removeCondPlayer('mental');"></button>
+      <stringfield field="condMentDisplay" label="" defaultvalue="0/3"
+        readonly="true"
+        style="font-family:Consolas,monospace; font-size:13px; font-weight:600;
+          color:#f0d9b5; width:32px; text-align:center;
+          background:transparent; border:none;"></stringfield>
+      <button field="condMentPlusP" label="+" size="xs"
+        variant="outline" color="orange"
+        onclick="addCondPlayer('mental');"></button>
+      <button field="condMentBreakP" label="Break" size="xs" color="red"
+        onclick="takeConditionPlayer('mental');"></button>
+    </div>
+  </div>
+  <checkboxfield field="cond_exhausted"    label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_battered"     label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_wounded"      label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_angry"        label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_scared"       label="" style="display:none;"></checkboxfield>
+  <checkboxfield field="cond_disheartened" label="" style="display:none;"></checkboxfield>
+</div>
+<!-- ═══ END PERSISTENT HEADER ═══ -->
+
+<script>
+  var COL = {
+    bg:           '#1a1612',
+    bgDeep:       '#111009',
+    bgSection:    '#1e1a14',
+    border:       '#2a2015',
+    borderBright: '#3a2e22',
+    gold:         '#c8902a',
+    goldDim:      'rgba(200,144,42,0.12)',
+    goldPip:      'rgba(200,144,42,0.10)',
+    goldStroke:   'rgba(200,144,42,0.35)',
+    textPrimary:  '#f0d9b5',
+    textMid:      '#c8b090',
+    textMuted:    '#8a7055',
+    textDim:      '#5a4a38',
+    textGhost:    '#3a2e22',
+    red:          '#cc3333',
+    redDim:       'rgba(204,51,51,0.15)',
+    redPip:       'rgba(204,51,51,0.10)',
+    purple:       '#9966cc',
+    purpleDim:    'rgba(153,102,204,0.15)',
+    badgeStr:     '#8B3A3A',
+    badgeAgi:     '#3A5A8B',
+    badgeWit:     '#3A7A4A',
+    badgeEmp:     '#6A3A8B',
+    stripe:       'rgba(200,144,42,0.04)'
+  };
+
+  // 4 attribute-grouped sections (spec §4.2 + §2 accent colours)
+  var HDR_H   = 26;   // section header height
+  var ROW_H   = 38;   // skill row height
+  var SEC_GAP = 6;    // blank gap between sections
+
+  var SKILL_GROUPS = [
+    {
+      attr: 'strength', label: 'STRENGTH', badge: 'STR', accent: '#b85050',
+      tint: 'rgba(184,80,80,0.08)',
+      skills: [
+        { name: 'Force',   key: 'sk_force',   attr: 'strength' },
+        { name: 'Melee',   key: 'sk_melee',   attr: 'strength' },
+        { name: 'Stamina', key: 'sk_stamina', attr: 'strength' }
+      ]
+    },
+    {
+      attr: 'agility', label: 'AGILITY', badge: 'AGI', accent: '#5a8ac8',
+      tint: 'rgba(90,138,200,0.08)',
+      skills: [
+        { name: 'Marksmanship', key: 'sk_marksmanship', attr: 'agility' },
+        { name: 'Mobility',     key: 'sk_mobility',     attr: 'agility' },
+        { name: 'Stealth',      key: 'sk_stealth',      attr: 'agility' }
+      ]
+    },
+    {
+      attr: 'wits', label: 'WITS', badge: 'WIT', accent: '#6aa07a',
+      tint: 'rgba(106,160,122,0.08)',
+      skills: [
+        { name: 'Crafting',    key: 'sk_crafting',    attr: 'wits' },
+        { name: 'Observation', key: 'sk_observation', attr: 'wits' },
+        { name: 'Survival',    key: 'sk_survival',    attr: 'wits' }
+      ]
+    },
+    {
+      attr: 'empathy', label: 'EMPATHY', badge: 'EMP', accent: '#a070c8',
+      tint: 'rgba(160,112,200,0.08)',
+      skills: [
+        { name: 'Healing',    key: 'sk_healing',    attr: 'empathy' },
+        { name: 'Insight',    key: 'sk_insight',    attr: 'empathy' },
+        { name: 'Persuasion', key: 'sk_persuasion', attr: 'empathy' }
+      ]
+    }
+  ];
+
+  // Row layout constants (canvas width = 650)
+  var SC = {
+    nameX:    14,
+    badgeX:   170,   // tiny faint attr tag after name
+    pipStart: 260,   // first pip centre-x
+    pipR:       6,
+    pipGap:    16,
+    rollBtnX:  566,  // roll button left edge
+    rollBtnW:   50,
+    rollBtnH:   20
+  };
+
+  // Build a flat LAYOUT array (header / row / gap entries with y + h)
+  // so draw and click share identical geometry — no drift.
+  function buildSkillLayout() {
+    var entries = [];
+    var y = 0;
+    for (var g = 0; g < SKILL_GROUPS.length; g++) {
+      var grp = SKILL_GROUPS[g];
+      entries.push({ kind: 'header', grp: grp, y: y, h: HDR_H });
+      y += HDR_H;
+      for (var s = 0; s < grp.skills.length; s++) {
+        entries.push({ kind: 'row', grp: grp, skill: grp.skills[s], y: y, h: ROW_H });
+        y += ROW_H;
+      }
+      if (g < SKILL_GROUPS.length - 1) {
+        entries.push({ kind: 'gap', y: y, h: SEC_GAP });
+        y += SEC_GAP;
+      }
+    }
+    return entries;
+  }
+
+  function skillVal(key) { return parseInt(api.getValue('data.' + key) || '0', 10); }
+  function attrVal(key)  { return parseInt(api.getValue('data.' + key) || '0', 10); }
+
+  // Rounded rectangle path helper (no roundRect — not available in Realm VTT canvas)
+  function drawRoundRect(c, x, y, w, h, r) {
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.lineTo(x + w - r, y);
+    c.arc(x + w - r, y + r, r, -Math.PI / 2, 0);
+    c.lineTo(x + w, y + h - r);
+    c.arc(x + w - r, y + h - r, r, 0, Math.PI / 2);
+    c.lineTo(x + r, y + h);
+    c.arc(x + r, y + h - r, r, Math.PI / 2, Math.PI);
+    c.lineTo(x, y + r);
+    c.arc(x + r, y + r, r, Math.PI, -Math.PI / 2);
+    c.closePath();
+  }
+
+  // ── Canvas draw ───────────────────────────────────────────────────────────
+  function drawSkills() {
+    var c = api.getCanvas('skillCanvas');
+    if (!c) return;
+    var W = c.width, H = c.height;
+    c.clearOverlayFields();
+    c.clearTooltips();
+    c.clearRect(0, 0, W, H);
+    c.setFillStyle(COL.bgDeep);
+    c.fillRect(0, 0, W, H);
+
+    var layout = buildSkillLayout();
+    var rowIdx = 0;  // for alternating row background (resets per section)
+
+    for (var i = 0; i < layout.length; i++) {
+      var e = layout[i];
+      if (e.kind === 'header') {
+        rowIdx = 0;
+        drawSkillGroupHeader(c, W, e);
+      } else if (e.kind === 'row') {
+        drawSkillRow(c, W, e, rowIdx);
+        rowIdx++;
+      }
+      // 'gap' entries leave blank space
+    }
+  }
+
+  function drawSkillGroupHeader(c, W, e) {
+    var y      = e.y;
+    var grp    = e.grp;
+    var accent = grp.accent;
+    var attrV  = parseInt(api.getValue('data.' + grp.attr) || '0', 10);
+    var cy     = y + HDR_H / 2;
+
+    // Tinted background
+    c.setFillStyle(grp.tint);
+    c.fillRect(0, y, W, HDR_H);
+
+    // Left accent bar
+    c.setFillStyle(accent);
+    c.fillRect(0, y, 3, HDR_H);
+
+    // Bottom border
+    c.setFillStyle(accent + '44');
+    c.fillRect(0, y + HDR_H - 1, W, 1);
+
+    // Attribute label
+    c.setFillStyle(accent);
+    c.setFont('700 10px sans-serif');
+    c.setTextAlign('left');
+    c.setTextBaseline('middle');
+    c.fillText(grp.label, 12, cy);
+
+    // "base Xd6" subtitle
+    c.setFillStyle(COL.textMuted);
+    c.setFont('400 9px sans-serif');
+    c.setTextAlign('left');
+    c.fillText('base ' + attrV + 'd6', 96, cy);
+
+    // [Roll ATR] button — right-aligned
+    var btnW = 58, btnH = 18, btnR = 2;
+    var btnX = W - btnW - 10;
+    var btnY = y + Math.floor((HDR_H - btnH) / 2);
+    drawRoundRect(c, btnX, btnY, btnW, btnH, btnR);
+    c.setFillStyle(accent + '22');
+    c.fill();
+    c.setStrokeStyle(accent + '88');
+    c.setLineWidth(1);
+    c.stroke();
+    c.setFillStyle(accent);
+    c.setFont('700 9px sans-serif');
+    c.setTextAlign('center');
+    c.fillText('Roll ' + grp.badge, btnX + btnW / 2, cy);
+    c.tooltip(btnX, btnY, btnW, btnH, 'Roll ' + grp.label + ' attribute only');
+  }
+
+  function drawSkillRow(c, W, e, rowIdx) {
+    var y      = e.y;
+    var grp    = e.grp;
+    var skill  = e.skill;
+    var accent = grp.accent;
+    var level  = parseInt(api.getValue('data.' + skill.key) || '0', 10);
+    var cy     = y + ROW_H / 2;
+
+    // Row background — alternating within section
+    c.setFillStyle(rowIdx % 2 === 0 ? COL.bg : COL.bgSection);
+    c.fillRect(0, y, W, ROW_H);
+
+    // Subdued left accent bar
+    c.setFillStyle(accent + '44');
+    c.fillRect(0, y, 2, ROW_H);
+
+    // Bottom border
+    c.setFillStyle(COL.border);
+    c.fillRect(0, y + ROW_H - 1, W, 1);
+
+    // Skill name
+    c.setFillStyle(COL.textMid);
+    c.setFont('400 12px sans-serif');
+    c.setTextAlign('left');
+    c.setTextBaseline('middle');
+    c.fillText(skill.name, SC.nameX, cy);
+
+    // Tiny faint attr tag
+    c.setFillStyle(accent + '88');
+    c.setFont('700 8px monospace');
+    c.setTextAlign('left');
+    c.fillText(grp.badge, SC.badgeX, cy);
+
+    // Pips
+    for (var p = 0; p < 5; p++) {
+      var px = SC.pipStart + p * SC.pipGap;
+      c.beginPath();
+      c.arc(px, cy, SC.pipR, 0, Math.PI * 2);
+      c.closePath();
+      if (p < level) {
+        c.setFillStyle(accent);
+        c.fill();
+      } else {
+        c.setFillStyle(COL.goldPip);
+        c.fill();
+        c.setStrokeStyle(accent + '55');
+        c.setLineWidth(1);
+        c.stroke();
+      }
+      c.tooltip(px - SC.pipR, cy - SC.pipR, SC.pipR * 2, SC.pipR * 2,
+        'Set ' + skill.name + ' to ' + (p + 1));
+    }
+
+    // ROLL button
+    var btnX = SC.rollBtnX;
+    var btnY = cy - SC.rollBtnH / 2;
+    drawRoundRect(c, btnX, btnY, SC.rollBtnW, SC.rollBtnH, 2);
+    c.setFillStyle(COL.goldDim);
+    c.fill();
+    c.setStrokeStyle(COL.goldStroke);
+    c.setLineWidth(1);
+    c.stroke();
+    c.setFillStyle(COL.gold);
+    c.setFont('700 10px sans-serif');
+    c.setTextAlign('center');
+    c.fillText('ROLL', btnX + SC.rollBtnW / 2, cy);
+    c.tooltip(btnX, btnY, SC.rollBtnW, SC.rollBtnH, 'Roll ' + skill.name);
+  }
+
+  // ── Canvas click — LAYOUT-driven hit detection ────────────────────────────
+  function onSkillClick() {
+    var cx = event.x;
+    var cy = event.y;
+    var c  = api.getCanvas('skillCanvas');
+    var W  = c ? c.width : 650;
+    var layout = buildSkillLayout();
+
+    for (var i = 0; i < layout.length; i++) {
+      var e = layout[i];
+      if (cy < e.y || cy >= e.y + e.h) continue;
+
+      if (e.kind === 'header') {
+        // [Roll ATR] button zone
+        var btnW = 58, btnH = 18;
+        var btnX = W - btnW - 10;
+        var btnY = e.y + Math.floor((HDR_H - btnH) / 2);
+        if (cx >= btnX && cx <= btnX + btnW &&
+            cy >= btnY && cy <= btnY + btnH) {
+          rollAttrOnly(e.grp.attr);
+        }
+        return;
+      }
+
+      if (e.kind === 'row') {
+        var skill = e.skill;
+        var rcy   = e.y + ROW_H / 2;
+
+        // ROLL button?
+        if (cx >= SC.rollBtnX && cx <= SC.rollBtnX + SC.rollBtnW) {
+          rollSkill(skill);
+          return;
+        }
+
+        // Pip click?
+        for (var p = 0; p < 5; p++) {
+          var px = SC.pipStart + p * SC.pipGap;
+          if (Math.abs(cx - px) <= SC.pipR && Math.abs(cy - rcy) <= SC.pipR + 4) {
+            var curLevel = parseInt(api.getValue('data.' + skill.key) || '0', 10);
+            var newLevel = (p + 1 === curLevel) ? Math.max(0, curLevel - 1) : p + 1;
+            api.setValue('data.' + skill.key, newLevel);
+            drawSkills();
+            return;
+          }
+        }
+        return;
+      }
+    }
+  }
+
+  // ── Roll a skill ──────────────────────────────────────────────────────────
+  function rollSkill(skill) {
+    var base  = attrVal(skill.attr);   // pool = attribute score + skill level (SRD p.8)
+    var skLvl = skillVal(skill.key);
+
+    // Conditions remove dice (skill, then gear, then attribute) — SRD p.10/21.
+    var pen    = yzeCondPenalty(skill.attr);
+    var counts = yzeApplyPenalty({ attr: base, skill: skLvl, gear: 0 }, pen);
+
+    // Ad-hoc modifier (help / difficulty / situational) — +N adds dice, -N
+    // removes them (SRD p.10-11). Difficulty stacks with the manual Modifier
+    // stepper. Opposed = successes to beat (SRD p.11).
+    var mod        = yzeReadModifier() + yzeReadDifficulty();
+    var opposed    = yzeReadOpposed();
+    var difficulty = api.getValue('data.difficulty') || 'average';
+    yzeApplyModifier(counts, mod);
+    var total    = counts.attr + counts.skill + counts.gear;
+
+    if (total <= 0) {
+      api.showNotification((pen > 0 || mod < 0)
+        ? 'Modifiers removed all your dice — no roll possible.'
+        : 'No dice to roll — attribute is 0!', 'red', 'Cannot Roll');
+      return;
+    }
+
+    var tags = [];
+    if (pen > 0)     tags.push('-' + pen + ' cond');
+    if (mod !== 0)   tags.push((mod > 0 ? '+' : '') + mod + ' mod');
+    if (opposed > 0) tags.push('vs ' + opposed);
+    var label = skill.name + (tags.length ? ' (' + tags.join(', ') + ')' : '');
+
+    api.roll(
+      total + 'd6',
+      {
+        attrKey:     skill.attr,
+        attrCount:   counts.attr,
+        skillCount:  counts.skill,
+        gearCount:   counts.gear,
+        skillName:   label,
+        condPenalty: pen,
+        mod:         mod,
+        opposed:     opposed,
+        difficulty:  difficulty
+      },
+      'yze_pool'
+    );
+
+    // Modifier, opposed, and difficulty are per-roll — clear after firing.
+    api.setValues({ 'data.rollMod': 0, 'data.opposed': 0, 'data.difficulty': 'average' });
+  }
+
+  // Push is handled by the shared yzePushRoll() in common.js (routes a skill
+  // roll to yze_push and an attack to yze_combat automatically).
+
+  // ── Init / change ─────────────────────────────────────────────────────────
+  function initSkills() {
+    drawSkills();
+    drawHeader();
+    var canPush = parseInt(api.getValue('data.canPush') || '0', 10);
+    api.setHidden('pushSection', canPush !== 1);
+  }
+
+  function onSkillsChange() {
+    drawSkills();
+    drawHeader();
+    var canPush = parseInt(api.getValue('data.canPush') || '0', 10);
+    api.setHidden('pushSection', canPush !== 1);
+  }
+</script>
+
+<!-- Skills canvas ──────────────────────────────────────────────────────── -->
+<canvas field="skillCanvas" width="650" height="580"
+  style="width:100%; height:580px; display:block; background:#111009;"
+  onload="initSkills();"
+  onresize="drawSkills();"
+  onrecordchanged="onSkillsChange();"
+  onclick="onSkillClick();">
+</canvas>
+
+
+<!-- Push button (shown when canPush = 1) ──────────────────────────────── -->
+<box field="pushSection">
+  <div style="background:#1f1200; border-top:2px solid #cc3333;
+    padding:8px 14px; display:flex; align-items:center; justify-content:space-between;">
+    <div>
+      <div style="font-size:11px; color:#cc3333; text-transform:uppercase;
+        letter-spacing:0.1em; font-weight:bold;">Push the roll</div>
+      <div style="font-size:10px; color:#664444; margin-top:2px;">
+        Re-roll non-1s — attribute banes cost Health or Resolve</div>
+    </div>
+    <button field="pushBtn" label="PUSH" variant="danger" size="sm"
+      onclick="yzePushRoll();">
+    </button>
+  </div>
+</box>

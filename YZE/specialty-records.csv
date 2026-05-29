@@ -1,0 +1,24 @@
+recordType,name,description,xpCost,maxRanks
+specialty,Bodyguard,"When an ally within arm's reach is hit by an attack, you can choose to take the damage instead. The decision must be made before the attack roll is resolved.",10,1
+specialty,Compassion,"When you spend a slow action comforting a broken ally, roll Empathy. For each success, the ally recovers one point of Resolve.",10,1
+specialty,Fast Reflexes,"You draw two initiative cards at the start of each combat and keep whichever you prefer.",10,1
+specialty,Field Surgeon,"You can treat critical injuries without a proper doctor's bag. You still roll Healing, but the lack of equipment does not impose a negative modifier.",10,1
+specialty,Flyweight,"You are not encumbered by carrying heavy loads the way others are. Your Mobility skill is never penalized due to encumbrance.",10,1
+specialty,Gut Feeling,"Once per game session, you may ask the GM one yes or no question about an immediate danger or threat. The GM must answer honestly.",10,1
+specialty,Hardened,"You have steeled yourself against the horrors of the world. Increase your maximum Resolve by 1 per rank. Can be taken up to 3 times.",10,3
+specialty,Hard Hitter,"Your attacks hit with brutal force. When you roll an attack, your weapon's base damage is increased by 1.",10,1
+specialty,Healer,"You have a gift for mending wounds. When you successfully heal someone using the Healing skill, the patient recovers one extra point of Health.",10,1
+specialty,Inquisitive,"Your mind is sharp and analytical. When investigating a scene or mystery, you may reroll one die in your dice pool that did not show a 6. You must keep the new result.",10,1
+specialty,Killer,"You are relentless in a fight. When you push an attack roll, add one extra die to the re-roll pool.",10,1
+specialty,Lucky,"Fortune favors you. Once per session, after making a roll, you may reroll all dice that did not show a 6. You are not exposed to bane effects from this second roll.",10,1
+specialty,Menacing,"Your presence is terrifying. When you attempt to intimidate or threaten someone, they treat you as one step more hostile than you actually are.",10,1
+specialty,Merciless,"You fight without hesitation or restraint. When you push an attack roll, any banes on gear dice do not apply — your weapon does not degrade from the push.",10,1
+specialty,Musician,"You can use music to ease suffering. When you play an instrument and roll Empathy, for each success one ally who hears you recovers one point of Resolve.",10,1
+specialty,Pack Mule,"You can carry two extra items beyond the normal encumbrance limit before suffering any penalties.",10,1
+specialty,Quick Draw,"You can draw or ready a weapon as a free action rather than a fast action.",10,1
+specialty,Reckless,"You throw yourself into danger without hesitation. When you push a roll, add one extra die — but you must accept all bane effects that result, without exception.",10,1
+specialty,Second Wind,"You recover quickly under pressure. Once per combat encounter, as a free action, you may regain 1 point of Health.",10,1
+specialty,Sniper,"You are trained for long-range engagements. You may fire at Long or Extreme range without suffering the normal range penalty.",10,1
+specialty,Tough,"Your body can take more punishment than most. Increase your maximum Health by 1 per rank. Can be taken up to 3 times.",10,3
+specialty,True Grit,"When you suffer a critical injury, you may reroll one die of the D66 roll. You must accept the new result.",10,1
+specialty,Weapon Specialist,"You have mastered a specific weapon type (choose one: axe, sword, knife, pistol, carbine, etc.). You get +1 bonus die when attacking with that weapon type. Can be taken once per weapon type — take it multiple times to specialize in additional weapons.",10,5
