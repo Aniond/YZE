@@ -36,4 +36,5 @@ msg += '\n[center]Vehicle Chase — D10: ' + result + '[/center]';
 msg += '\n**[center]' + result + '. ' + entry.name + '[/center]**';
 msg += '\n[center]' + entry.effect + '[/center]';
 
+data.roll.total = result;
 api.sendMessage(msg, data.roll, [], [{ name: entry.name, tooltip: entry.effect }]);

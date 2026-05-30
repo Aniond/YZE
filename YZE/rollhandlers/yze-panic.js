@@ -84,4 +84,5 @@ if (entry.reducesStress) {
   msg += '\n[center][color=green]−1 stress[/color][/center]';
 }
 
+data.roll.total = dieResult;
 api.sendMessage(msg, data.roll, [], [{ name: 'Panic: ' + entry.name, tooltip: entry.effect }]);

@@ -73,4 +73,5 @@ if (entry.physCrit) {
   api.roll('2d6', { critType: 'physical' }, 'yze_crit');
 }
 
+data.roll.total = result;
 api.sendMessage(msg, data.roll, [], [{ name: 'Mishap: ' + entry.name, tooltip: entry.effect }]);

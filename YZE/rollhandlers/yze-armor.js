@@ -34,4 +34,5 @@ if (kind === 'cover') {
   msg += '\n[center]Cover protects vs ranged attacks only[/center]';
 }
 
+data.roll.total = soak;
 api.sendMessage(msg, data.roll, [], [{ name: label + ' roll', tooltip: kind + ' soak' }]);

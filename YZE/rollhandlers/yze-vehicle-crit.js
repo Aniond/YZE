@@ -56,4 +56,5 @@ if (entry.wrecked) {
   msg += '\n**[center][color=red]VEHICLE WRECKED[/color][/center]**';
 }
 
+data.roll.total = result;
 api.sendMessage(msg, data.roll, [], [{ name: entry.name, tooltip: entry.effect }]);

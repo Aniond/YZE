@@ -122,4 +122,5 @@ if (entry.heal && entry.heal !== '--') {
   msg += '\n[center]' + healText + '[/center]';
 }
 
+data.roll.total = d66;
 api.sendMessage(msg, data.roll, [], [{ name: entry.name, tooltip: entry.effect }]);

@@ -61,4 +61,5 @@ if (mishapCount > 0) {
   msg += '\n```Roll_Mishap\napi.roll(\'1d12\', {}, \'yze_mishap\');\n```';
 }
 
+data.roll.total = powerLevel;
 api.sendMessage(msg, data.roll, [], [{ name: spellName, tooltip: discipline || 'Spell' }]);
