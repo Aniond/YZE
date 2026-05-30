@@ -251,8 +251,9 @@
     });
   }
 
-  // ── onDrop — adds gear to gearList from compendium drag ─────────────────
+  // ── onDrop — difficulty drop + gear drag from compendium ─────────────────
   function onDrop(type, recordLink) {
+    if (applyDifficultyDrop(type, recordLink)) return;
     if (type !== 'gear') return;
     var rec = recordLink.value;
     if (!rec || !rec.data) return;
@@ -726,6 +727,17 @@
     <div style="padding:10px 14px; background:#15110b;
       border-top:1px solid #2a2015; display:flex;
       flex-direction:column; gap:8px;">
+      <!-- Active difficulty banner + drop zone -->
+      <div style="border:1px dashed #3a2e1c; border-radius:4px; overflow:hidden;
+        min-height:24px;">
+        <div style="padding:3px 10px; font-size:9px; color:#3a2e1c;
+          text-align:center; letter-spacing:0.06em;">
+          Drop a difficulty card here
+        </div>
+        <list field="difficultySlot" listtype="difficulty_slot" lazy="false"
+          scroll="none">
+        </list>
+      </div>
       <div style="display:flex; gap:14px; flex-wrap:wrap;">
         <checkboxfield field="atkAim"          label="Aim (+2)"            size="xs"></checkboxfield>
         <checkboxfield field="atkDefenseless"  label="Defenseless (+3)"    size="xs"></checkboxfield>

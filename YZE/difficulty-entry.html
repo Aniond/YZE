@@ -1,0 +1,42 @@
+<script>
+// ── List-item context helpers ──────────────────────────────────────────────
+function getNearestParentDataPath(dp) {
+  var parts = dp.split('.data');
+  return parts.length > 1 ? parts.slice(0, -1).join('.data') : '';
+}
+
+// Clear the active difficulty: remove this list entry and reset the threshold.
+function clearThisDifficulty() {
+  var itemPath = getNearestParentDataPath(dataPath);
+  var segments = itemPath.split('.');
+  var idx = parseInt(segments[segments.length - 1], 10);
+  if (isNaN(idx)) idx = 0;
+  api.removeValue('data.difficultySlot', idx, function() {
+    api.setValues({ 'data.successThreshold': 1 });
+  });
+}
+</script>
+
+<div style="display:flex; align-items:center; gap:8px; padding:5px 12px;
+  background:#1c1508; border-top:2px solid #c8902a;
+  border-bottom:1px solid #3a2e1c;">
+
+  <span style="font-size:9px; font-weight:700; letter-spacing:0.2em;
+    text-transform:uppercase; color:#c8902a; flex-shrink:0;">DIFFICULTY</span>
+
+  <stringfield field="label" label="" readonly="true" size="xs"
+    style="flex:1; font-weight:700; color:#f0d9b5; background:transparent;
+      border:none; font-size:13px; font-family:Georgia,serif;">
+  </stringfield>
+
+  <span style="font-size:10px; color:#8a7055; flex-shrink:0; white-space:nowrap;">
+    Need&nbsp;<span style="color:#f0d9b5; font-weight:700;
+      font-family:Consolas,monospace; font-size:13px;">
+      <calculated field="threshold"></calculated></span>&nbsp;successes
+  </span>
+
+  <button field="clearDiffBtn" label="Clear" size="xs"
+    color="default" variant="outline"
+    onclick="clearThisDifficulty();"></button>
+
+</div>

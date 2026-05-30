@@ -340,6 +340,63 @@ function yzePushRoll() {
   api.setHidden('pushSection', true);
 }
 
+// ── Difficulty drag-and-drop ──────────────────────────────────────────────
+
+// UUID v4 generator — shared by all drop handlers that stamp list items.
+function yzeGenerateId() {
+  var s = [], h = '0123456789abcdef';
+  for (var i = 0; i < 36; i++) s[i] = h.charAt(Math.floor(Math.random() * 16));
+  s[14] = '4';
+  s[19] = h.charAt((parseInt(s[19], 16) & 0x3) | 0x8);
+  s[8] = s[13] = s[18] = s[23] = '-';
+  return s.join('');
+}
+
+// Called from each tab's onDrop. Returns true when the drop was a
+// 'difficulties' record and was handled (caller should return immediately).
+// Clears any existing slot, adds a new one, and sets data.successThreshold.
+function applyDifficultyDrop(type, recordLink) {
+  if (type !== 'difficulties') return false;
+  var rec = recordLink && recordLink.value;
+  if (!rec || !rec.data) return true;
+  var threshold = parseInt(rec.data.threshold || '1', 10);
+  if (isNaN(threshold) || threshold < 1) threshold = 1;
+  var label = rec.name || 'Difficulty';
+
+  function addSlot() {
+    api.addValue('data.difficultySlot', {
+      _id:        yzeGenerateId(),
+      recordType: 'difficulty_slot',
+      data:       { threshold: threshold, label: label }
+    }, function() {
+      api.setValues({ 'data.successThreshold': threshold });
+      api.showNotification(
+        label + ' — ' + threshold + ' success' + (threshold > 1 ? 'es' : '') + ' required',
+        'blue', 'Difficulty Set'
+      );
+    });
+  }
+
+  // Replace any existing slot (at most 1 is ever stored).
+  var existing = api.getValue('data.difficultySlot');
+  var hasSlot  = false;
+  if (existing) {
+    if (Array.isArray(existing)) {
+      hasSlot = existing.length > 0;
+    } else {
+      for (var k in existing) {
+        if (existing.hasOwnProperty(k)) { hasSlot = true; break; }
+      }
+    }
+  }
+  if (hasSlot) {
+    api.removeValue('data.difficultySlot', 0, addSlot);
+  } else {
+    addSlot();
+  }
+  return true;
+}
+
 // ── Gear / Attack helpers ─────────────────────────────────────────────────
 // Shared by character-gear.html and character-combat.html.
 

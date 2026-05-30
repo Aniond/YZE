@@ -222,6 +222,38 @@
         "characters"
       ],
       "icon": "GiBackpack"
+    },
+    {
+      "name": "Difficulties",
+      "type": "difficulties",
+      "minX": 360,
+      "minY": 280,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "difficulty-main.html"
+        }
+      ],
+      "hideFromCompendium": false,
+      "isList": false,
+      "icon": "GiD10"
+    },
+    {
+      "name": "Difficulty Slot",
+      "type": "difficulty_slot",
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "difficulty-entry.html"
+        }
+      ],
+      "hideFromCompendium": true,
+      "isList": true,
+      "allowedListTypes": [
+        "characters",
+        "npcs"
+      ],
+      "icon": "GiD10"
     }
   ],
   "settings": {

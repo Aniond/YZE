@@ -427,6 +427,11 @@
     });
   }
 
+  // ── Difficulty drag-and-drop ──────────────────────────────────────────────
+  function onDrop(type, recordLink) {
+    applyDifficultyDrop(type, recordLink);
+  }
+
   function initMain() {
     updateDerived();
     drawAttrs();
@@ -486,6 +491,18 @@
     color="default" variant="outline"
     onclick="rollCrit('mental');"></button>
   <span style="font-size:10px; color:#524535;">Physical at 0 Health · Mental at 0 Resolve</span>
+</div>
+
+<!-- ═══ Active Difficulty drop zone ════════════════════════════════════════ -->
+<div style="margin:14px 16px 0; border:1px dashed #3a2e1c; border-radius:5px;
+  overflow:hidden; min-height:28px;">
+  <div style="padding:5px 12px; font-size:9px; color:#3a2e1c;
+    text-align:center; letter-spacing:0.06em;">
+    Drop a difficulty card here to set required successes
+  </div>
+  <list field="difficultySlot" listtype="difficulty_slot" lazy="false"
+    scroll="none">
+  </list>
 </div>
 
 <!-- Next Roll ──────────────────────────────────────────────────────────── -->

@@ -403,6 +403,11 @@
     api.setValues({ 'fields.pushSection.hidden': canPush !== 1 });
   }
 
+  // ── Difficulty drag-and-drop ──────────────────────────────────────────────
+  function onDrop(type, recordLink) {
+    applyDifficultyDrop(type, recordLink);
+  }
+
   // Runs on the (always-visible-at-load) attribute canvas onload.
   function initNpc() {
     showTab(api.getValue('data.activeTab') || 'stats');
@@ -674,6 +679,18 @@
       background:linear-gradient(90deg,#2a2015,transparent);"></span>
     <span style="font-size:10px; font-weight:400; letter-spacing:0;
       text-transform:none; color:#524535;">cleared after each roll</span>
+  </div>
+
+  <!-- Active difficulty drop zone -->
+  <div style="margin:0 16px 8px; border:1px dashed #3a2e1c; border-radius:5px;
+    overflow:hidden; min-height:28px;">
+    <div style="padding:5px 12px; font-size:9px; color:#3a2e1c;
+      text-align:center; letter-spacing:0.06em;">
+      Drop a difficulty card here to set required successes
+    </div>
+    <list field="difficultySlot" listtype="difficulty_slot" lazy="false"
+      scroll="none">
+    </list>
   </div>
 
   <div style="margin:0 16px 16px; background:#1c1610; border:1px solid #2a2015;
