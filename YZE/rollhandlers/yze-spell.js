@@ -14,6 +14,7 @@ var wpSpend    = parseInt(meta.wpSpend   || 1,  10);
 var spellName  = meta.spellName  || 'Spell';
 var rank       = parseInt(meta.rank      || 1,  10);
 var discipline = meta.discipline || '';
+var portrait   = meta.portrait   || '';
 
 // ── Count outcomes ────────────────────────────────────────────────────────
 var overcharge  = 0;
@@ -42,7 +43,8 @@ if (mishapCount > 0) {
 
 // ── Build chat card (matches yze-crit.js style) ───────────────────────────
 var discLabel = discipline ? ' [' + discipline + ']' : '';
-var msg = '**[center]' + spellName + discLabel + '[/center]**';
+var iconStr   = portrait ? '[center]![](' + portrait + '?width=30&height=30)[/center]\n' : '';
+var msg = iconStr + '**[center]' + spellName + discLabel + '[/center]**';
 msg += '\n[center]WP: ' + wpSpend + '   Rank: ' + rank + '[/center]';
 msg += '\n[center]Power Level: ' + powerLevel;
 if (overcharge > 0) {

@@ -565,7 +565,7 @@ function gainWP(amount) {
 }
 
 // Validate WP, deduct, and fire the yze_spell roll handler.
-function castSpell(wpSpend, spellName, rank, discipline) {
+function castSpell(wpSpend, spellName, rank, discipline, portrait) {
   var curWP = parseInt(api.getValue('data.wp') || '0', 10);
   if (isNaN(curWP)) curWP = 0;
   wpSpend = parseInt(wpSpend, 10) || 1;
@@ -578,7 +578,8 @@ function castSpell(wpSpend, spellName, rank, discipline) {
     spellName:  spellName  || 'Spell',
     wpSpend:    wpSpend,
     rank:       parseInt(rank, 10) || 1,
-    discipline: discipline || ''
+    discipline: discipline || '',
+    portrait:   portrait   || ''
   }, 'yze_spell');
 }
 

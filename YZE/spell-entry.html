@@ -5,7 +5,8 @@ function onCastSpell() {
     parseInt(api.getValue('data.wpSpend')    || '1', 10),
     api.getValue('data.name')                || 'Spell',
     parseInt(api.getValue('data.rank')       || '1', 10),
-    api.getValue('data.discipline')          || ''
+    api.getValue('data.discipline')          || '',
+    api.getValue('data.portrait')            || ''
   );
 }
 
@@ -23,6 +24,11 @@ function onSpellEntryLoad() {
 <div style="display:flex; align-items:center; gap:6px; min-height:44px;
   width:100%; padding:4px 8px; box-sizing:border-box;
   background:#1a1612; border-bottom:1px solid #2a2015;">
+
+  <portrait field="portrait" width="32" height="32"
+    style="border-radius:3px; border:1px solid #3a2e22;
+      flex-shrink:0; cursor:pointer;">
+  </portrait>
 
   <!-- Name -->
   <namefield field="name" label="" size="xs" bold="true"
