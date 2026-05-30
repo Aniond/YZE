@@ -53,8 +53,7 @@ if (stressCount > 0) {
 // ── Tint the dice (Realm renders them) and write the verdict text ─────────
 yzeColorDice(data.roll.dice, meta);
 
-var threshold = parseInt(api.getValue('data.successThreshold') || '1', 10);
-if (isNaN(threshold) || threshold < 1) threshold = 1;
+var threshold = yzeEffectiveThreshold(record);
 
 var msg;
 if (opposed > 0) {

@@ -90,8 +90,7 @@ if (isPush) {
     gearCount:  meta.rerollGear  || 0
   });
 
-  var pushThreshold = parseInt(api.getValue('data.successThreshold') || '1', 10);
-  if (isNaN(pushThreshold) || pushThreshold < 1) pushThreshold = 1;
+  var pushThreshold = yzeEffectiveThreshold(record);
 
   var msgP;
   if (successes >= pushThreshold) {
@@ -180,8 +179,7 @@ if (prideBonus > 0) {
   api.setValues({ 'data.prideBonus': 0 });
 }
 
-var threshold   = parseInt(api.getValue('data.successThreshold') || '1', 10);
-if (isNaN(threshold) || threshold < 1) threshold = 1;
+var threshold   = yzeEffectiveThreshold(record);
 
 var totalDamage = successes >= threshold ? baseDamage + (successes - 1) : 0;
 

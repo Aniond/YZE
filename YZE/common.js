@@ -397,6 +397,40 @@ function applyDifficultyDrop(type, recordLink) {
   return true;
 }
 
+// ── Difficulty via status effect (hard-coded names) ───────────────────────
+// A GM can apply a status effect named exactly "Difficulty 1" .. "Difficulty 6"
+// to a token (the 6 effects are defined in settings.effects — see the config —
+// and can also be built/renamed manually in the campaign). When the roller has
+// such an effect, the roll handlers use its number as the required-successes
+// threshold, overriding the per-sheet data.successThreshold. Names are matched
+// verbatim: the word "Difficulty" followed by a digit 1-6.
+//
+// Confirmed pattern: token.effects is an array whose entries expose .name
+// (Sean's 5e ability.js: effects.find(e => e.name === 'Concentration')).
+function yzeDifficultyFromEffects(record) {
+  var token   = (api.getToken && record) ? api.getToken(record) : null;
+  var effects = (token && token.effects) || [];
+  for (var i = 0; i < effects.length; i++) {
+    var nm = effects[i] && effects[i].name;
+    if (typeof nm !== 'string') continue;
+    if (nm.substring(0, 10) === 'Difficulty') {
+      var n = parseInt(nm.substring(10), 10); // digits after "Difficulty"
+      if (!isNaN(n) && n >= 1 && n <= 6) return n;
+    }
+  }
+  return 0;
+}
+
+// Effective required-successes threshold for a roll. A "Difficulty N" token
+// effect wins if present; otherwise the per-sheet data.successThreshold (>= 1).
+function yzeEffectiveThreshold(record) {
+  var fromEffect = yzeDifficultyFromEffects(record);
+  if (fromEffect > 0) return fromEffect;
+  var t = parseInt(api.getValue('data.successThreshold') || '1', 10);
+  if (isNaN(t) || t < 1) t = 1;
+  return t;
+}
+
 // ── Gear / Attack helpers ─────────────────────────────────────────────────
 // Shared by character-gear.html and character-combat.html.
 

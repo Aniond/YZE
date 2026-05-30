@@ -69,7 +69,20 @@ yzeColorDice(data.roll.dice, {
 
 var kept = (meta.s6Attr || 0) + (meta.s6Skill || 0) + (meta.s6Gear || 0);
 
-var msg = yzeVerdict(successes, opposed);
+var threshold = yzeEffectiveThreshold(record);
+var msg;
+if (opposed > 0) {
+  msg = yzeVerdict(successes, opposed);
+} else if (successes >= threshold) {
+  msg = '**[center][color=green]SUCCESS[/color] - ' + successes + ' success'
+      + (successes > 1 ? 'es' : '')
+      + (threshold > 1 ? ' (needed ' + threshold + ')' : '')
+      + '[/center]**';
+} else if (successes > 0) {
+  msg = '**[center][color=orange]PARTIAL[/color] - ' + successes + ' of ' + threshold + ' required[/center]**';
+} else {
+  msg = '**[center][color=red]FAILURE[/color][/center]**';
+}
 
 if (kept > 0) {
   msg += '\n[center](' + kept + ' kept from the first roll)[/center]';
