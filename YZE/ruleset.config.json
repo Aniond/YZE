@@ -236,6 +236,7 @@
       ],
       "hideFromCompendium": false,
       "isList": false,
+      "hasToken": false,
       "icon": "GiD10"
     },
     {
