@@ -90,9 +90,13 @@ if (isPush) {
     gearCount:  meta.rerollGear  || 0
   });
 
+  var pushThreshold = parseInt(api.getValue('data.successThreshold') || '1', 10);
+  if (isNaN(pushThreshold) || pushThreshold < 1) pushThreshold = 1;
+
   var msgP;
-  if (successes > 0) {
-    msgP = '**[center][color=green]HIT[/color] - ' + successes + ' success' + (successes > 1 ? 'es' : '') + '[/center]**';
+  if (successes >= pushThreshold) {
+    msgP = '**[center][color=green]HIT[/color] - ' + successes + ' success' + (successes > 1 ? 'es' : '')
+         + (pushThreshold > 1 ? ' (needed ' + pushThreshold + ')' : '') + '[/center]**';
     msgP += '\n[center]Damage: ' + newDamage;
     if (successes > 1) msgP += ' (base ' + baseDamage + ' +' + (successes - 1) + ' extra)';
     msgP += '[/center]';
@@ -116,6 +120,8 @@ if (isPush) {
     } else if (delta > 0 && !auto) {
       msgP += '\n[center]+' + delta + ' damage from the push - apply manually.[/center]';
     }
+  } else if (successes > 0) {
+    msgP = '**[center][color=orange]PARTIAL[/color] - ' + successes + ' of ' + pushThreshold + ' required — not a hit[/center]**';
   } else {
     msgP = '**[center][color=red]MISS[/color][/center]**';
   }
@@ -154,7 +160,7 @@ if (isPush) {
     }
   }
 
-  api.setValues({ 'data.canPush': 0 });
+  api.setValues({ 'data.canPush': 0, 'data.successThreshold': 1 });
   api.sendMessage(msgP, data.roll, [], [{ name: skillName + ' (Pushed)', tooltip: range + ' attack, pushed' }]);
   return;
 }
@@ -173,7 +179,10 @@ if (prideBonus > 0) {
   api.setValues({ 'data.prideBonus': 0 });
 }
 
-var totalDamage = successes > 0 ? baseDamage + (successes - 1) : 0;
+var threshold   = parseInt(api.getValue('data.successThreshold') || '1', 10);
+if (isNaN(threshold) || threshold < 1) threshold = 1;
+
+var totalDamage = successes >= threshold ? baseDamage + (successes - 1) : 0;
 
 yzeColorDice(data.roll.dice, meta); // Realm renders the dice, tinted by source
 
@@ -181,8 +190,9 @@ var msg;
 var hitTargets = []; // {id, recordType, hp} — locked for the push
 var diffLabel = yzeFormatDifficulty(meta.difficulty || '');
 
-if (successes > 0) {
-  msg = '**[center][color=green]HIT[/color] - ' + successes + ' success' + (successes > 1 ? 'es' : '') + '[/center]**';
+if (successes >= threshold) {
+  msg = '**[center][color=green]HIT[/color] - ' + successes + ' success' + (successes > 1 ? 'es' : '')
+      + (threshold > 1 ? ' (needed ' + threshold + ')' : '') + '[/center]**';
   if (prideBonus > 0) {
     msg += '\n[center][color=olive]Pride — +' + prideBonus + ' success[/color][/center]';
   }
@@ -198,6 +208,14 @@ if (successes > 0) {
     hitTargets = ret.targets;
   } else if (totalDamage > 0) {
     msg += '\n[center]Auto-apply off - deal ' + totalDamage + ' damage manually (after armor).[/center]';
+  }
+} else if (successes > 0) {
+  msg = '**[center][color=orange]PARTIAL[/color] - ' + successes + ' of ' + threshold + ' required — not a hit[/center]**';
+  if (prideBonus > 0) {
+    msg += '\n[center][color=olive]Pride — +' + prideBonus + ' success[/color][/center]';
+  }
+  if (diffLabel) {
+    msg += '\n[center][color=orange]Difficulty: ' + diffLabel + '[/color][/center]';
   }
 } else {
   msg = '**[center][color=red]MISS[/color][/center]**';
@@ -249,6 +267,6 @@ if (canPush) {
     targets:     hitTargets
   });
 }
-api.setValues({ 'data.canPush': canPush ? 1 : 0 });
+api.setValues({ 'data.canPush': canPush ? 1 : 0, 'data.successThreshold': 1 });
 
 api.sendMessage(msg, data.roll, [], [{ name: skillName, tooltip: range + ' attack' }]);

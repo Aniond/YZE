@@ -53,7 +53,23 @@ if (stressCount > 0) {
 // ── Tint the dice (Realm renders them) and write the verdict text ─────────
 yzeColorDice(data.roll.dice, meta);
 
-var msg = yzeVerdict(successes, opposed);
+var threshold = parseInt(api.getValue('data.successThreshold') || '1', 10);
+if (isNaN(threshold) || threshold < 1) threshold = 1;
+
+var msg;
+if (opposed > 0) {
+  // Opposed rolls always use standard yzeVerdict — threshold doesn't apply
+  msg = yzeVerdict(successes, opposed);
+} else if (successes >= threshold) {
+  msg = '**[center][color=green]SUCCESS[/color] - ' + successes + ' success'
+      + (successes > 1 ? 'es' : '')
+      + (threshold > 1 ? ' (needed ' + threshold + ')' : '')
+      + '[/center]**';
+} else if (successes > 0) {
+  msg = '**[center][color=orange]PARTIAL[/color] - ' + successes + ' of ' + threshold + ' required[/center]**';
+} else {
+  msg = '**[center][color=red]FAILURE[/color][/center]**';
+}
 if (prideBonus > 0) {
   msg += '\n[center][color=olive]Pride — +' + prideBonus + ' success[/color][/center]';
 }
@@ -149,6 +165,6 @@ if (canPush) {
   });
 }
 
-api.setValues({ 'data.canPush': canPush ? 1 : 0 });
+api.setValues({ 'data.canPush': canPush ? 1 : 0, 'data.successThreshold': 1 });
 
 api.sendMessage(msg, data.roll, [], [{ name: skillName, tooltip: skillName + ' roll' }]);

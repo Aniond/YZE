@@ -412,12 +412,13 @@ function rollAttackForItem(item) {
     difficulty:  difficulty
   }, 'yze_combat');
   api.setValues({
-    'data.rollMod':         0,
-    'data.difficulty':      'average',
-    'data.modMovingTarget': false,
-    'data.modCover':        false,
-    'data.modMounted':      false,
-    'data.modHelpless':     false
+    'data.rollMod':          0,
+    'data.difficulty':       'average',
+    'data.successThreshold': 1,
+    'data.modMovingTarget':  false,
+    'data.modCover':         false,
+    'data.modMounted':       false,
+    'data.modHelpless':      false
   });
 }
 
@@ -451,7 +452,7 @@ function rollAttrOnly(key) {
     opposed:     opposed,
     difficulty:  difficulty
   }, 'yze_pool');
-  api.setValues({ 'data.rollMod': 0, 'data.opposed': 0, 'data.difficulty': 'average' });
+  api.setValues({ 'data.rollMod': 0, 'data.opposed': 0, 'data.difficulty': 'average', 'data.successThreshold': 1 });
 }
 
 // ── Persistent header ─────────────────────────────────────────────────────

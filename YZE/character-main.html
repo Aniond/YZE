@@ -347,7 +347,7 @@
       opposed:     opposed,
       difficulty:  difficulty
     }, 'yze_pool');
-    api.setValues({ 'data.rollMod': 0, 'data.opposed': 0, 'data.difficulty': 'average' });
+    api.setValues({ 'data.rollMod': 0, 'data.opposed': 0, 'data.difficulty': 'average', 'data.successThreshold': 1 });
   }
 
   // ── Canvas click — 4-column hit detection ────────────────────────────────
@@ -519,6 +519,11 @@
       {"label":"Formidable (-3)","value":"formidable"}
     ]'>
   </dropdown>
+  <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+    <numberfield field="successThreshold" label="Required Successes" size="xs"
+      variant="unstyled" defaultvalue="1" minvalue="1" maxvalue="6"
+      style="width:96px;"></numberfield>
+  </div>
   <checkboxfield field="autoApply" label="Auto-apply dmg to target" size="xs"></checkboxfield>
 </div>
 
