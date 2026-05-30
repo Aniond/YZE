@@ -598,6 +598,7 @@ function relieveStress() {
 function usePride() {
   api.setValues({ 'data.prideBonus': 1, 'data.prideUsed': true }, function() {
     drawHeader();
+    refreshHeaderBadges();
   });
   api.showNotification('Pride used — +1 success on your next roll', 'green', 'Pride');
 }
@@ -606,6 +607,7 @@ function usePride() {
 function resetPrideForSession() {
   api.setValues({ 'data.prideUsed': false, 'data.prideBonus': 0 }, function() {
     drawHeader();
+    refreshHeaderBadges();
   });
   api.showNotification('New session — Pride restored', 'blue', 'Session Reset');
 }
@@ -628,12 +630,21 @@ function drawHeader() {
   }
   drawTinyPips('healthCanvas',  'curHealth',  maxH, '#c8902a', '#e8b85a');
   drawTinyPips('resolveCanvas', 'curResolve', maxR, '#9a7ad4', '#c8a8e8');
-  var broken   = api.getValue('data.isBroken');
-  var isBroken = (broken === true || broken === 1 || broken === '1' || broken === 'true');
-  var prideUsed = api.getValue('data.prideUsed');
+}
+
+// Update the Broken badge and Pride button visibility.
+// Uses api.setValues with fields.* paths (not api.setHidden) so it never
+// triggers onrecordchanged. Call only from user-interaction callbacks, never
+// from onrecordchanged handlers or drawHeader().
+function refreshHeaderBadges() {
+  var broken      = api.getValue('data.isBroken');
+  var isBroken    = (broken === true || broken === 1 || broken === '1' || broken === 'true');
+  var prideUsed   = api.getValue('data.prideUsed');
   var isPrideUsed = (prideUsed === true || prideUsed === 1 || prideUsed === '1' || prideUsed === 'true');
-  api.setHidden('brokenBadge', !isBroken);
-  api.setHidden('prideBtn', isPrideUsed);
+  api.setValues({
+    'fields.brokenBadge.hidden': !isBroken,
+    'fields.prideBtn.hidden':    isPrideUsed
+  });
 }
 
 // maxVal is a pre-computed integer (drawHeader resolves it before calling).
@@ -709,7 +720,10 @@ function takeConditionPlayer(type) {
 
 // Show/hide the broken badge (driven by data.isBroken). Click the badge to clear.
 function setBrokenPlayer(v) {
-  api.setValues({ 'data.isBroken': !!v }, function() { drawHeader(); });
+  api.setValues({ 'data.isBroken': !!v }, function() {
+    drawHeader();
+    refreshHeaderBadges();
+  });
 }
 
 // ── XP (Notes tab) ────────────────────────────────────────────────────────
