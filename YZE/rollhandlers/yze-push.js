@@ -90,4 +90,5 @@ if (stressPushBanes > 0) {
   msg += '\n[center][color=red]Panic triggered — roll on the panic table![/color][/center]';
 }
 
+data.roll.total = successes;
 api.sendMessage(msg, data.roll, [], [{ name: skillName + ' (Pushed)', tooltip: 'Pushed roll' }]);

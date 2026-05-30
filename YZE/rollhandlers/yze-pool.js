@@ -167,4 +167,5 @@ if (canPush) {
 
 api.setValues({ 'data.canPush': canPush ? 1 : 0, 'data.successThreshold': 1 });
 
+data.roll.total = successes;
 api.sendMessage(msg, data.roll, [], [{ name: skillName, tooltip: skillName + ' roll' }]);
