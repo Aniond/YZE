@@ -509,6 +509,8 @@
   function initSkills() {
     drawSkills();
     drawHeader();
+    refreshXp();
+    refreshCondPlayerUI();
     var canPush = parseInt(api.getValue('data.canPush') || '0', 10);
     api.setHidden('pushSection', canPush !== 1);
   }
@@ -516,13 +518,15 @@
   function onSkillsChange() {
     drawSkills();
     drawHeader();
+    refreshXp();
+    refreshCondPlayerUI();
     var canPush = parseInt(api.getValue('data.canPush') || '0', 10);
     api.setHidden('pushSection', canPush !== 1);
   }
 </script>
 
 <!-- Skills canvas ──────────────────────────────────────────────────────── -->
-<canvas field="skillCanvas" width="650" height="580"
+<canvas field="skillCanvas" autosize="true" width="650" height="580"
   style="width:100%; height:580px; display:block; background:#111009;"
   onload="initSkills();"
   onresize="drawSkills();"

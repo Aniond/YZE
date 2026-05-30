@@ -431,6 +431,8 @@
     updateDerived();
     drawAttrs();
     drawHeader();
+    refreshXp();
+    refreshCondPlayerUI();
     var canPush = parseInt(api.getValue('data.canPush') || '0', 10);
     api.setHidden('pushSection', canPush !== 1);
   }
@@ -439,6 +441,8 @@
     updateDerived();
     drawAttrs();
     drawHeader();
+    refreshXp();
+    refreshCondPlayerUI();
     var canPush = parseInt(api.getValue('data.canPush') || '0', 10);
     api.setHidden('pushSection', canPush !== 1);
   }
@@ -454,7 +458,7 @@
 </div>
 
 <!-- Attributes canvas ─────────────────────────────────────────────────── -->
-<canvas field="attrCanvas" width="650" height="90"
+<canvas field="attrCanvas" autosize="true" width="650" height="90"
   style="width:100%; height:90px; display:block; background:#1a1612;"
   onload="initMain();"
   onresize="drawAttrs();"

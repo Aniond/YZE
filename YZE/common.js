@@ -626,16 +626,12 @@ function drawHeader() {
   }
   drawTinyPips('healthCanvas',  'curHealth',  maxH, '#c8902a', '#e8b85a');
   drawTinyPips('resolveCanvas', 'curResolve', maxR, '#9a7ad4', '#c8a8e8');
-  refreshCondPlayerUI();
-  refreshXp();
   var broken   = api.getValue('data.isBroken');
   var isBroken = (broken === true || broken === 1 || broken === '1' || broken === 'true');
   var prideUsed = api.getValue('data.prideUsed');
   var isPrideUsed = (prideUsed === true || prideUsed === 1 || prideUsed === '1' || prideUsed === 'true');
-  api.setValues({
-    'fields.brokenBadge.hidden': !isBroken,
-    'fields.prideBtn.hidden':    isPrideUsed
-  });
+  api.setHidden('brokenBadge', !isBroken);
+  api.setHidden('prideBtn', isPrideUsed);
 }
 
 // maxVal is a pre-computed integer (drawHeader resolves it before calling).
