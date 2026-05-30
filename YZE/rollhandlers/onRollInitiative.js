@@ -9,10 +9,11 @@ var callback = function(item) {
   var cardName = item.name || '';
   var cardNum  = parseInt(cardName, 10);
   var chatDisplay = isNaN(cardNum) ? cardName : cardNum;
-  // Store the numeric card value so the combat tracker can sort on it
-  // (order: "asc" → card #1 acts first, per SRD).
-  var initVal = isNaN(cardNum) ? item : cardNum;
-  api.setValue('data.initiative', initVal, function() {
+  // Store the dealt CARD OBJECT (not the parsed number) so the combat tracker
+  // renders the card face in the Init column. Realm sorts on the card's own
+  // value (order: "asc" → card #1 acts first, per SRD). The chat line still
+  // shows the numeric value for readability.
+  api.setValue('data.initiative', item, function() {
     var name = token ? token.name : (record.name || 'Unknown');
     api.sendMessage(
       name + ' draws initiative ' + chatDisplay + ' (' + cardName + ')',
