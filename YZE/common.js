@@ -407,15 +407,25 @@ function applyDifficultyDrop(type, recordLink) {
 //
 // Confirmed pattern: token.effects is an array whose entries expose .name
 // (Sean's 5e ability.js: effects.find(e => e.name === 'Concentration')).
+//
+// Matching is deliberately forgiving so a hand-built effect links reliably:
+// the name just has to contain "difficulty" (any case) followed somewhere by a
+// digit 1-6. So "Difficulty 3", "difficulty 3", "Difficulty: 3", and
+// "Difficulty Lvl 3" all resolve to 3.
 function yzeDifficultyFromEffects(record) {
   var token   = (api.getToken && record) ? api.getToken(record) : null;
   var effects = (token && token.effects) || [];
   for (var i = 0; i < effects.length; i++) {
     var nm = effects[i] && effects[i].name;
     if (typeof nm !== 'string') continue;
-    if (nm.substring(0, 10) === 'Difficulty') {
-      var n = parseInt(nm.substring(10), 10); // digits after "Difficulty"
-      if (!isNaN(n) && n >= 1 && n <= 6) return n;
+    var low = nm.toLowerCase();
+    var pos = low.indexOf('difficulty');
+    if (pos === -1) continue;
+    var rest = nm.substring(pos + 10); // text after the word "difficulty"
+    for (var c = 0; c < rest.length; c++) {
+      var ch = rest.charAt(c);
+      if (ch >= '1' && ch <= '6') return parseInt(ch, 10);
+      if (ch >= '0' && ch <= '9') break; // 0/7/8/9 -> not a valid level, stop
     }
   }
   return 0;

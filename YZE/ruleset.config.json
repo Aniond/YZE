@@ -357,14 +357,6 @@
         "file": "rollhandlers/yze-vehicle-obstacle.js"
       }
     ],
-    "themes": [],
-    "effects": [
-      { "label": "Difficulty 1", "type": "yzeDifficulty1" },
-      { "label": "Difficulty 2", "type": "yzeDifficulty2" },
-      { "label": "Difficulty 3", "type": "yzeDifficulty3" },
-      { "label": "Difficulty 4", "type": "yzeDifficulty4" },
-      { "label": "Difficulty 5", "type": "yzeDifficulty5" },
-      { "label": "Difficulty 6", "type": "yzeDifficulty6" }
-    ]
+    "themes": []
   }
 }
