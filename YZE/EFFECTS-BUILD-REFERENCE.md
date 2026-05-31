@@ -1,105 +1,42 @@
 # YZE Status Effects — Manual Build Reference
 
-Same workflow as Difficulty 1-6. Build each effect once in the Effects panel.
+Same as the Difficulty effects: the **exact effect NAME** is what does the work.
+The roll handler recognizes these names and removes the right dice automatically —
+you do NOT need to put strMod/witMod in a rule. (Realm's Override Data applies to
+the token instance, not the record, so the sheet can't read it — the name is the
+reliable link.)
 
 ## How to build each one
-1. **Create New** effect, set the **Effect name** exactly as shown.
-2. **Token Menu:** ✓ checked.
+1. **Create New** effect. Set the **Effect name EXACTLY** as written below
+   (capitalisation and punctuation matter — `Poisoned (Lethal)` etc.).
+2. **Token Menu:** ✓ checked (so you can apply it from the token's right-click menu).
 3. **Duration Unit:** as listed (Indefinite for most; Rounds = 1 for On Fire & Frozen).
-4. **Add Rules Element** → set **Type = `Override Data (Complex)`**.
-5. Paste the JSON into the **Override Structure (JSON)** box.
-6. Save. (No "Alter a Data Field" rule and no marker type needed — the one
-   Override Data rule does everything.)
+4. Save. That's all that's required for the dice penalty.
+5. **Optional** — add one **Override Data (Complex)** rule with the JSON shown, only
+   to record the category / healing-block / damage flags for reference. Not needed
+   for the dice penalty.
 
-## What the JSON keys do
-- `strMod` — dice removed from STR/AGI rolls (negative). Read by the roll handlers.
-- `witMod` — dice removed from WIT/EMP rolls (negative). Read by the roll handlers.
-- `damagePerRound` — ongoing damage per round (display).
-- `blockPhysHeal` / `blockMentHeal` — flags that healing is blocked (display).
-- `effectType` — category: Physical / Mental / Environmental / Combat.
+## Dice penalty applied automatically by name
+| Effect name (exact) | Duration | Auto dice penalty | Optional Override JSON (reference only) |
+|---|---|---|---|
+| Hypothermic | Indefinite | **-1 STR/AGI** | `{ "effectType": "Environmental", "blockPhysHeal": true }` |
+| Starving | Indefinite | none | `{ "effectType": "Environmental", "blockPhysHeal": true }` |
+| Sick | Indefinite | none | `{ "effectType": "Environmental", "blockPhysHeal": true }` |
+| On Fire | Rounds: 1 | none | `{ "effectType": "Environmental", "damagePerRound": 6 }` |
+| Poisoned (Lethal) | Indefinite | none | `{ "effectType": "Environmental", "damagePerRound": 1 }` |
+| Poisoned (Paralyzing) | Indefinite | **-3 STR/AGI** | `{ "effectType": "Environmental" }` |
+| Poisoned (Sleeping) | Indefinite | **-3 STR/AGI, -3 WIT/EMP** | `{ "effectType": "Environmental" }` |
+| Entangled | Indefinite | **-1 STR/AGI** | `{ "effectType": "Combat" }` |
+| Prone | Indefinite | **-1 STR/AGI** | `{ "effectType": "Combat" }` |
+| Tremble | Indefinite | **-2 STR/AGI** | `{ "effectType": "Mental" }` |
+| Frozen | Rounds: 1 | **-3 STR/AGI** | `{ "effectType": "Mental" }` |
+| Sleep Deprived | Indefinite | **-1 WIT/EMP** | `{ "effectType": "Environmental", "blockMentHeal": true }` |
 
----
-
-## 1. Hypothermic
-- **Duration Unit:** Indefinite
-- **Override Structure (JSON):**
-```json
-{ "strMod": -1, "blockPhysHeal": true, "effectType": "Environmental" }
-```
-
-## 2. Starving
-- **Duration Unit:** Indefinite
-- **Override Structure (JSON):**
-```json
-{ "blockPhysHeal": true, "effectType": "Environmental" }
-```
-
-## 3. Sick
-- **Duration Unit:** Indefinite
-- **Override Structure (JSON):**
-```json
-{ "blockPhysHeal": true, "effectType": "Environmental" }
-```
-
-## 4. On Fire
-- **Duration Unit:** Rounds — **Duration: 1**
-- **Override Structure (JSON):**
-```json
-{ "damagePerRound": 6, "effectType": "Environmental" }
-```
-
-## 5. Poisoned (Lethal)
-- **Duration Unit:** Indefinite
-- **Override Structure (JSON):**
-```json
-{ "damagePerRound": 1, "effectType": "Environmental" }
-```
-
-## 6. Poisoned (Paralyzing)
-- **Duration Unit:** Indefinite
-- **Override Structure (JSON):**
-```json
-{ "strMod": -3, "effectType": "Environmental" }
-```
-
-## 7. Poisoned (Sleeping)
-- **Duration Unit:** Indefinite
-- **Override Structure (JSON):**
-```json
-{ "strMod": -3, "witMod": -3, "effectType": "Environmental" }
-```
-
-## 8. Entangled
-- **Duration Unit:** Indefinite
-- **Override Structure (JSON):**
-```json
-{ "strMod": -1, "effectType": "Combat" }
-```
-
-## 9. Prone
-- **Duration Unit:** Indefinite
-- **Override Structure (JSON):**
-```json
-{ "strMod": -1, "effectType": "Combat" }
-```
-
-## 10. Tremble
-- **Duration Unit:** Indefinite
-- **Override Structure (JSON):**
-```json
-{ "strMod": -2, "effectType": "Mental" }
-```
-
-## 11. Frozen
-- **Duration Unit:** Rounds — **Duration: 1**
-- **Override Structure (JSON):**
-```json
-{ "strMod": -3, "effectType": "Mental" }
-```
-
-## 12. Sleep Deprived
-- **Duration Unit:** Indefinite
-- **Override Structure (JSON):**
-```json
-{ "witMod": -1, "blockMentHeal": true, "effectType": "Environmental" }
-```
+## Notes
+- Effects with "none" (Starving, Sick, On Fire, Poisoned Lethal) impose no dice
+  penalty — they block healing or deal ongoing damage; that's GM-tracked for now.
+- The handler's penalty list lives in `common.js` → `YZE_EFFECT_PENALTIES`. If you
+  rename an effect or add a new one with a dice penalty, tell me the name + values
+  and I'll add it there.
+- Apply an effect from the token's right-click menu, then roll the matching
+  attribute/skill — the pool drops by the listed amount.

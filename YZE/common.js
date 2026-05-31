@@ -144,20 +144,56 @@ function yzeEncumbranceCheck() {
 }
 
 // ── Status effects — dice penalties ───────────────────────────────────────
-// Native Realm VTT effects use "Alter a Data Field" to write strMod (STR/AGI
-// penalty) and witMod (WIT/EMP penalty) directly onto data.*. The roll
-// handlers read those fields here and subtract the penalty from the pool.
-// Values stored as NEGATIVE integers (e.g. Entangled sets strMod = -1).
+// A native Realm VTT effect's "Override Data" applies to the TOKEN instance,
+// not the character record, so api.getValue('data.strMod') in the sheet never
+// sees it. Instead we read the token's applied effects and match them BY NAME
+// (the confirmed pattern that already works for the Difficulty effects).
+//
+// SRD penalties, keyed by exact effect name. strMod hits STR/AGI rolls; witMod
+// hits WIT/EMP rolls. Negative = dice removed.
+var YZE_EFFECT_PENALTIES = {
+  'Hypothermic':           { strMod: -1 },
+  'Poisoned (Paralyzing)': { strMod: -3 },
+  'Poisoned (Sleeping)':   { strMod: -3, witMod: -3 },
+  'Entangled':             { strMod: -1 },
+  'Prone':                 { strMod: -1 },
+  'Tremble':               { strMod: -2 },
+  'Frozen':                { strMod: -3 },
+  'Sleep Deprived':        { witMod: -1 }
+};
+
+// Get the current sheet's own token. api.getToken() (no args) works in sheet
+// context (Sean's 5e character-features.html); fall back to api.getToken(record).
+function yzeGetOwnToken() {
+  var t = null;
+  try { t = api.getToken ? api.getToken() : null; } catch (e) { t = null; }
+  if (!t) { try { if (typeof record !== 'undefined') t = api.getToken(record); } catch (e2) {} }
+  return t;
+}
+
+// Sum the relevant modifier (strMod for STR/AGI, witMod for WIT/EMP) across all
+// active named effects on this token. Returns a NEGATIVE number for penalties.
 function yzeEffectPenalty(attrKey) {
-  if (attrKey === 'strength' || attrKey === 'agility') {
-    var sm = parseInt(api.getValue('data.strMod') || '0', 10);
-    return isNaN(sm) ? 0 : sm;
+  var key = (attrKey === 'strength' || attrKey === 'agility') ? 'strMod'
+          : (attrKey === 'wits' || attrKey === 'empathy')     ? 'witMod' : null;
+  if (!key) return 0;
+  var token   = yzeGetOwnToken();
+  var effects = (token && token.effects)
+             || (typeof record !== 'undefined' && record && record.effects)
+             || [];
+  var sum = 0;
+  for (var i = 0; i < effects.length; i++) {
+    var nm = effects[i] && effects[i].name;
+    if (typeof nm !== 'string') continue;
+    var e = YZE_EFFECT_PENALTIES[nm];
+    if (e && typeof e[key] === 'number') sum += e[key];
   }
-  if (attrKey === 'wits' || attrKey === 'empathy') {
-    var wm = parseInt(api.getValue('data.witMod') || '0', 10);
-    return isNaN(wm) ? 0 : wm;
+  // Fallback for custom effects that managed to write the record's data field.
+  if (sum === 0) {
+    var rv = parseInt(api.getValue('data.' + key) || '0', 10);
+    if (!isNaN(rv)) sum = rv;
   }
-  return 0;
+  return sum; // negative for penalties
 }
 
 // ── Conditions (SRD p.21) ─────────────────────────────────────────────────
