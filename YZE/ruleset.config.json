@@ -358,6 +358,7 @@
     ],
     "themes": [],
     "effects": [
+      { "label": "YZE Status Effect",        "type": "yzeStatusEffect" },
       { "label": "Difficulty 1",            "type": "yzeDifficulty1" },
       { "label": "Difficulty 2",            "type": "yzeDifficulty2" },
       { "label": "Difficulty 3",            "type": "yzeDifficulty3" },
