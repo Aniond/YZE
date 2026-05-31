@@ -14,6 +14,16 @@ Task status is mirrored to the Notion "YZE Realm VTT — Build Tracker" via noti
 
 ---
 
+## Completed — Additional Systems (outside the original tranches)
+
+- [x] **Status Effects system** — `effects` + `effect_entry` record types;
+  effect-main.html (type-tinted compendium view) + effect-entry.html (list row);
+  effects.csv seeds 12 SRD effects; `yzeEffectPenalty` folded into
+  `yzeCondPenalty` so all rolls honor active effects; Active Effects list on the
+  Combat tab and NPC sheet.
+
+---
+
 ## Tranche 0 — Known Bug (fix first)
 
 - [x] **gear-main.html attack hardcodes effAttr = 3** — HIGH PRIORITY
