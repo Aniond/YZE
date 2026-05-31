@@ -76,6 +76,7 @@ var diffLabel = yzeFormatDifficulty(meta.difficulty || '');
 if (diffLabel) {
   msg += '\n[center][color=orange]Difficulty: ' + diffLabel + '[/color][/center]';
 }
+msg += yzeEffectChatLine();
 if (stressCount > 0) {
   msg += '\n[center]Stress (' + stressCount + 'd6): ' + stressVals.join(' / ') + '[/center]';
   if (stressBanes > 0) {

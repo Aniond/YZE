@@ -196,6 +196,31 @@ function yzeEffectPenalty(attrKey) {
   return sum; // negative for penalties
 }
 
+// Names of the status effects currently on this token, for chat display.
+// Excludes the "Difficulty N" markers (those drive successThreshold, not effects).
+function yzeActiveEffectNames() {
+  var token   = yzeGetOwnToken();
+  var effects = (token && token.effects)
+             || (typeof record !== 'undefined' && record && record.effects)
+             || [];
+  var out = [];
+  for (var i = 0; i < effects.length; i++) {
+    var nm = effects[i] && effects[i].name;
+    if (typeof nm === 'string' && nm && nm.substring(0, 10) !== 'Difficulty') {
+      out.push(nm);
+    }
+  }
+  return out;
+}
+
+// One chat line listing active effects (empty string when none). Appended to
+// roll output so players can see what is affecting the roll.
+function yzeEffectChatLine() {
+  var names = yzeActiveEffectNames();
+  if (!names.length) return '';
+  return '\n[center][color=orange]Effects: ' + names.join(', ') + '[/color][/center]';
+}
+
 // ── Conditions (SRD p.21) ─────────────────────────────────────────────────
 // Each physical condition (Exhausted/Battered/Wounded) gives -1 to Strength &
 // Agility rolls; each mental condition (Angry/Scared/Disheartened) gives -1 to

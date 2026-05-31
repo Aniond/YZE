@@ -226,6 +226,8 @@ if (successes >= threshold) {
   }
 }
 
+msg += yzeEffectChatLine();
+
 // ── Push eligibility — store context so the PUSH button can re-roll blanks ──
 var canPush = p.rerollCount > 0;
 if (canPush) {
