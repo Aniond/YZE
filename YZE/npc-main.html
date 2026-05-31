@@ -522,9 +522,10 @@
 
   <div style="margin:0 16px; border:1px solid #2a2015; border-radius:5px;
     overflow:hidden; background:#1c1610;">
-    <canvas field="npcAttrCanvas" width="500" height="76"
+    <canvas field="npcAttrCanvas" autosize="true" width="500" height="76"
       style="width:100%; height:76px; display:block;"
       onload="initNpc();"
+      onresize="drawNpcAttrs();"
       onrecordchanged="onNpcChange();"
       onclick="onNpcAttrClick();">
     </canvas>
@@ -577,9 +578,10 @@
         text-transform:uppercase; color:#7d6b54; margin-bottom:6px;">
         Health <span style="font-weight:400; letter-spacing:0; color:#524535;
           text-transform:none;">&mdash; click pips to set</span></div>
-      <canvas field="npcHealthCanvas" width="220" height="16"
+      <canvas field="npcHealthCanvas" autosize="true" width="220" height="16"
         style="width:100%; height:16px; display:block;"
         onload="drawNpcHealth();"
+        onresize="drawNpcHealth();"
         onrecordchanged="drawNpcHealth();"
         onclick="onNpcHealthClick();">
       </canvas>
