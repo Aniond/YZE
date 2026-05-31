@@ -143,30 +143,21 @@ function yzeEncumbranceCheck() {
   }
 }
 
-// ── Status effects (Active Effects list) ──────────────────────────────────
-// Applied effects live in data.effectList (effect_entry items). Each carries
-// strMod (applies to STR/AGI rolls) and witMod (applies to WIT/EMP rolls),
-// stored as the SRD modifier — negative for penalties. yzeEffectPenalty sums
-// the relevant modifier across all active effects and returns it AS-IS, i.e.
-// a NEGATIVE number for penalties (0 when none apply).
+// ── Status effects — dice penalties ───────────────────────────────────────
+// Native Realm VTT effects use "Alter a Data Field" to write strMod (STR/AGI
+// penalty) and witMod (WIT/EMP penalty) directly onto data.*. The roll
+// handlers read those fields here and subtract the penalty from the pool.
+// Values stored as NEGATIVE integers (e.g. Entangled sets strMod = -1).
 function yzeEffectPenalty(attrKey) {
-  var key = (attrKey === 'strength' || attrKey === 'agility') ? 'strMod'
-          : (attrKey === 'wits' || attrKey === 'empathy')     ? 'witMod' : null;
-  if (!key) return 0;
-  var raw = api.getValue('data.effectList');
-  if (!raw) return 0;
-  var arr = [];
-  if (Array.isArray(raw)) arr = raw;
-  else { for (var k in raw) { if (Object.prototype.hasOwnProperty.call(raw, k)) arr.push(raw[k]); } }
-  var sum = 0;
-  for (var i = 0; i < arr.length; i++) {
-    var d = arr[i] && arr[i].data;
-    if (d) {
-      var m = parseInt(d[key] || '0', 10);
-      if (!isNaN(m)) sum += m;
-    }
+  if (attrKey === 'strength' || attrKey === 'agility') {
+    var sm = parseInt(api.getValue('data.strMod') || '0', 10);
+    return isNaN(sm) ? 0 : sm;
   }
-  return sum; // negative for penalties
+  if (attrKey === 'wits' || attrKey === 'empathy') {
+    var wm = parseInt(api.getValue('data.witMod') || '0', 10);
+    return isNaN(wm) ? 0 : wm;
+  }
+  return 0;
 }
 
 // ── Conditions (SRD p.21) ─────────────────────────────────────────────────
