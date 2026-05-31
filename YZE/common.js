@@ -766,10 +766,11 @@ function resetPrideForSession() {
   api.showNotification('New session — Pride restored', 'blue', 'Session Reset');
 }
 
+// ── INVARIANT: drawHeader() is 100% read-and-draw only ────────────────────
+// It must NEVER call api.setValues(), api.setHidden(), api.setValue(), or
+// any other write. Writes from onrecordchanged context → onrecordchanged loop
+// → Realm rate-limit error. Confirmed violations in this function = zero.
 function drawHeader() {
-  // Read stored max pools. If not yet computed (new character, or non-main tab
-  // before updateDerived has run), fall back to deriving from base attributes
-  // so the pips show immediately on every tab.
   var maxH = parseInt(api.getValue('data.maxHealth'),  10);
   var maxR = parseInt(api.getValue('data.maxResolve'), 10);
   if (isNaN(maxH) || maxH <= 0) {
@@ -786,11 +787,11 @@ function drawHeader() {
   drawTinyPips('resolveCanvas', 'curResolve', maxR, '#9a7ad4', '#c8a8e8');
 }
 
-// Update the Broken badge and Pride button visibility.
-// Uses api.setValues with fields.* paths (not api.setHidden) so it never
-// triggers onrecordchanged. Call only from user-interaction callbacks, never
-// from onrecordchanged handlers or drawHeader().
-function refreshHeaderBadges() {
+// Update badge visibility (Broken badge, Pride button).
+// Call ONLY from onload handlers and user-interaction callbacks.
+// NEVER call from drawHeader() or any onrecordchanged handler —
+// api.setValues here writes fields.* which can trigger onrecordchanged.
+function refreshHeaderState() {
   var broken      = api.getValue('data.isBroken');
   var isBroken    = (broken === true || broken === 1 || broken === '1' || broken === 'true');
   var prideUsed   = api.getValue('data.prideUsed');
@@ -800,6 +801,8 @@ function refreshHeaderBadges() {
     'fields.prideBtn.hidden':    isPrideUsed
   });
 }
+// Keep old name as alias so any callers still work.
+function refreshHeaderBadges() { refreshHeaderState(); }
 
 // maxVal is a pre-computed integer (drawHeader resolves it before calling).
 function drawTinyPips(canvasField, curField, maxVal, fillCol, edgeCol) {
