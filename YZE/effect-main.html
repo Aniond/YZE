@@ -45,30 +45,19 @@ function onEffectTypeChange() {
       border-radius:5px; padding:8px 12px; flex:1; min-width:150px;">
       <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
         text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">Type</div>
-      <dropdown field="effectType" label="" size="sm" defaultvalue="Physical"
+      <selectfield field="effectType" label="" size="sm" defaultvalue="Physical"
         onload="onEffectTypeChange();"
         onchange="onEffectTypeChange();"
-        options='[
-          {"label":"Physical",      "value":"Physical"},
-          {"label":"Mental",        "value":"Mental"},
-          {"label":"Environmental", "value":"Environmental"},
-          {"label":"Combat",        "value":"Combat"}
-        ]'>
-      </dropdown>
+        options="Physical:Physical,Mental:Mental,Environmental:Environmental,Combat:Combat">
+      </selectfield>
     </div>
     <div style="background:#1c1610; border:1px solid #2a2015;
       border-radius:5px; padding:8px 12px; flex:1; min-width:150px;">
       <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
         text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">Duration</div>
-      <dropdown field="duration" label="" size="sm" defaultvalue="Special"
-        options='[
-          {"label":"Permanent", "value":"Permanent"},
-          {"label":"Scene",     "value":"Scene"},
-          {"label":"Shift",     "value":"Shift"},
-          {"label":"Round",     "value":"Round"},
-          {"label":"Special",   "value":"Special"}
-        ]'>
-      </dropdown>
+      <selectfield field="duration" label="" size="sm" defaultvalue="Special"
+        options="Permanent:Permanent,Scene:Scene,Shift:Shift,Round:Round,Special:Special">
+      </selectfield>
     </div>
   </div>
 
