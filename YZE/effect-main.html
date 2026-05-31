@@ -1,0 +1,131 @@
+<script>
+// Accent band by effectType: Physical=red, Mental=purple, Environmental=green,
+// Combat=amber. One band shown at a time (mirrors spell-main's discipline band).
+function onEffectTypeChange() {
+  var t = api.getValue('data.effectType') || 'Physical';
+  api.setValues({
+    'fields.bandPhysical.hidden':      t !== 'Physical',
+    'fields.bandMental.hidden':        t !== 'Mental',
+    'fields.bandEnvironmental.hidden': t !== 'Environmental',
+    'fields.bandCombat.hidden':        t !== 'Combat'
+  });
+}
+</script>
+
+<div style="background:#15110b; min-height:100%; padding:14px 16px;">
+
+  <!-- Type accent band — one shown at a time -->
+  <box field="bandPhysical">
+    <div style="height:3px; background:#cc3333; border-radius:2px 2px 0 0;
+      margin:-14px -16px 12px; opacity:0.8;"></div>
+  </box>
+  <box field="bandMental">
+    <div style="height:3px; background:#9a7ad4; border-radius:2px 2px 0 0;
+      margin:-14px -16px 12px; opacity:0.8;"></div>
+  </box>
+  <box field="bandEnvironmental">
+    <div style="height:3px; background:#6aa07a; border-radius:2px 2px 0 0;
+      margin:-14px -16px 12px; opacity:0.8;"></div>
+  </box>
+  <box field="bandCombat">
+    <div style="height:3px; background:#c8902a; border-radius:2px 2px 0 0;
+      margin:-14px -16px 12px; opacity:0.8;"></div>
+  </box>
+
+  <!-- Name -->
+  <namefield field="name" label="" bold="true" size="md"
+    placeholder="Effect name…"
+    style="font-family:Georgia,serif; font-size:20px;
+      color:#f0d9b5; margin-bottom:12px;">
+  </namefield>
+
+  <!-- Type + Duration row -->
+  <div style="display:flex; gap:10px; align-items:flex-end; margin-bottom:12px; flex-wrap:wrap;">
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:8px 12px; flex:1; min-width:150px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">Type</div>
+      <dropdown field="effectType" label="" size="sm" defaultvalue="Physical"
+        onload="onEffectTypeChange();"
+        onchange="onEffectTypeChange();"
+        options='[
+          {"label":"Physical",      "value":"Physical"},
+          {"label":"Mental",        "value":"Mental"},
+          {"label":"Environmental", "value":"Environmental"},
+          {"label":"Combat",        "value":"Combat"}
+        ]'>
+      </dropdown>
+    </div>
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-radius:5px; padding:8px 12px; flex:1; min-width:150px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:4px;">Duration</div>
+      <dropdown field="duration" label="" size="sm" defaultvalue="Special"
+        options='[
+          {"label":"Permanent", "value":"Permanent"},
+          {"label":"Scene",     "value":"Scene"},
+          {"label":"Shift",     "value":"Shift"},
+          {"label":"Round",     "value":"Round"},
+          {"label":"Special",   "value":"Special"}
+        ]'>
+      </dropdown>
+    </div>
+  </div>
+
+  <!-- Modifiers -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; margin-bottom:6px;">Modifiers</div>
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px;">
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px; padding:8px 10px;">
+      <div style="font-size:8px; color:#5a4a38; text-transform:uppercase;
+        letter-spacing:0.1em; margin-bottom:3px;">STR / AGI</div>
+      <numberfield field="strMod" label="" size="sm" defaultvalue="0"
+        minvalue="-6" maxvalue="6"
+        style="font-size:18px; font-weight:bold; color:#cc6666; width:54px;">
+      </numberfield>
+    </div>
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px; padding:8px 10px;">
+      <div style="font-size:8px; color:#5a4a38; text-transform:uppercase;
+        letter-spacing:0.1em; margin-bottom:3px;">WIT / EMP</div>
+      <numberfield field="witMod" label="" size="sm" defaultvalue="0"
+        minvalue="-6" maxvalue="6"
+        style="font-size:18px; font-weight:bold; color:#9a7ad4; width:54px;">
+      </numberfield>
+    </div>
+    <div style="background:#1c1610; border:1px solid #2a2015; border-radius:5px; padding:8px 10px;">
+      <div style="font-size:8px; color:#5a4a38; text-transform:uppercase;
+        letter-spacing:0.1em; margin-bottom:3px;">Dmg / Round</div>
+      <numberfield field="damagePerRound" label="" size="sm" defaultvalue="0"
+        minvalue="0" maxvalue="20"
+        style="font-size:18px; font-weight:bold; color:#f0d9b5; width:54px;">
+      </numberfield>
+    </div>
+  </div>
+
+  <!-- Healing blocks -->
+  <div style="display:flex; gap:16px; margin-bottom:14px; flex-wrap:wrap;">
+    <checkboxfield field="blockPhysHeal" label="Blocks physical healing" size="xs"></checkboxfield>
+    <checkboxfield field="blockMentHeal" label="Blocks mental healing"   size="xs"></checkboxfield>
+  </div>
+
+  <!-- Description -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; margin-bottom:6px;">Description</div>
+  <richtextfield field="description" label="" height="120px"
+    placeholder="Exact SRD text for this effect…">
+  </richtextfield>
+
+  <!-- Clearing notes -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; margin:12px 0 6px;">How to Clear</div>
+  <richtextfield field="notes" label="" height="70px"
+    placeholder="GM notes on how this effect is removed…">
+  </richtextfield>
+
+  <!-- Footer -->
+  <div style="margin-top:16px; font-size:9px; color:#3a2e22;
+    text-align:right; letter-spacing:0.06em;">
+    Powered by Year Zero Engine
+  </div>
+
+</div>

@@ -143,19 +143,48 @@ function yzeEncumbranceCheck() {
   }
 }
 
+// ── Status effects (Active Effects list) ──────────────────────────────────
+// Applied effects live in data.effectList (effect_entry items). Each carries
+// strMod (applies to STR/AGI rolls) and witMod (applies to WIT/EMP rolls),
+// stored as the SRD modifier — negative for penalties. yzeEffectPenalty sums
+// the relevant modifier across all active effects and returns it AS-IS, i.e.
+// a NEGATIVE number for penalties (0 when none apply).
+function yzeEffectPenalty(attrKey) {
+  var key = (attrKey === 'strength' || attrKey === 'agility') ? 'strMod'
+          : (attrKey === 'wits' || attrKey === 'empathy')     ? 'witMod' : null;
+  if (!key) return 0;
+  var raw = api.getValue('data.effectList');
+  if (!raw) return 0;
+  var arr = [];
+  if (Array.isArray(raw)) arr = raw;
+  else { for (var k in raw) { if (Object.prototype.hasOwnProperty.call(raw, k)) arr.push(raw[k]); } }
+  var sum = 0;
+  for (var i = 0; i < arr.length; i++) {
+    var d = arr[i] && arr[i].data;
+    if (d) {
+      var m = parseInt(d[key] || '0', 10);
+      if (!isNaN(m)) sum += m;
+    }
+  }
+  return sum; // negative for penalties
+}
+
 // ── Conditions (SRD p.21) ─────────────────────────────────────────────────
 // Each physical condition (Exhausted/Battered/Wounded) gives -1 to Strength &
 // Agility rolls; each mental condition (Angry/Scared/Disheartened) gives -1 to
 // Wits & Empathy rolls. Over-encumbrance adds a further -2 to physical rolls.
-// Returns the number of dice to remove for a roll on attrKey.
+// Active status effects add their strMod/witMod on top (yzeEffectPenalty returns
+// a negative number, so we SUBTRACT it to turn it into extra dice removed).
+// Returns the number of dice to remove for a roll on attrKey (clamped >= 0).
 function yzeCondPenalty(attrKey) {
   function on(f) { var v = api.getValue('data.' + f); return (v === true || v === 1 || v === '1' || v === 'true') ? 1 : 0; }
+  var effPen = yzeEffectPenalty(attrKey); // negative for penalties
   if (attrKey === 'strength' || attrKey === 'agility') {
     var encPen = on('overEncumbered') ? 2 : 0;
-    return on('cond_exhausted') + on('cond_battered') + on('cond_wounded') + encPen;
+    return Math.max(0, on('cond_exhausted') + on('cond_battered') + on('cond_wounded') + encPen - effPen);
   }
   if (attrKey === 'wits' || attrKey === 'empathy') {
-    return on('cond_angry') + on('cond_scared') + on('cond_disheartened');
+    return Math.max(0, on('cond_angry') + on('cond_scared') + on('cond_disheartened') - effPen);
   }
   return 0;
 }

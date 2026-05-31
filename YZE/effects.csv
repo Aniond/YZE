@@ -1,0 +1,13 @@
+recordType,name,effectType,description,strMod,witMod,blockPhysHeal,blockMentHeal,damagePerRound,duration,notes
+effects,Hypothermic,Environmental,"You are freezing cold and cannot recover Health until you warm up. Each Shift of continued exposure forces a Stamina roll to avoid further damage.",-1,0,true,false,0,Special,"Clear after warming up by a campfire or other heat source."
+effects,Starving,Environmental,"You have gone too long without food. You cannot recover Health until you eat a full ration.",0,0,true,false,0,Special,"Clear by eating a ration."
+effects,Sick,Environmental,"You are afflicted by disease or infection and cannot recover Health until you fight it off.",0,0,true,false,0,Special,"Clear by succeeding an infection roll."
+effects,On Fire,Environmental,"You are burning and take 6 points of damage at the start of each round until the flames are extinguished.",0,0,false,false,6,Round,"Clear by extinguishing the fire."
+effects,Poisoned (Lethal),Environmental,"Lethal poison courses through you, dealing 1 point of damage each round.",0,0,false,false,1,Special,"Clear with an antidote."
+effects,Poisoned (Paralyzing),Environmental,"Paralyzing poison stiffens your muscles, giving -3 to all Strength and Agility rolls.",-3,0,false,false,0,Shift,"Clear after one stretch."
+effects,Poisoned (Sleeping),Environmental,"Sleeping poison dulls both body and mind, giving -3 to all attribute rolls.",-3,-3,false,false,0,Shift,"Clear after one shift."
+effects,Entangled,Combat,"You are caught fast and cannot move, with -1 to Strength and Agility rolls until you break free.",-1,0,false,false,0,Special,"Clear by winning a Melee Combat roll (slow action)."
+effects,Prone,Combat,"You are knocked to the ground, with -1 to Strength and Agility rolls until you get up.",-1,0,false,false,0,Special,"Clear by spending a fast action to stand up."
+effects,Tremble,Mental,"You are trembling uncontrollably, giving -2 to all Strength and Agility rolls.",-2,0,false,false,0,Special,"Clear when all stress is relieved. (Panic result 8.)"
+effects,Frozen,Mental,"Fear roots you in place for a round, giving -3 to all Strength and Agility rolls.",-3,0,false,false,0,Round,"Clears automatically after one round. (Panic result 10.)"
+effects,Sleep Deprived,Environmental,"You are exhausted from lack of sleep, with -1 to Wits and Empathy rolls, and cannot recover Resolve.",0,-1,false,true,0,Special,"Clear by sleeping one full shift."

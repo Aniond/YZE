@@ -222,6 +222,38 @@
         "characters"
       ],
       "icon": "GiBackpack"
+    },
+    {
+      "name": "Effects",
+      "type": "effects",
+      "minX": 460,
+      "minY": 360,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "effect-main.html"
+        }
+      ],
+      "hideFromCompendium": false,
+      "isList": false,
+      "icon": "GiSpellBook"
+    },
+    {
+      "name": "Effect Entry",
+      "type": "effect_entry",
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "effect-entry.html"
+        }
+      ],
+      "hideFromCompendium": true,
+      "isList": true,
+      "allowedListTypes": [
+        "characters",
+        "npcs"
+      ],
+      "icon": "GiSpellBook"
     }
   ],
   "settings": {

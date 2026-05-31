@@ -1,0 +1,79 @@
+<script>
+// ── List-item context helpers (Sean's confirmed dataPath pattern) ───────────
+// In a list-item template, api.getValue('data.X') reads the OWNING record.
+// Use ctx.dataPrefix to read THIS effect entry's own fields.
+function getNearestParentDataPath(dp) {
+  var parts = dp.split('.data');
+  return parts.length > 1 ? parts.slice(0, -1).join('.data') : '';
+}
+function getItemContext() {
+  var itemDataPath = getNearestParentDataPath(dataPath);
+  var dp           = itemDataPath ? itemDataPath + '.data' : 'data';
+  return { dataPrefix: dp };
+}
+
+// Build a one-line modifier summary and store it on this item's own `summary`
+// field. Guarded so it only writes when the value changed (no onrecordchanged loop).
+function effectSummary() {
+  var ctx = getItemContext();
+  function gv(f) { return api.getValue(ctx.dataPrefix + '.' + f); }
+  function tru(v) { return v === true || v === 1 || v === '1' || v === 'true'; }
+  var sm  = parseInt(gv('strMod') || '0', 10); if (isNaN(sm)) sm = 0;
+  var wm  = parseInt(gv('witMod') || '0', 10); if (isNaN(wm)) wm = 0;
+  var dpr = parseInt(gv('damagePerRound') || '0', 10); if (isNaN(dpr)) dpr = 0;
+  var parts = [];
+  if (sm !== 0) parts.push('STR/AGI ' + (sm > 0 ? '+' : '') + sm);
+  if (wm !== 0) parts.push('WIT/EMP ' + (wm > 0 ? '+' : '') + wm);
+  if (dpr > 0)  parts.push(dpr + ' dmg/round');
+  if (tru(gv('blockPhysHeal')) || tru(gv('blockMentHeal'))) parts.push('blocks healing');
+  var s = parts.length ? parts.join('  ·  ') : 'no modifiers';
+  if (api.getValue(ctx.dataPrefix + '.summary') !== s) {
+    var upd = {}; upd[ctx.dataPrefix + '.summary'] = s;
+    api.setValues(upd);
+  }
+}
+</script>
+
+<div style="display:flex; align-items:center; gap:8px; min-height:42px;
+  width:100%; padding:5px 10px; box-sizing:border-box;
+  background:#1a1612; border-bottom:1px solid #2a2015;">
+
+  <!-- Name -->
+  <namefield field="name" label="" size="xs" bold="true"
+    placeholder="Effect…"
+    style="flex:0 0 auto; min-width:0; color:#f0d9b5; max-width:130px;"
+    onload="effectSummary();"
+    onrecordchanged="effectSummary();">
+  </namefield>
+
+  <!-- Type badge -->
+  <div style="font-size:8px; font-weight:700; letter-spacing:0.06em;
+    color:#c8902a; background:rgba(200,144,42,0.10);
+    border:1px solid #7a571c; border-radius:2px;
+    padding:2px 6px; white-space:nowrap; flex-shrink:0;">
+    <stringfield field="effectType" label="" readonly="true" size="xs"
+      style="background:transparent; border:none; color:#c8902a;
+        font-size:8px; font-weight:700; display:inline; width:auto;">
+    </stringfield>
+  </div>
+
+  <!-- Modifier summary -->
+  <stringfield field="summary" label="" readonly="true" size="xs"
+    style="flex:1; min-width:0; color:#b8a288; font-size:10px;
+      background:transparent; border:none;">
+  </stringfield>
+
+  <!-- Duration badge -->
+  <div style="font-size:8px; font-weight:700; letter-spacing:0.06em;
+    color:#7d6b54; background:#111009;
+    border:1px solid #2a2015; border-radius:2px;
+    padding:2px 6px; white-space:nowrap; flex-shrink:0;">
+    <stringfield field="duration" label="" readonly="true" size="xs"
+      style="background:transparent; border:none; color:#7d6b54;
+        font-size:8px; font-weight:700; display:inline; width:auto;">
+    </stringfield>
+  </div>
+
+  <deletebutton style="flex-shrink:0; margin-left:2px;"></deletebutton>
+
+</div>
