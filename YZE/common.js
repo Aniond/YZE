@@ -221,6 +221,35 @@ function yzeEffectChatLine() {
   return '\n[center][color=orange]Effects: ' + names.join(', ') + '[/color][/center]';
 }
 
+// Thematic dice tint per effect (Realm customColor names: green/red/blue/orange/
+// yellow/purple). Applied to the BLANK dice on a roll so the pool takes on the
+// effect's mood while 6s (green) and 1s (red) stay readable. First matching
+// active effect wins.
+var YZE_EFFECT_DICE_COLOR = {
+  'Hypothermic':           'blue',    // icy
+  'Frozen':                'blue',    // icy
+  'On Fire':               'orange',  // flame
+  'Sick':                  'green',   // sickly
+  'Poisoned (Lethal)':     'green',   // toxic
+  'Poisoned (Paralyzing)': 'green',   // toxic
+  'Poisoned (Sleeping)':   'green',   // toxic
+  'Tremble':               'purple',  // fear
+  'Sleep Deprived':        'purple',  // dazed
+  'Entangled':             'yellow',  // snared
+  'Prone':                 'yellow',  // grounded
+  'Starving':              'orange'   // gnawing
+};
+
+// Color of the first themed active effect on this token, or null if none.
+function yzeEffectDiceColor() {
+  var names = yzeActiveEffectNames();
+  for (var i = 0; i < names.length; i++) {
+    var c = YZE_EFFECT_DICE_COLOR[names[i]];
+    if (c) return c;
+  }
+  return null;
+}
+
 // ── Conditions (SRD p.21) ─────────────────────────────────────────────────
 // Each physical condition (Exhausted/Battered/Wounded) gives -1 to Strength &
 // Agility rolls; each mental condition (Angry/Scared/Disheartened) gives -1 to
@@ -935,6 +964,7 @@ function refreshCondPlayerUI() {
 // before calling).
 function yzeColorDice(dice, meta) {
   if (!dice) return;
+  var effCol   = yzeEffectDiceColor(); // themed tint when a status effect is active
   var attrEnd  = meta ? parseInt(meta.attrCount  || 0, 10) : 0;
   var skillEnd = attrEnd  + (meta ? parseInt(meta.skillCount || 0, 10) : 0);
   var gearEnd  = skillEnd + (meta ? parseInt(meta.gearCount  || 0, 10) : 0);
@@ -942,6 +972,7 @@ function yzeColorDice(dice, meta) {
     var v = parseInt(dice[i].value, 10);
     if      (v === 6) { dice[i].customColor = 'green';  }
     else if (v === 1) { dice[i].customColor = 'red';    }
+    else if (effCol)  { dice[i].customColor = effCol;   } // effect mood overrides source tint
     else if (meta) {
       // Blank — tint by source so players can read the pool at a glance
       if      (i < attrEnd)  dice[i].customColor = 'blue';
