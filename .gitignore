@@ -7,6 +7,9 @@ credentials
 .env.local
 .env.*.local
 
+# Notion sync helper — contains an integration token, never commit
+notion-sync.js
+
 # Claude Code settings with credentials
 .claude/settings.local.json
 *.local.json
