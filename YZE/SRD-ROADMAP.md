@@ -173,20 +173,20 @@ These are in the SRD but were not in any earlier tranche.
 
 ---
 
-## Tranche 7 — Travel system (SRD ch.6) — FUTURE
-Not missing — deliberately deferred. The travel system requires
-map/hex infrastructure that is GM-tooling outside the current
-ruleset scope.
+## Tranche 7 — Travel system (SRD ch.6) ✅ DONE (reference sheet)
 
-- [ ] Travel maps — hex grid movement, terrain types, speed modifiers
-      (Road ×1, Open ×1, Woods ×½, Hills ×½, Mountains ×⅓,
-      Lake/River ×1**, Swamp ×¼, Ruins ×½)
-- [ ] Travel tasks — Marching, Driving, Foraging, Hunting, Keeping
-      Watch, Gathering, Fishing, Making Camp, Sleeping
-- [ ] Journey rolls — Foraging (Survival), Hunting (Survival/Marksmanship),
-      Keeping Watch (Scouting), Fishing (Survival)
-- [ ] Encounter distance by terrain type (SRD p.41)
-- [ ] River/lake travel — boat, raft, swimming rules
+Implemented as `travel_ref` compendium record / `travel-reference.html`.
+Hex map infrastructure is Realm VTT scene tooling outside the ruleset;
+the reference sheet covers all SRD numbers in one place with quick-roll buttons.
+
+- [x] Travel maps — terrain types table with speed modifiers, driving modifier,
+      foraging/hunting modifiers, and encounter distance (all 8 terrain types)
+- [x] Travel tasks — all 9 tasks (Marching, Driving, Foraging, Hunting, Keeping
+      Watch, Gathering, Fishing, Making Camp, Sleeping) with SRD text
+- [x] Journey rolls — Foraging/Hunting/Fishing (Survival) and Keeping Watch
+      (Observation) with dice + terrain modifier steppers and quick-roll buttons
+- [x] Encounter distance by terrain type — column in terrain table (SRD p.41)
+- [x] River/lake travel — Rivers &amp; Lakes section with swimming reference
 
 ---
 

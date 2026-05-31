@@ -1,0 +1,423 @@
+<script>
+// Roll a travel task. diceField = stored base dice, modField = terrain modifier.
+function rollTravel(diceField, modField, skillName, attrKey) {
+  var base  = parseInt(api.getValue('data.' + diceField)  || '3', 10);
+  var mod   = parseInt(api.getValue('data.' + modField)   || '0', 10);
+  var total = Math.max(1, base + mod);
+  if (isNaN(total)) total = 1;
+  api.roll(total + 'd6', {
+    skillName:  skillName,
+    attrKey:    attrKey || 'wits',
+    attrCount:  total,
+    skillCount: 0,
+    gearCount:  0
+  }, 'yze_pool');
+}
+</script>
+
+<div style="background:#15110b; min-height:100%; padding:14px 16px;">
+
+  <!-- Title -->
+  <div style="font-family:Georgia,serif; font-size:18px; font-weight:500;
+    color:#f0d9b5; margin-bottom:2px;">Travel Reference</div>
+  <div style="font-size:10px; color:#524535; font-style:italic; margin-bottom:16px;">
+    GM reference — SRD ch.6 p.41–48. One shift of travel per day; map hex = 10 km.</div>
+
+  <!-- ── TERRAIN TYPES ─────────────────────────────────────────────────── -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; margin-bottom:8px;
+    display:flex; align-items:center; gap:10px;">
+    <span>Terrain Types</span>
+    <span style="flex:1; height:1px;
+      background:linear-gradient(90deg,#2a2015,transparent);"></span>
+    <span style="font-size:9px; color:#524535; font-weight:400;
+      letter-spacing:0; text-transform:none;">SRD p.41</span>
+  </div>
+
+  <!-- Table header -->
+  <div style="display:grid; grid-template-columns:1fr 38px 40px 44px 40px 56px;
+    gap:1px; background:#2a2015; border-radius:4px 4px 0 0; overflow:hidden;
+    margin-bottom:1px;">
+    <div style="background:#1c1610; padding:5px 8px; font-size:8px; font-weight:700;
+      letter-spacing:0.1em; text-transform:uppercase; color:#7d6b54;">Terrain</div>
+    <div style="background:#1c1610; padding:5px 4px; font-size:8px; font-weight:700;
+      text-transform:uppercase; color:#7d6b54; text-align:center;">Speed</div>
+    <div style="background:#1c1610; padding:5px 4px; font-size:8px; font-weight:700;
+      text-transform:uppercase; color:#7d6b54; text-align:center;">Drive</div>
+    <div style="background:#1c1610; padding:5px 4px; font-size:8px; font-weight:700;
+      text-transform:uppercase; color:#7d6b54; text-align:center;">Forage</div>
+    <div style="background:#1c1610; padding:5px 4px; font-size:8px; font-weight:700;
+      text-transform:uppercase; color:#7d6b54; text-align:center;">Hunt</div>
+    <div style="background:#1c1610; padding:5px 4px; font-size:8px; font-weight:700;
+      text-transform:uppercase; color:#7d6b54; text-align:center;">Encounter</div>
+  </div>
+
+  <!-- Table rows -->
+  <div style="display:flex; flex-direction:column; gap:1px; background:#2a2015;
+    border-radius:0 0 4px 4px; overflow:hidden; margin-bottom:16px;">
+
+    <div style="display:grid; grid-template-columns:1fr 38px 40px 44px 40px 56px;
+      gap:1px; background:#2a2015;">
+      <div style="background:#1a1612; padding:5px 8px; font-size:10px; color:#c8902a; font-weight:600;">Road</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#b8a288; text-align:center;">x1</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#6aa07a; text-align:center;">+3</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#524535; text-align:center; font-style:italic;">varies</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#524535; text-align:center; font-style:italic;">varies</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#b8a288; text-align:center;">Long</div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 38px 40px 44px 40px 56px;
+      gap:1px; background:#2a2015;">
+      <div style="background:#1c1610; padding:5px 8px; font-size:10px; color:#b8a288;">Open</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#b8a288; text-align:center;">x1</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#6aa07a; text-align:center;">+1</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#cc6666; text-align:center;">−1</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#6aa07a; text-align:center;">+1</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#b8a288; text-align:center;">Extreme</div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 38px 40px 44px 40px 56px;
+      gap:1px; background:#2a2015;">
+      <div style="background:#1a1612; padding:5px 8px; font-size:10px; color:#b8a288;">Woods</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#cc6666; text-align:center;">x&#189;</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#6aa07a; text-align:center;">+1</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#6aa07a; text-align:center;">+1</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#b8a288; text-align:center;">0</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#b8a288; text-align:center;">Medium</div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 38px 40px 44px 40px 56px;
+      gap:1px; background:#2a2015;">
+      <div style="background:#1c1610; padding:5px 8px; font-size:10px; color:#b8a288;">Hills</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#cc6666; text-align:center;">x&#189;</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#b8a288; text-align:center;">0</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#b8a288; text-align:center;">0</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#cc6666; text-align:center;">−1</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#b8a288; text-align:center;">Long</div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 38px 40px 44px 40px 56px;
+      gap:1px; background:#2a2015;">
+      <div style="background:#1a1612; padding:5px 8px; font-size:10px; color:#b8a288;">Mountains</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#cc3333; text-align:center;">x&#8531;</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#cc6666; text-align:center;">−1</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#cc6666; text-align:center;">−2</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#cc6666; text-align:center;">−1</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#b8a288; text-align:center;">Long</div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 38px 40px 44px 40px 56px;
+      gap:1px; background:#2a2015;">
+      <div style="background:#1c1610; padding:5px 8px; font-size:10px; color:#5a8ac8;">Lake / River</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#5a8ac8; text-align:center; font-size:8px;">x1 *</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#6aa07a; text-align:center;">+2</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#524535; text-align:center;">—</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#b8a288; text-align:center;">0</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#b8a288; text-align:center;">Extreme</div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 38px 40px 44px 40px 56px;
+      gap:1px; background:#2a2015;">
+      <div style="background:#1a1612; padding:5px 8px; font-size:10px; color:#b8a288;">Swamp</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#cc3333; text-align:center;">x&#188;</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#cc6666; text-align:center;">−1</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#cc6666; text-align:center;">−1</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#b8a288; text-align:center;">0</div>
+      <div style="background:#1a1612; padding:5px 4px; font-size:10px; color:#b8a288; text-align:center;">Long</div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 38px 40px 44px 40px 56px;
+      gap:1px; background:#2a2015;">
+      <div style="background:#1c1610; padding:5px 8px; font-size:10px; color:#b8a288;">Ruins</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#cc6666; text-align:center;">x&#189;</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#b8a288; text-align:center;">0</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#cc6666; text-align:center;">−2</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#cc6666; text-align:center;">−1</div>
+      <div style="background:#1c1610; padding:5px 4px; font-size:10px; color:#b8a288; text-align:center;">Medium</div>
+    </div>
+
+  </div>
+
+  <div style="font-size:9px; color:#524535; font-style:italic; margin-top:-10px;
+    margin-bottom:16px;">
+    * Lake/River requires a boat or amphibious vehicle. Speed applies to
+    off-road travel only — roads are always x1. Driving modifier applies
+    to Driving rolls, not on-foot travel speed.
+  </div>
+
+  <!-- ── TRAVEL TASKS ──────────────────────────────────────────────────── -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; margin-bottom:8px;
+    display:flex; align-items:center; gap:10px;">
+    <span>Travel Tasks</span>
+    <span style="flex:1; height:1px;
+      background:linear-gradient(90deg,#2a2015,transparent);"></span>
+    <span style="font-size:9px; color:#524535; font-weight:400;
+      letter-spacing:0; text-transform:none;">SRD p.42–44</span>
+  </div>
+
+  <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+
+    <!-- MARCHING -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-left:3px solid #c8902a; border-radius:4px; padding:8px 12px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.1em;
+        text-transform:uppercase; color:#c8902a; margin-bottom:3px;">Marching</div>
+      <div style="font-size:10px; color:#b8a288;">
+        Walking on foot to progress on the travel map. Can be combined with
+        Keeping Watch for one character only.
+      </div>
+      <div style="font-size:9px; color:#524535; margin-top:3px; font-style:italic;">
+        No roll required — automatic progress at terrain speed.</div>
+    </div>
+
+    <!-- DRIVING -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-left:3px solid #c8902a; border-radius:4px; padding:8px 12px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.1em;
+        text-transform:uppercase; color:#c8902a; margin-bottom:3px;">Driving</div>
+      <div style="font-size:10px; color:#b8a288;">
+        Maneuvering a vehicle on land, water, or air. Passengers can keep watch,
+        rest, or sleep while you drive.
+      </div>
+      <div style="font-size:9px; color:#524535; margin-top:3px; font-style:italic;">
+        No roll for normal travel — Driving roll only for difficult conditions.</div>
+    </div>
+
+    <!-- FORAGING -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-left:3px solid #6aa07a; border-radius:4px; padding:8px 12px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.1em;
+        text-transform:uppercase; color:#6aa07a; margin-bottom:3px;">Foraging</div>
+      <div style="font-size:10px; color:#b8a288; margin-bottom:6px;">
+        Looking for edible plants and herbs. Must be done on foot.
+        Roll Survival modified by terrain foraging modifier.
+        Each success = 1 ration found.
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+        <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+          <numberfield field="foragingDice" label="Dice" size="xs" variant="unstyled"
+            minvalue="1" maxvalue="12" defaultvalue="3" style="width:62px;"></numberfield>
+        </div>
+        <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+          <numberfield field="foragingMod" label="Terrain Mod" size="xs" variant="unstyled"
+            minvalue="-3" maxvalue="3" defaultvalue="0" style="width:84px;"></numberfield>
+        </div>
+        <button field="foragingBtn" label="Foraging Roll" size="xs"
+          color="default" variant="outline"
+          onclick="rollTravel('foragingDice','foragingMod','Foraging (Survival)','wits');">
+        </button>
+      </div>
+    </div>
+
+    <!-- HUNTING -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-left:3px solid #6aa07a; border-radius:4px; padding:8px 12px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.1em;
+        text-transform:uppercase; color:#6aa07a; margin-bottom:3px;">Hunting</div>
+      <div style="font-size:10px; color:#b8a288; margin-bottom:6px;">
+        Looking for game to hunt. Must be done on foot.
+        Roll Survival or Marksmanship modified by terrain hunting modifier.
+        Each success = D6 rations.
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+        <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+          <numberfield field="huntingDice" label="Dice" size="xs" variant="unstyled"
+            minvalue="1" maxvalue="12" defaultvalue="3" style="width:62px;"></numberfield>
+        </div>
+        <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+          <numberfield field="huntingMod" label="Terrain Mod" size="xs" variant="unstyled"
+            minvalue="-3" maxvalue="3" defaultvalue="0" style="width:84px;"></numberfield>
+        </div>
+        <button field="huntingBtn" label="Hunting Roll" size="xs"
+          color="default" variant="outline"
+          onclick="rollTravel('huntingDice','huntingMod','Hunting (Survival)','wits');">
+        </button>
+      </div>
+    </div>
+
+    <!-- KEEPING WATCH -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-left:3px solid #5a8ac8; border-radius:4px; padding:8px 12px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.1em;
+        text-transform:uppercase; color:#5a8ac8; margin-bottom:3px;">Keeping Watch</div>
+      <div style="font-size:10px; color:#b8a288; margin-bottom:6px;">
+        Scouting for enemies and other encounters. Only one character can perform
+        this task per quarter-day. Can be combined with marching.
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+        <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+          <numberfield field="watchDice" label="Dice" size="xs" variant="unstyled"
+            minvalue="1" maxvalue="12" defaultvalue="3" style="width:62px;"></numberfield>
+        </div>
+        <button field="watchBtn" label="Watch Roll" size="xs"
+          color="default" variant="outline"
+          onclick="rollTravel('watchDice','watchMod','Keeping Watch (Observation)','wits');">
+        </button>
+      </div>
+    </div>
+
+    <!-- GATHERING -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-left:3px solid #c8902a; border-radius:4px; padding:8px 12px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.1em;
+        text-transform:uppercase; color:#c8902a; margin-bottom:3px;">Gathering</div>
+      <div style="font-size:10px; color:#b8a288;">
+        Collecting wood or grain to produce alcohol fuel. Must be done on foot.
+      </div>
+      <div style="font-size:9px; color:#524535; margin-top:3px; font-style:italic;">
+        No roll required — automatic if terrain allows.</div>
+    </div>
+
+    <!-- FISHING -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-left:3px solid #5a8ac8; border-radius:4px; padding:8px 12px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.1em;
+        text-transform:uppercase; color:#5a8ac8; margin-bottom:3px;">Fishing</div>
+      <div style="font-size:10px; color:#b8a288; margin-bottom:6px;">
+        Catching fish in lakes and rivers. Roll Survival.
+        Each success = D6 rations. Lakes and rivers only.
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+        <div style="background:#1a140d; border:1px solid #3a2e1c; border-radius:4px;">
+          <numberfield field="fishingDice" label="Dice" size="xs" variant="unstyled"
+            minvalue="1" maxvalue="12" defaultvalue="3" style="width:62px;"></numberfield>
+        </div>
+        <button field="fishingBtn" label="Fishing Roll" size="xs"
+          color="default" variant="outline"
+          onclick="rollTravel('fishingDice','fishingMod','Fishing (Survival)','wits');">
+        </button>
+      </div>
+    </div>
+
+    <!-- MAKING CAMP -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-left:3px solid #c8902a; border-radius:4px; padding:8px 12px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.1em;
+        text-transform:uppercase; color:#c8902a; margin-bottom:3px;">Making Camp</div>
+      <div style="font-size:10px; color:#b8a288;">
+        Setting up a camp for the night. The camp provides shelter and allows
+        the party to sleep and perform other rest activities.
+      </div>
+      <div style="font-size:9px; color:#524535; margin-top:3px; font-style:italic;">
+        No roll required — automatic. Sleeping in the open without a camp is possible
+        but risky in harsh conditions.</div>
+    </div>
+
+    <!-- SLEEPING -->
+    <div style="background:#1c1610; border:1px solid #2a2015;
+      border-left:3px solid #7d6b54; border-radius:4px; padding:8px 12px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.1em;
+        text-transform:uppercase; color:#7d6b54; margin-bottom:3px;">Sleeping</div>
+      <div style="font-size:10px; color:#b8a288;">
+        Resting for a shift. Required to heal Wits stress and avoid the
+        Sleep Deprivation condition. Must sleep at least one shift per day.
+      </div>
+      <div style="font-size:9px; color:#524535; margin-top:3px; font-style:italic;">
+        No roll required.</div>
+    </div>
+
+  </div>
+
+  <!-- ── JOURNEY ROLLS ──────────────────────────────────────────────────── -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; margin-bottom:8px;
+    display:flex; align-items:center; gap:10px;">
+    <span>Journey Rolls</span>
+    <span style="flex:1; height:1px;
+      background:linear-gradient(90deg,#2a2015,transparent);"></span>
+    <span style="font-size:9px; color:#524535; font-weight:400;
+      letter-spacing:0; text-transform:none;">SRD p.44</span>
+  </div>
+
+  <div style="background:#1c1610; border:1px solid #2a2015;
+    border-radius:5px; padding:10px 14px; margin-bottom:16px;">
+    <div style="display:grid; grid-template-columns:auto 1fr; gap:4px 14px;
+      font-size:10px; align-items:start;">
+      <div style="color:#c8902a; font-weight:700;">Foraging</div>
+      <div style="color:#b8a288;">Survival + terrain foraging modifier</div>
+      <div style="color:#c8902a; font-weight:700;">Hunting</div>
+      <div style="color:#b8a288;">Survival or Marksmanship + terrain hunting modifier</div>
+      <div style="color:#c8902a; font-weight:700;">Fishing</div>
+      <div style="color:#b8a288;">Survival (lakes and rivers only)</div>
+      <div style="color:#c8902a; font-weight:700;">Keeping Watch</div>
+      <div style="color:#b8a288;">Observation — set dice to character's Wits + Observation</div>
+    </div>
+    <div style="font-size:9px; color:#524535; margin-top:8px; font-style:italic;">
+      Set the Dice field to the character's base pool (attribute + skill).
+      Set Terrain Mod to the column from the terrain table above.
+    </div>
+  </div>
+
+  <!-- ── RIVER & LAKE TRAVEL ────────────────────────────────────────────── -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; margin-bottom:8px;
+    display:flex; align-items:center; gap:10px;">
+    <span>River &amp; Lake Travel</span>
+    <span style="flex:1; height:1px;
+      background:linear-gradient(90deg,#2a2015,transparent);"></span>
+    <span style="font-size:9px; color:#524535; font-weight:400;
+      letter-spacing:0; text-transform:none;">SRD p.45</span>
+  </div>
+
+  <div style="background:#1c1610; border:1px solid #2a2015;
+    border-left:3px solid #5a8ac8; border-radius:4px;
+    padding:8px 12px; margin-bottom:16px;">
+    <div style="font-size:10px; color:#b8a288; line-height:1.5;">
+      Rivers and lakes can be used for traveling. Fords and bridges allow
+      crossing a river on foot. Without them, you need a raft or boat —
+      or must swim across.
+    </div>
+    <div style="font-size:10px; color:#b8a288; margin-top:4px; line-height:1.5;">
+      <span style="color:#c8902a; font-weight:700;">Swimming: </span>
+      see Drowning in the Hazards reference. Metal armor = sink automatically.
+      Stamina roll every stretch to stay afloat; every round under water.
+    </div>
+    <div style="font-size:9px; color:#524535; margin-top:4px; font-style:italic;">
+      Speed x1 on water with a vessel. Canoe/raft: +2 Driving modifier.
+    </div>
+  </div>
+
+  <!-- ── ROADS ─────────────────────────────────────────────────────────── -->
+  <div style="font-size:9px; font-weight:700; letter-spacing:0.22em;
+    text-transform:uppercase; color:#7d6b54; margin-bottom:8px;
+    display:flex; align-items:center; gap:10px;">
+    <span>Roads</span>
+    <span style="flex:1; height:1px;
+      background:linear-gradient(90deg,#2a2015,transparent);"></span>
+  </div>
+
+  <div style="background:#1c1610; border:1px solid #2a2015;
+    border-left:3px solid #c8902a; border-radius:4px;
+    padding:8px 12px; margin-bottom:16px;">
+    <div style="font-size:10px; color:#b8a288; line-height:1.5;">
+      Traveling along a major road is generally faster but increases encounter risk.
+      Only main roads count as roads for game purposes.
+    </div>
+    <div style="font-size:10px; color:#b8a288; margin-top:4px;">
+      <span style="color:#c8902a; font-weight:700;">Speed factor is always x1 on roads</span>
+      regardless of the underlying terrain type. The road&#8217;s Driving
+      modifier (+3) applies to vehicle travel on the road.
+    </div>
+    <div style="font-size:10px; color:#b8a288; margin-top:4px;">
+      Foraging and hunting on a road use the modifiers of the surrounding
+      terrain — roads don&#8217;t improve or worsen those rolls.
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="font-size:9px; color:#3a2e22; text-align:right; letter-spacing:0.06em;">
+    Powered by Year Zero Engine
+  </div>
+
+  <!-- Hidden dice/modifier fields (values persist between sessions) -->
+  <numberfield field="foragingDice" label="" defaultvalue="3" style="display:none;"></numberfield>
+  <numberfield field="foragingMod"  label="" defaultvalue="0" style="display:none;"></numberfield>
+  <numberfield field="huntingDice"  label="" defaultvalue="3" style="display:none;"></numberfield>
+  <numberfield field="huntingMod"   label="" defaultvalue="0" style="display:none;"></numberfield>
+  <numberfield field="watchDice"    label="" defaultvalue="3" style="display:none;"></numberfield>
+  <numberfield field="watchMod"     label="" defaultvalue="0" style="display:none;"></numberfield>
+  <numberfield field="fishingDice"  label="" defaultvalue="3" style="display:none;"></numberfield>
+  <numberfield field="fishingMod"   label="" defaultvalue="0" style="display:none;"></numberfield>
+
+</div>

@@ -126,6 +126,21 @@
       "icon": "GiHazardSign"
     },
     {
+      "name": "Travel Reference",
+      "type": "travel_ref",
+      "minX": 500,
+      "minY": 600,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "travel-reference.html"
+        }
+      ],
+      "hideFromCompendium": false,
+      "isList": false,
+      "icon": "GiCompass"
+    },
+    {
       "name": "Chase Reference",
       "type": "chase_ref",
       "minX": 500,
