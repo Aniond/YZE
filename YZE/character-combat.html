@@ -594,7 +594,10 @@
   function onTurnActionChange() {
     var slow    = api.getValue('data.usedSlowAction');
     var usedSlow = (slow === true || slow === 1 || slow === '1' || slow === 'true');
-    api.setValues({ 'fields.fastActionsRow.hidden': usedSlow });
+    var currentlyHidden = api.getValue('fields.fastActionsRow.hidden');
+    if (currentlyHidden !== usedSlow) {
+      api.setValues({ 'fields.fastActionsRow.hidden': usedSlow });
+    }
   }
 
   function newTurn() {
