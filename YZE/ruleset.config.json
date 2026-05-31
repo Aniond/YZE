@@ -363,19 +363,7 @@
       { "label": "Difficulty 3",            "type": "yzeDifficulty3" },
       { "label": "Difficulty 4",            "type": "yzeDifficulty4" },
       { "label": "Difficulty 5",            "type": "yzeDifficulty5" },
-      { "label": "Difficulty 6",            "type": "yzeDifficulty6" },
-      { "label": "Hypothermic",             "type": "yzeEffectHypothermic" },
-      { "label": "Starving",                "type": "yzeEffectStarving" },
-      { "label": "Sick",                    "type": "yzeEffectSick" },
-      { "label": "On Fire",                 "type": "yzeEffectOnFire" },
-      { "label": "Poisoned (Lethal)",       "type": "yzeEffectPoisonedLethal" },
-      { "label": "Poisoned (Paralyzing)",   "type": "yzeEffectPoisonedParalyzing" },
-      { "label": "Poisoned (Sleeping)",     "type": "yzeEffectPoisonedSleeping" },
-      { "label": "Entangled",               "type": "yzeEffectEntangled" },
-      { "label": "Prone",                   "type": "yzeEffectProne" },
-      { "label": "Tremble",                 "type": "yzeEffectTremble" },
-      { "label": "Frozen",                  "type": "yzeEffectFrozen" },
-      { "label": "Sleep Deprived",          "type": "yzeEffectSleepDeprived" }
+      { "label": "Difficulty 6",            "type": "yzeDifficulty6" }
     ]
   }
 }
