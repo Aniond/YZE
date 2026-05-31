@@ -1,176 +1,105 @@
 # YZE Status Effects — Manual Build Reference
 
-Same workflow as Difficulty 1-6.
-For each effect: open the Effects panel → Create New → fill in these values.
+Same workflow as Difficulty 1-6. Build each effect once in the Effects panel.
 
-## Rule elements used
-- **Alter a Data Field** → targets `strMod` (STR/AGI penalty) or `witMod` (WIT/EMP penalty)
-- **Override Data (Complex)** → JSON for the category (`effectType`) plus any
-  healing-block / damage-per-round flags. The native effect editor has no
-  category dropdown, so `effectType` is carried here.
+## How to build each one
+1. **Create New** effect, set the **Effect name** exactly as shown.
+2. **Token Menu:** ✓ checked.
+3. **Duration Unit:** as listed (Indefinite for most; Rounds = 1 for On Fire & Frozen).
+4. **Add Rules Element** → set **Type = `Override Data (Complex)`**.
+5. Paste the JSON into the **Override Structure (JSON)** box.
+6. Save. (No "Alter a Data Field" rule and no marker type needed — the one
+   Override Data rule does everything.)
 
-Category → accent intent: Physical=red · Mental=purple · Environmental=green · Combat=amber
-
----
-
-## 1. Hypothermic  (Environmental)
-
-| Setting | Value |
-|---|---|
-| **Effect name** | Hypothermic |
-| **Token Menu** | ✓ checked |
-| **Duration Unit** | Indefinite |
-| **Rule 1 — Type** | Hypothermic |
-| **Rule 1 — Alter a Data Field → field** | `strMod` |
-| **Rule 1 — Value** | `-1` |
-| **Rule 2 — Override Data (Complex)** | `{ "effectType": "Environmental", "blockPhysHeal": true }` |
+## What the JSON keys do
+- `strMod` — dice removed from STR/AGI rolls (negative). Read by the roll handlers.
+- `witMod` — dice removed from WIT/EMP rolls (negative). Read by the roll handlers.
+- `damagePerRound` — ongoing damage per round (display).
+- `blockPhysHeal` / `blockMentHeal` — flags that healing is blocked (display).
+- `effectType` — category: Physical / Mental / Environmental / Combat.
 
 ---
 
-## 2. Starving  (Environmental)
+## 1. Hypothermic
+- **Duration Unit:** Indefinite
+- **Override Structure (JSON):**
+```json
+{ "strMod": -1, "blockPhysHeal": true, "effectType": "Environmental" }
+```
 
-| Setting | Value |
-|---|---|
-| **Effect name** | Starving |
-| **Token Menu** | ✓ checked |
-| **Duration Unit** | Indefinite |
-| **Rule 1 — Type** | Starving |
-| **Rule 1 — Override Data (Complex)** | `{ "effectType": "Environmental", "blockPhysHeal": true }` |
+## 2. Starving
+- **Duration Unit:** Indefinite
+- **Override Structure (JSON):**
+```json
+{ "blockPhysHeal": true, "effectType": "Environmental" }
+```
 
----
+## 3. Sick
+- **Duration Unit:** Indefinite
+- **Override Structure (JSON):**
+```json
+{ "blockPhysHeal": true, "effectType": "Environmental" }
+```
 
-## 3. Sick  (Environmental)
+## 4. On Fire
+- **Duration Unit:** Rounds — **Duration: 1**
+- **Override Structure (JSON):**
+```json
+{ "damagePerRound": 6, "effectType": "Environmental" }
+```
 
-| Setting | Value |
-|---|---|
-| **Effect name** | Sick |
-| **Token Menu** | ✓ checked |
-| **Duration Unit** | Indefinite |
-| **Rule 1 — Type** | Sick |
-| **Rule 1 — Override Data (Complex)** | `{ "effectType": "Environmental", "blockPhysHeal": true }` |
+## 5. Poisoned (Lethal)
+- **Duration Unit:** Indefinite
+- **Override Structure (JSON):**
+```json
+{ "damagePerRound": 1, "effectType": "Environmental" }
+```
 
----
+## 6. Poisoned (Paralyzing)
+- **Duration Unit:** Indefinite
+- **Override Structure (JSON):**
+```json
+{ "strMod": -3, "effectType": "Environmental" }
+```
 
-## 4. On Fire  (Environmental)
+## 7. Poisoned (Sleeping)
+- **Duration Unit:** Indefinite
+- **Override Structure (JSON):**
+```json
+{ "strMod": -3, "witMod": -3, "effectType": "Environmental" }
+```
 
-| Setting | Value |
-|---|---|
-| **Effect name** | On Fire |
-| **Token Menu** | ✓ checked |
-| **Duration Unit** | Rounds |
-| **Duration** | 1 |
-| **Rule 1 — Type** | On Fire |
-| **Rule 1 — Override Data (Complex)** | `{ "effectType": "Environmental", "damagePerRound": 6 }` |
+## 8. Entangled
+- **Duration Unit:** Indefinite
+- **Override Structure (JSON):**
+```json
+{ "strMod": -1, "effectType": "Combat" }
+```
 
----
+## 9. Prone
+- **Duration Unit:** Indefinite
+- **Override Structure (JSON):**
+```json
+{ "strMod": -1, "effectType": "Combat" }
+```
 
-## 5. Poisoned (Lethal)  (Environmental)
+## 10. Tremble
+- **Duration Unit:** Indefinite
+- **Override Structure (JSON):**
+```json
+{ "strMod": -2, "effectType": "Mental" }
+```
 
-| Setting | Value |
-|---|---|
-| **Effect name** | Poisoned (Lethal) |
-| **Token Menu** | ✓ checked |
-| **Duration Unit** | Indefinite |
-| **Rule 1 — Type** | Poisoned (Lethal) |
-| **Rule 1 — Override Data (Complex)** | `{ "effectType": "Environmental", "damagePerRound": 1 }` |
+## 11. Frozen
+- **Duration Unit:** Rounds — **Duration: 1**
+- **Override Structure (JSON):**
+```json
+{ "strMod": -3, "effectType": "Mental" }
+```
 
----
-
-## 6. Poisoned (Paralyzing)  (Environmental)
-
-| Setting | Value |
-|---|---|
-| **Effect name** | Poisoned (Paralyzing) |
-| **Token Menu** | ✓ checked |
-| **Duration Unit** | Indefinite |
-| **Rule 1 — Type** | Poisoned (Paralyzing) |
-| **Rule 1 — Alter a Data Field → field** | `strMod` |
-| **Rule 1 — Value** | `-3` |
-| **Rule 2 — Override Data (Complex)** | `{ "effectType": "Environmental" }` |
-
----
-
-## 7. Poisoned (Sleeping)  (Environmental)
-
-| Setting | Value |
-|---|---|
-| **Effect name** | Poisoned (Sleeping) |
-| **Token Menu** | ✓ checked |
-| **Duration Unit** | Indefinite |
-| **Rule 1 — Type** | Poisoned (Sleeping) |
-| **Rule 1 — Alter a Data Field → field** | `strMod` |
-| **Rule 1 — Value** | `-3` |
-| **Rule 2 — Alter a Data Field → field** | `witMod` |
-| **Rule 2 — Value** | `-3` |
-| **Rule 3 — Override Data (Complex)** | `{ "effectType": "Environmental" }` |
-
----
-
-## 8. Entangled  (Combat)
-
-| Setting | Value |
-|---|---|
-| **Effect name** | Entangled |
-| **Token Menu** | ✓ checked |
-| **Duration Unit** | Indefinite |
-| **Rule 1 — Type** | Entangled |
-| **Rule 1 — Alter a Data Field → field** | `strMod` |
-| **Rule 1 — Value** | `-1` |
-| **Rule 2 — Override Data (Complex)** | `{ "effectType": "Combat" }` |
-
----
-
-## 9. Prone  (Combat)
-
-| Setting | Value |
-|---|---|
-| **Effect name** | Prone |
-| **Token Menu** | ✓ checked |
-| **Duration Unit** | Indefinite |
-| **Rule 1 — Type** | Prone |
-| **Rule 1 — Alter a Data Field → field** | `strMod` |
-| **Rule 1 — Value** | `-1` |
-| **Rule 2 — Override Data (Complex)** | `{ "effectType": "Combat" }` |
-
----
-
-## 10. Tremble  (Mental)
-
-| Setting | Value |
-|---|---|
-| **Effect name** | Tremble |
-| **Token Menu** | ✓ checked |
-| **Duration Unit** | Indefinite |
-| **Rule 1 — Type** | Tremble |
-| **Rule 1 — Alter a Data Field → field** | `strMod` |
-| **Rule 1 — Value** | `-2` |
-| **Rule 2 — Override Data (Complex)** | `{ "effectType": "Mental" }` |
-
----
-
-## 11. Frozen  (Mental)
-
-| Setting | Value |
-|---|---|
-| **Effect name** | Frozen |
-| **Token Menu** | ✓ checked |
-| **Duration Unit** | Rounds |
-| **Duration** | 1 |
-| **Rule 1 — Type** | Frozen |
-| **Rule 1 — Alter a Data Field → field** | `strMod` |
-| **Rule 1 — Value** | `-3` |
-| **Rule 2 — Override Data (Complex)** | `{ "effectType": "Mental" }` |
-
----
-
-## 12. Sleep Deprived  (Environmental)
-
-| Setting | Value |
-|---|---|
-| **Effect name** | Sleep Deprived |
-| **Token Menu** | ✓ checked |
-| **Duration Unit** | Indefinite |
-| **Rule 1 — Type** | Sleep Deprived |
-| **Rule 1 — Alter a Data Field → field** | `witMod` |
-| **Rule 1 — Value** | `-1` |
-| **Rule 2 — Override Data (Complex)** | `{ "effectType": "Environmental", "blockMentHeal": true }` |
+## 12. Sleep Deprived
+- **Duration Unit:** Indefinite
+- **Override Structure (JSON):**
+```json
+{ "witMod": -1, "blockMentHeal": true, "effectType": "Environmental" }
+```
