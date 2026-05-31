@@ -367,14 +367,8 @@ function deleteGearItem(rowIdx, item) {
   );
 }
 
-function refreshGearPush() {
-  var canPush = parseInt(api.getValue('data.canPush') || '0', 10);
-  api.setHidden('pushSection', canPush !== 1);
-}
-
 function onGearChange() {
   drawGearCanvas();
-  refreshGearPush();
   drawHeader();
   refreshXp();
   refreshCondPlayerUI();
@@ -383,7 +377,6 @@ function onGearChange() {
 
 function initGearTab() {
   drawGearCanvas();
-  refreshGearPush();
   drawHeader();
   refreshXp();
   refreshCondPlayerUI();
@@ -393,20 +386,7 @@ function initGearTab() {
 
 <div style="background:#1a1612; min-height:100%;">
 
-  <!-- Push section —————————————————————————————————————————————————————— -->
-  <box field="pushSection">
-    <div style="background:#1f1200; border-top:2px solid #cc3333;
-      padding:8px 14px; display:flex; align-items:center; justify-content:space-between;">
-      <div>
-        <div style="font-size:11px; color:#cc3333; text-transform:uppercase;
-          letter-spacing:0.1em; font-weight:bold;">Push the attack</div>
-        <div style="font-size:10px; color:#664444; margin-top:2px;">
-          Re-roll non-1s for more damage — banes hurt you and your weapon</div>
-      </div>
-      <button field="pushBtnGear" label="PUSH" variant="danger" size="sm"
-        onclick="yzePushRoll();"></button>
-    </div>
-  </box>
+  <!-- Push is offered as an inline button in the chat roll card (handler-driven). -->
 
   <!-- Encumbrance ────────────────────────────────────────────────────────── -->
   <div style="margin:0 16px 10px; background:#1c1610; border:1px solid #2a2015;

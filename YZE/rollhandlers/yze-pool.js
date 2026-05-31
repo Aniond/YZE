@@ -128,25 +128,23 @@ if (meta.isDeathSave) {
 }
 
 if (canPush) {
-  if (successes === 0) {
-    // Failure — show an inline Push button so players can push directly from chat.
-    // Button code reads the session context and fires the yze_push roll handler.
-    // yze-push.js resets canPush = 0 after the push completes.
-    msg += '\n```Push_the_Roll\n' +
-      'var _s=api.getSession(\'yzeLastRoll\');' +
-      'if(_s&&_s.rerollCount>0){' +
-      'api.roll(_s.rerollCount+\'d6\',' +
-      '{isPush:true,mode:\'pool\',' +
-      'attrKey:_s.attrKey,skillName:_s.skillName,opposed:_s.opposed||0,' +
-      's6Attr:_s.s6Attr,s6Skill:_s.s6Skill,s6Gear:_s.s6Gear,' +
-      'b1Attr:_s.b1Attr,b1Skill:_s.b1Skill,b1Gear:_s.b1Gear,' +
-      'rerollAttr:_s.rerollAttr,rerollSkill:_s.rerollSkill,rerollGear:_s.rerollGear},' +
-      '\'yze_push\');}' +
-      '\n```';
-  } else {
-    // Success with blanks — push is possible but unlikely wanted; show a text hint.
-    msg += '\n[center][color=orange]Push available — use the Push button on your sheet[/color][/center]';
-  }
+  // Self-contained inline Push chip: the reroll counts are baked into the button
+  // as literals, so it does NOT depend on api.getSession surviving to the click
+  // (the session not persisting was the push failure). The handler decides WHEN
+  // to show it — only when canPush — so "the handler determines if push is needed".
+  var _sn = String(skillName).replace(/'/g, '');
+  var _pm = "{isPush:true,mode:'pool'"
+    + ",attrKey:'" + attrKey + "'"
+    + ",skillName:'" + _sn + "'"
+    + ",opposed:" + (opposed || 0)
+    + ",s6Attr:" + p.s6Attr + ",s6Skill:" + p.s6Skill + ",s6Gear:" + p.s6Gear
+    + ",b1Attr:" + p.b1Attr + ",b1Skill:" + p.b1Skill + ",b1Gear:" + p.b1Gear
+    + ",rerollAttr:" + p.rerollAttr + ",rerollSkill:" + p.rerollSkill + ",rerollGear:" + p.rerollGear
+    + ",rerollStress:" + stressBlanks + ",s6Stress:" + stressSixes + ",b1Stress:" + stressBanes
+    + "}";
+  msg += '\n```Push_the_Roll\n'
+    + "api.roll('" + rerollCount + "d6'," + _pm + ",'yze_push');"
+    + '\n```';
   api.setSession('yzeLastRoll', {
     mode:    'pool',
     s6Attr:  p.s6Attr, s6Skill: p.s6Skill, s6Gear: p.s6Gear,

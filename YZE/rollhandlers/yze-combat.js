@@ -229,26 +229,26 @@ if (successes >= threshold) {
 // ── Push eligibility — store context so the PUSH button can re-roll blanks ──
 var canPush = p.rerollCount > 0;
 if (canPush) {
-  if (successes === 0) {
-    // Miss with blanks — show an inline Push button so players can push from chat.
-    // The yze_combat handler processes the push (isPush:true) and resets canPush.
-    msg += '\n```Push_the_Attack\n' +
-      'var _s=api.getSession(\'yzeLastRoll\');' +
-      'if(_s&&_s.rerollCount>0){' +
-      'api.roll(_s.rerollCount+\'d6\',' +
-      '{isPush:true,mode:\'combat\',' +
-      'attrKey:_s.attrKey,skillName:_s.skillName,' +
-      'baseDamage:_s.baseDamage,range:_s.range,weaponId:_s.weaponId||\'\',' +
-      'prevDamage:_s.prevDamage||0,' +
-      's6Attr:_s.s6Attr,s6Skill:_s.s6Skill,s6Gear:_s.s6Gear,' +
-      'b1Attr:_s.b1Attr,b1Skill:_s.b1Skill,b1Gear:_s.b1Gear,' +
-      'rerollAttr:_s.rerollAttr,rerollSkill:_s.rerollSkill,rerollGear:_s.rerollGear},' +
-      '\'yze_combat\');}' +
-      '\n```';
-  } else {
-    // Hit with blanks — push would add damage but player is already succeeding.
-    msg += '\n[center][color=orange]Push available — use the Push button on your sheet[/color][/center]';
-  }
+  // Self-contained inline Push chip: roll params baked in as literals so the
+  // button works without api.getSession. (The session is still set below so a
+  // pushed HIT can re-apply extra damage to the locked targets.)
+  var _snC = String(skillName).replace(/'/g, '');
+  var _rgC = String(range).replace(/'/g, '');
+  var _wid = String(meta.weaponId || '').replace(/'/g, '');
+  var _pmC = "{isPush:true,mode:'combat'"
+    + ",attrKey:'" + attrKey + "'"
+    + ",skillName:'" + _snC + "'"
+    + ",baseDamage:" + baseDamage
+    + ",range:'" + _rgC + "'"
+    + ",weaponId:'" + _wid + "'"
+    + ",prevDamage:" + (auto ? totalDamage : 0)
+    + ",s6Attr:" + p.s6Attr + ",s6Skill:" + p.s6Skill + ",s6Gear:" + p.s6Gear
+    + ",b1Attr:" + p.b1Attr + ",b1Skill:" + p.b1Skill + ",b1Gear:" + p.b1Gear
+    + ",rerollAttr:" + p.rerollAttr + ",rerollSkill:" + p.rerollSkill + ",rerollGear:" + p.rerollGear
+    + "}";
+  msg += '\n```Push_the_Attack\n'
+    + "api.roll('" + p.rerollCount + "d6'," + _pmC + ",'yze_combat');"
+    + '\n```';
   api.setSession('yzeLastRoll', {
     mode:    'combat',
     s6Attr:  p.s6Attr, s6Skill: p.s6Skill, s6Gear: p.s6Gear,

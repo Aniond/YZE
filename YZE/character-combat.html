@@ -649,8 +649,6 @@
     api.setValues({ 'fields.modsCollapseBody.hidden': !modsOpen });
     var specialOpen = parseInt(api.getValue('data.specialActionsOpen') || '0', 10);
     api.setValues({ 'fields.specialActionsBody.hidden': !specialOpen });
-    var canPush = parseInt(api.getValue('data.canPush') || '0', 10);
-    api.setValues({ 'fields.pushSection.hidden': canPush !== 1 });
     onTurnActionChange();
     drawWeaponsCanvas();
     drawHeader();
@@ -660,8 +658,6 @@
   }
 
   function onCombatChange() {
-    var canPush = parseInt(api.getValue('data.canPush') || '0', 10);
-    api.setValues({ 'fields.pushSection.hidden': canPush !== 1 });
     onTurnActionChange();
     drawWeaponsCanvas();
     drawHeader();
@@ -1055,20 +1051,7 @@
   </box>
 </div>
 
-<!-- ═══ Push section ══════════════════════════════════════════════════════ -->
-<box field="pushSection">
-  <div style="background:#1f1200; border-top:2px solid #cc3333;
-    padding:8px 14px; display:flex; align-items:center; justify-content:space-between;">
-    <div>
-      <div style="font-size:11px; color:#cc3333; text-transform:uppercase;
-        letter-spacing:0.1em; font-weight:bold;">Push the roll</div>
-      <div style="font-size:10px; color:#664444; margin-top:2px;">
-        Re-roll non-1s — attribute banes cost Health or Resolve</div>
-    </div>
-    <button field="pushBtnCombat" label="PUSH" color="red" size="sm"
-      onclick="yzePushRoll();"></button>
-  </div>
-</box>
+<!-- Push is offered as an inline button in the chat roll card (handler-driven). -->
 
 <!-- ═══ Hidden fields ════════════════════════════════════════════════════ -->
 <numberfield field="modsOpen"            label="" defaultvalue="0"            style="display:none;"></numberfield>
