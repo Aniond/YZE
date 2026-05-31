@@ -10,11 +10,44 @@
 var meta = (data && data.roll && data.roll.metadata) || {};
 var dice = (data && data.roll && data.roll.dice)     || [];
 
-var wpSpend    = parseInt(meta.wpSpend   || 1,  10);
-var spellName  = meta.spellName  || 'Spell';
-var rank       = parseInt(meta.rank      || 1,  10);
-var discipline = meta.discipline || '';
-var portrait   = meta.portrait   || '';
+var wpSpend      = parseInt(meta.wpSpend      || 1,     10);
+var spellName    = meta.spellName    || 'Spell';
+var rank         = parseInt(meta.rank         || 1,     10);
+var discipline   = meta.discipline   || '';
+var portrait     = meta.portrait     || '';
+var safeCast     = meta.safeCast     || false;
+var safecastDice = parseInt(meta.safecastDice || 1,     10);
+var chanceCast   = meta.chanceCast   || false;
+var fromGrimoire = meta.fromGrimoire || false;
+
+// Chance Cast overrides Safe Cast (mutually exclusive per SRD).
+if (chanceCast) safeCast = false;
+
+// ── Grimoire — effective rank is one lower (minimum 1) ───────────────────
+var effectiveRank = fromGrimoire ? Math.max(1, rank - 1) : rank;
+
+// ── Safe Cast — reduce dice pool ─────────────────────────────────────────
+// If the reduced pool hits zero or less, the spell works automatically
+// (no roll, no mishap, no overcharge). Return early with a chat notice.
+var rolledDice = wpSpend; // the actual number of dice rolled
+if (safeCast) {
+  rolledDice = wpSpend - safecastDice;
+  if (rolledDice <= 0) {
+    var powerLevelSafe = wpSpend; // full WP spent, no overcharge
+    var discLabelSafe  = discipline ? ' [' + discipline + ']' : '';
+    var iconStrSafe    = portrait ? '[center]![](' + portrait + '?width=30&height=30)[/center]\n' : '';
+    var msgSafe = iconStrSafe + '**[center]' + spellName + discLabelSafe + '[/center]**';
+    msgSafe += '\n[center]WP: ' + wpSpend + '   Rank: ' + effectiveRank + '[/center]';
+    msgSafe += '\n[center]Power Level: ' + powerLevelSafe + '[/center]';
+    msgSafe += '\n[center][color=green]Safe Cast — spell works as intended. No dice rolled.[/color][/center]';
+    if (fromGrimoire) {
+      msgSafe += '\n[center][color=blue]Grimoire — effective rank ' + effectiveRank + '[/color][/center]';
+    }
+    data.roll.total = powerLevelSafe;
+    api.sendMessage(msgSafe, undefined, [], [{ name: spellName, tooltip: discipline || 'Spell' }]);
+    return;
+  }
+}
 
 // ── Count outcomes ────────────────────────────────────────────────────────
 var overcharge  = 0;
@@ -36,27 +69,37 @@ for (var j = 0; j < dice.length; j++) {
 }
 
 // ── Apply mishap state ────────────────────────────────────────────────────
-if (mishapCount > 0) {
+// Chance Cast always triggers a mishap regardless of dice results.
+var triggerMishap = (mishapCount > 0) || chanceCast;
+if (triggerMishap) {
   api.setValues({ 'data.mishapTriggered': true });
 }
 // Spells cannot be pushed (SRD) — do NOT set data.canPush
 
-// ── Build chat card (matches yze-crit.js style) ───────────────────────────
+// ── Build chat card ───────────────────────────────────────────────────────
 var discLabel = discipline ? ' [' + discipline + ']' : '';
 var iconStr   = portrait ? '[center]![](' + portrait + '?width=30&height=30)[/center]\n' : '';
 var msg = iconStr + '**[center]' + spellName + discLabel + '[/center]**';
-msg += '\n[center]WP: ' + wpSpend + '   Rank: ' + rank + '[/center]';
+msg += '\n[center]WP: ' + wpSpend + '   Rank: ' + effectiveRank + '[/center]';
 msg += '\n[center]Power Level: ' + powerLevel;
 if (overcharge > 0) {
   msg += ' (base ' + wpSpend + ' +' + overcharge + ' overcharge)';
 }
 msg += '[/center]';
 
+if (safeCast) {
+  msg += '\n[center][color=olive]Safe Cast — ' + safecastDice + ' fewer ' + (safecastDice > 1 ? 'dice' : 'die') + '[/color][/center]';
+}
+if (fromGrimoire) {
+  msg += '\n[center][color=blue]Grimoire — effective rank ' + effectiveRank + '[/color][/center]';
+}
 if (overcharge > 0) {
   msg += '\n[center][color=green]Overcharged +' + overcharge + '[/color][/center]';
 }
-
-if (mishapCount > 0) {
+if (chanceCast) {
+  msg += '\n**[center][color=red]Chance Cast — automatic mishap triggered![/color][/center]**';
+  msg += '\n```Roll_Mishap\napi.roll(\'1d12\', {}, \'yze_mishap\');\n```';
+} else if (mishapCount > 0) {
   msg += '\n**[center][color=red]Magic Mishap![/color][/center]**';
   msg += '\n```Roll_Mishap\napi.roll(\'1d12\', {}, \'yze_mishap\');\n```';
 }

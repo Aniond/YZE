@@ -720,7 +720,8 @@ function gainWP(amount) {
 }
 
 // Validate WP, deduct, and fire the yze_spell roll handler.
-function castSpell(wpSpend, spellName, rank, discipline, portrait) {
+// opts: { safeCast, safecastDice, chanceCast, fromGrimoire }
+function castSpell(wpSpend, spellName, rank, discipline, portrait, opts) {
   var curWP = parseInt(api.getValue('data.wp') || '0', 10);
   if (isNaN(curWP)) curWP = 0;
   wpSpend = parseInt(wpSpend, 10) || 1;
@@ -728,13 +729,18 @@ function castSpell(wpSpend, spellName, rank, discipline, portrait) {
     api.showNotification('Not enough Willpower Points', 'red', 'Cast Spell');
     return;
   }
+  opts = opts || {};
   api.setValues({ 'data.wp': curWP - wpSpend });
   api.roll(wpSpend + 'd6', {
-    spellName:  spellName  || 'Spell',
-    wpSpend:    wpSpend,
-    rank:       parseInt(rank, 10) || 1,
-    discipline: discipline || '',
-    portrait:   portrait   || ''
+    spellName:    spellName  || 'Spell',
+    wpSpend:      wpSpend,
+    rank:         parseInt(rank, 10) || 1,
+    discipline:   discipline || '',
+    portrait:     portrait   || '',
+    safeCast:     opts.safeCast     || false,
+    safecastDice: opts.safecastDice || 1,
+    chanceCast:   opts.chanceCast   || false,
+    fromGrimoire: opts.fromGrimoire || false
   }, 'yze_spell');
 }
 

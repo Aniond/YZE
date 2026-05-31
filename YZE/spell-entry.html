@@ -1,13 +1,27 @@
 <script>
 // Local wrapper: reads this record's fields and calls castSpell() from common.js.
 function onCastSpell() {
+  function bool(f) { var v = api.getValue('data.' + f); return (v === true || v === 1 || v === '1' || v === 'true'); }
   castSpell(
-    parseInt(api.getValue('data.wpSpend')    || '1', 10),
-    api.getValue('data.name')                || 'Spell',
-    parseInt(api.getValue('data.rank')       || '1', 10),
-    api.getValue('data.discipline')          || '',
-    api.getValue('data.portrait')            || ''
+    parseInt(api.getValue('data.wpSpend')        || '1', 10),
+    api.getValue('data.name')                    || 'Spell',
+    parseInt(api.getValue('data.rank')           || '1', 10),
+    api.getValue('data.discipline')              || '',
+    api.getValue('data.portrait')                || '',
+    {
+      safeCast:     bool('safeCast'),
+      safecastDice: parseInt(api.getValue('data.safecastDice') || '1', 10),
+      chanceCast:   bool('chanceCast'),
+      fromGrimoire: bool('fromGrimoire')
+    }
   );
+}
+
+// Show/hide safecastDice stepper based on the safeCast checkbox.
+function onSafeCastChange() {
+  var on = api.getValue('data.safeCast');
+  var checked = (on === true || on === 1 || on === '1' || on === 'true');
+  api.setValues({ 'fields.safecastDiceBox.hidden': !checked });
 }
 
 // Discipline badge color: amber for Awareness/Healing/Shapeshifting, purple for others.
@@ -86,6 +100,25 @@ function onSpellEntryLoad() {
       style="width:40px; flex-shrink:0;">
     </numberfield>
   </div>
+
+  <!-- Safe Cast -->
+  <checkboxfield field="safeCast" label="Safe" size="xs"
+    style="flex-shrink:0;"
+    onload="onSafeCastChange();"
+    onchange="onSafeCastChange();"></checkboxfield>
+  <box field="safecastDiceBox">
+    <numberfield field="safecastDice" label="-Dice" size="xs"
+      minvalue="1" maxvalue="3" defaultvalue="1"
+      style="width:52px; flex-shrink:0;"></numberfield>
+  </box>
+
+  <!-- Chance Cast -->
+  <checkboxfield field="chanceCast" label="Chance" size="xs"
+    style="flex-shrink:0; color:#cc6666;"></checkboxfield>
+
+  <!-- From Grimoire -->
+  <checkboxfield field="fromGrimoire" label="Grimoire" size="xs"
+    style="flex-shrink:0;"></checkboxfield>
 
   <!-- Cast button -->
   <button field="castBtn" label="Cast" size="xs"
