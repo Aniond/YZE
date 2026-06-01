@@ -211,12 +211,7 @@ function drawGearCanvas() {
     c.setFont('400 11px sans-serif');
     c.setTextAlign('center');
     c.setTextBaseline('middle');
-    c.fillText(
-      list.length === 0
-        ? 'Drag armor or equipment from the compendium to add items'
-        : 'No armor or equipment — weapons are managed in the Combat tab',
-      W / 2, H / 2
-    );
+    c.fillText('Drag gear from the compendium to add items', W / 2, H / 2);
     return;
   }
 
@@ -235,6 +230,7 @@ function drawGearCanvas() {
 function buildGearLayout() {
   var list = getGearList();
   var cats = [
+    { key: 'weapon',    label: 'WEAPONS',   color: COL.red,   stroke: COL.redStroke },
     { key: 'armor',     label: 'ARMOR',     color: COL.blue,  stroke: COL.blueStroke },
     { key: 'equipment', label: 'EQUIPMENT', color: COL.green, stroke: COL.greenStroke },
     { key: 'other',     label: 'OTHER',     color: COL.gold,  stroke: COL.goldStroke }
@@ -316,13 +312,20 @@ function drawGearItemRow(c, W, row, stripeIdx) {
   c.setTextBaseline('middle');
   c.fillText(item.name || 'Unnamed', 48, cy);
 
-  // Armor rating (armor rows only)
+  // Stats by gear type
+  var statX = W - 118;
   if (gearType === 'armor') {
-    var statX = W - 118;
     c.setFont('400 9px sans-serif');
     c.setTextAlign('left');
     c.setFillStyle(COL.textMuted); c.fillText('Armor', statX, cy);
     c.setFillStyle(COL.textMid);   c.fillText(String(d.armorRating || 0), statX + 38, cy);
+  } else if (gearType === 'weapon') {
+    c.setFont('400 9px sans-serif');
+    c.setTextAlign('left');
+    c.setFillStyle(COL.textMuted); c.fillText('Dmg', statX, cy);
+    c.setFillStyle(COL.textMid);   c.fillText(String(d.damage || 0), statX + 26, cy);
+    c.setFillStyle(COL.textMuted); c.fillText('Bon', statX + 50, cy);
+    c.setFillStyle(COL.textMid);   c.fillText('+' + String(d.bonus || 0), statX + 72, cy);
   }
 
   // Delete ×
