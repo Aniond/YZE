@@ -372,6 +372,17 @@
       }
     ],
     "themes": [],
+    "campaignSettings": [
+      {
+        "name": "Auto-apply Damage",
+        "key": "autoApplyDamage",
+        "description": "Automatically apply attack damage to targeted tokens after an attack roll. When Off, a clickable Apply Damage button appears in the chat card instead.",
+        "values": [
+          { "label": "Off", "value": "no" },
+          { "label": "On",  "value": "yes" }
+        ]
+      }
+    ],
     "effects": [
       { "label": "YZE Status Effect",        "type": "yzeStatusEffect" },
       { "label": "Difficulty 1",            "type": "yzeDifficulty1" },

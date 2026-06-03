@@ -26,7 +26,9 @@ var baseDamage = parseInt(meta.baseDamage || '0', 10);
 var range      = meta.range || 'engaged';
 var attrKey    = meta.attrKey || 'strength';
 var isPush     = meta.isPush  || false;
-var auto       = yzeAutoApply(record);
+// Campaign setting replaces the per-character autoApply toggle.
+// api.getSetting() is the confirmed Realm API (same as 5e/PF2e coinWeight pattern).
+var auto       = api.getSetting('autoApplyDamage') === 'yes';
 
 // Apply `dmg` to the currently targeted tokens. Returns { lines, targets } where
 // targets is [{ id, recordType, hp }] (hp = Health left after the hit), so a push
@@ -117,7 +119,18 @@ if (isPush) {
         msgP += applyDamageToTargets(delta).lines;
       }
     } else if (delta > 0 && !auto) {
-      msgP += '\n[center]+' + delta + ' damage from the push - apply manually.[/center]';
+      msgP += '\n[center]+' + delta + ' extra damage from push (after armor).[/center]';
+      var _acp = 'var _d=' + delta + ','
+        + '_ts=api.getTargets?api.getTargets():[];'
+        + "if(!_ts.length){api.showNotification('Select a target first.','red','Apply Damage');}"
+        + 'else{'
+        + 'for(var _i=0;_i<_ts.length;_i++){'
+        + 'var _tk=_ts[_i]&&_ts[_i].token;if(!_tk)continue;'
+        + "var _c=parseInt(api.getValueOnRecord(_tk,'data.curHealth')||'0',10);"
+        + "api.setValuesOnRecord(_tk,{'data.curHealth':Math.max(0,_c-_d)});"
+        + '}'
+        + "api.showNotification('Applied '+_d+' push damage.','red','Apply Damage');}";
+      msgP += '\n```Apply_Push_Damage_(' + delta + ')\n' + _acp + '\n```';
     }
   } else if (successes > 0) {
     msgP = '**[center][color=orange]PARTIAL[/color] - ' + successes + ' of ' + pushThreshold + ' required — not a hit[/center]**';
@@ -206,7 +219,21 @@ if (successes >= threshold) {
     msg += ret.lines;
     hitTargets = ret.targets;
   } else if (totalDamage > 0) {
-    msg += '\n[center]Auto-apply off - deal ' + totalDamage + ' damage manually (after armor).[/center]';
+    msg += '\n[center]Auto-apply off - deal ' + totalDamage + ' damage (after armor roll).[/center]';
+    // Apply Damage chat button — GM selects/targets a token then clicks this.
+    // Inline code per PF2e damage.js pattern: damage baked as literal, no custom
+    // function deps needed. Armor is handled separately via the Roll Armor button.
+    var _ac = 'var _d=' + totalDamage + ','
+      + '_ts=api.getTargets?api.getTargets():[];'
+      + "if(!_ts.length){api.showNotification('Select a target first.','red','Apply Damage');}"
+      + 'else{'
+      + 'for(var _i=0;_i<_ts.length;_i++){'
+      + 'var _tk=_ts[_i]&&_ts[_i].token;if(!_tk)continue;'
+      + "var _c=parseInt(api.getValueOnRecord(_tk,'data.curHealth')||'0',10);"
+      + "api.setValuesOnRecord(_tk,{'data.curHealth':Math.max(0,_c-_d)});"
+      + '}'
+      + "api.showNotification('Applied '+_d+' damage.','red','Apply Damage');}";
+    msg += '\n```Apply_Damage_(' + totalDamage + ')\n' + _ac + '\n```';
   }
 } else if (successes > 0) {
   msg = '**[center][color=orange]PARTIAL[/color] - ' + successes + ' of ' + threshold + ' required — not a hit[/center]**';
