@@ -29,7 +29,7 @@ var VEHICLE = {
         effect: 'The chase enters a narrow alley. A separate skill roll (no action) is required before any maneuver is resolved — failure means the vehicle is wrecked and the chase is over. The driver can cancel their maneuver and navigate the alley slowly and carefully (no roll required).' }
 };
 
-var entry = VEHICLE[result];
+var entry = VEHICLE[result] || { name: 'Unknown', effect: 'No table entry for result ' + result + '.' };
 
 var msg = '**[center][color=orange]CHASE OBSTACLE[/color][/center]**';
 msg += '\n[center]Vehicle Chase — D10: ' + result + '[/center]';

@@ -6,17 +6,14 @@ var token = api.getToken(record);
 
 var callback = function(item) {
   if (!item) return;
-  var cardName = item.name || '';
-  var cardNum  = parseInt(cardName, 10);
-  var chatDisplay = isNaN(cardNum) ? cardName : cardNum;
-  // Store the dealt CARD OBJECT (not the parsed number) so the combat tracker
-  // renders the card face in the Init column. Realm sorts on the card's own
-  // value (order: "asc" → card #1 acts first, per SRD). The chat line still
-  // shows the numeric value for readability.
+  // api.dealFromDeck() delivers the card value as a scalar (number or string),
+  // not an object — item.name would be undefined. Treat item directly as the value.
+  var cardNum     = parseInt(item, 10);
+  var chatDisplay = isNaN(cardNum) ? String(item) : String(cardNum);
   api.setValue('data.initiative', item, function() {
     var name = token ? token.name : (record.name || 'Unknown');
     api.sendMessage(
-      name + ' draws initiative ' + chatDisplay + ' (' + cardName + ')',
+      name + ' draws initiative ' + chatDisplay,
       undefined, [], []
     );
   });

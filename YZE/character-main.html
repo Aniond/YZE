@@ -250,7 +250,8 @@
     var pipSpan  = 4 * AC.pipGap;                        // center[0] to center[4]
     var pipLeft  = Math.floor((AC.colW - (pipSpan + 2 * AC.pipR)) / 2) + AC.pipR;
 
-    c.clearOverlayFields();
+    // TODO: ask Sean if c.clearOverlayFields() is a supported canvas API —
+    // it is not in the confirmed reference and throws at runtime if absent.
     c.clearTooltips();
     c.clearRect(0, 0, W, H);
     c.setFillStyle(COL.bgDeep);

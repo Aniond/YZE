@@ -261,7 +261,8 @@
     var c = api.getCanvas('skillCanvas');
     if (!c) return;
     var W = c.width, H = c.height;
-    c.clearOverlayFields();
+    // TODO: ask Sean if c.clearOverlayFields() is a supported canvas API —
+    // it is not in the confirmed reference and throws at runtime if absent.
     c.clearTooltips();
     c.clearRect(0, 0, W, H);
     c.setFillStyle(COL.bgDeep);

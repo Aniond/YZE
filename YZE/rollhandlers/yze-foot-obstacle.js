@@ -29,7 +29,7 @@ var FOOT = {
         effect: 'D6 street thugs block the road, threatening violence. The prey must roll Persuasion (no action) to be allowed to pass. A failed roll means the thugs attack — the chosen maneuver fails and one thug attacks in close combat. If the Persuasion roll succeeds, the thugs will attack the pursuer instead.' }
 };
 
-var entry = FOOT[result];
+var entry = FOOT[result] || { name: 'Unknown', effect: 'No table entry for result ' + result + '.' };
 
 var msg = '**[center][color=orange]CHASE OBSTACLE[/color][/center]**';
 msg += '\n[center]Foot Chase — D10: ' + result + '[/center]';

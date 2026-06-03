@@ -41,6 +41,8 @@ if (rerollStress > 0) {
   if (stressPushBanes > 0) {
     api.setValues({ 'data.panicTriggered': true });
   }
+  // Clamp: stress corrections can bring gearBanes below zero; floor it.
+  if (gearBanes < 0) gearBanes = 0;
 }
 
 // ── Apply damage / stress for attribute banes (your own consequence) ──────

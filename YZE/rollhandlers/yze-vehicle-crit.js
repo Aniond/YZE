@@ -44,7 +44,7 @@ var VCRIT = {
         wrecked: true }
 };
 
-var entry = VCRIT[result];
+var entry = VCRIT[result] || { name: 'Unknown', effect: 'No table entry for result ' + result + '.', wrecked: false };
 
 // ── Build chat card (matches yze-crit.js style) ───────────────────────────
 var msg = '**[center][color=red]VEHICLE CRITICAL DAMAGE[/color][/center]**';
