@@ -363,18 +363,6 @@
       c.setFont('700 10px sans-serif');
       c.fillText('Bonus +' + bonus + '   Dmg ' + dmg, 74, y + 60);
 
-      // [ROLL ATTACK] button
-      var rBtnW = 96, rBtnH = 30;
-      var rBtnX = W - rBtnW - 14;
-      var rBtnY = y + Math.floor((BANNER_H - rBtnH) / 2);
-      drawRoundRect(c, rBtnX, rBtnY, rBtnW, rBtnH, 3);
-      c.setFillStyle(COL.redDim); c.fill();
-      c.setStrokeStyle(COL.red); c.setLineWidth(1); c.stroke();
-      c.setFillStyle(COL.red);
-      c.setFont('700 10px sans-serif');
-      c.setTextAlign('center');
-      c.fillText('ROLL ATTACK', rBtnX + rBtnW / 2, rBtnY + rBtnH / 2);
-      c.tooltip(rBtnX, rBtnY, rBtnW, rBtnH, 'Roll attack with ' + (eq.name || 'weapon'));
       y += BANNER_H;
     }
 
@@ -470,19 +458,6 @@
     c.setFont('400 9px sans-serif');
     c.fillText('+' + bonus + ' bonus   Dmg ' + dmg, x + 50, y + 50);
 
-    // ROLL button
-    var rollW = 38, rollH = 18;
-    var rollX = x + colW - rollW - 26;
-    var rollY = y + CARD_H - rollH - 7;
-    drawRoundRect(c, rollX, rollY, rollW, rollH, 2);
-    c.setFillStyle(COL.goldDim); c.fill();
-    c.setStrokeStyle(COL.goldStroke); c.setLineWidth(1); c.stroke();
-    c.setFillStyle(COL.gold);
-    c.setFont('700 9px sans-serif');
-    c.setTextAlign('center');
-    c.fillText('ROLL', rollX + rollW / 2, rollY + rollH / 2);
-    c.tooltip(rollX, rollY, rollW, rollH, 'Roll attack');
-
     // Delete ×
     var delX = x + colW - 14;
     var delY = y + CARD_H - 14;
@@ -516,17 +491,8 @@
     }
     var bannerH = eq ? BANNER_H : EMPTY_H;
 
-    // Banner zone
-    if (cy < bannerH) {
-      if (!eq) return;
-      var rBtnW = 96, rBtnH = 30;
-      var rBtnX = W - rBtnW - 14;
-      var rBtnY = Math.floor((BANNER_H - rBtnH) / 2);
-      if (cx >= rBtnX && cx <= rBtnX + rBtnW && cy >= rBtnY && cy <= rBtnY + rBtnH) {
-        rollAttackFromSheet();
-      }
-      return;
-    }
+    // Banner zone — roll is now a real <button> field below the canvas
+    if (cy < bannerH) return;
 
     // Section header zone
     var cardsY = bannerH + CARD_PAD + WG_HDR;
@@ -558,15 +524,6 @@
     if (Math.abs(cx - pipX) <= 14 && Math.abs(cy - pipY) <= 14) {
       var newId = (item._id === equippedId) ? '' : item._id;
       api.setValues({'data.equippedWeaponId': newId}, function() { drawWeaponsCanvas(); });
-      return;
-    }
-
-    // ROLL button zone
-    var rollW = 38, rollH = 18;
-    var rollX = cardX + colW - rollW - 26;
-    var rollY = cardY + CARD_H - rollH - 7;
-    if (cx >= rollX && cx <= rollX + rollW && cy >= rollY && cy <= rollY + rollH) {
-      rollAttackForItem(item);
       return;
     }
 
@@ -688,15 +645,27 @@
   onclick="onWeaponsClick();">
 </canvas>
 
-<!-- Drop zone + invisible list drop target -->
-<div style="padding:5px 14px; background:#111009;
-  border-top:1px dashed #3a2e22; font-size:10px;
-  color:#6a5540; text-align:center; letter-spacing:0.06em;">
-  ↓ DROP WEAPONS HERE ↓
+<!-- Roll Attack — real <button> field, replaces canvas button; drag to Hot Bar for a macro -->
+<div style="padding:6px 14px; background:#111009; border-top:1px solid #2a2015;
+  display:flex; align-items:center; gap:10px;">
+  <span style="font-size:9px; color:#6a5540; flex:1; letter-spacing:0.04em;">
+    Roll with equipped weapon &mdash; drag to Hot Bar to save as macro</span>
+  <button field="rollAttackBtn" label="Roll Attack" color="red" size="xs"
+    onclick="rollAttackFromSheet();"></button>
+</div>
+
+<!-- Weapon list — each row has a Roll button draggable to the Hot Bar for per-weapon macros -->
+<div style="font-size:9px; font-weight:700; letter-spacing:0.18em;
+  text-transform:uppercase; color:#5a4a38; padding:5px 14px 2px;
+  background:#111009; border-top:1px dashed #3a2e22; display:flex;
+  align-items:center; gap:8px;">
+  <span>Weapons</span>
+  <span style="font-size:8px; font-weight:400; letter-spacing:0; color:#3a2e22;
+    text-transform:none;">&#8212; drag Roll to Hot Bar for per-weapon macros</span>
 </div>
 <list field="gearList" listtype="gear_slot"
-  style="min-height:24px; background:#111009;
-    border-bottom:1px dashed #3a2e22;"
+  scroll="auto" height="176px"
+  style="background:#111009; border-bottom:1px solid #2a2015;"
   onrecordchanged="onCombatChange();">
 </list>
 

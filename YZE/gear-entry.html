@@ -21,11 +21,12 @@ function showHideStats() {
   var isWeapon = t === 'weapon';
   var isArmor  = t === 'armor';
   api.setValues({
-    'fields.badgeWeapon.hidden': !isWeapon,
-    'fields.badgeArmor.hidden':  !isArmor,
-    'fields.badgeEquip.hidden':  (isWeapon || isArmor),
-    'fields.statWeapon.hidden':  !isWeapon,
-    'fields.statArmor.hidden':   !isArmor
+    'fields.badgeWeapon.hidden':   !isWeapon,
+    'fields.badgeArmor.hidden':    !isArmor,
+    'fields.badgeEquip.hidden':    (isWeapon || isArmor),
+    'fields.statWeapon.hidden':    !isWeapon,
+    'fields.statArmor.hidden':     !isArmor,
+    'fields.rollAttackBox.hidden': !isWeapon
   });
   checkRepairBtn();
 }
@@ -36,6 +37,16 @@ function checkRepairBtn() {
   var bonus    = parseInt(api.getValue(ctx.dataPrefix + '.bonus')    || '0', 10);
   var maxBonus = parseInt(api.getValue(ctx.dataPrefix + '.maxBonus') || '0', 10);
   api.setValues({ 'fields.repairSection.hidden': !(maxBonus > 0 && bonus < maxBonus) });
+}
+
+// Roll attack with this specific weapon. rollAttackForItem lives in common.js.
+// When this button is dragged to the Hot Bar, Realm stores the onclick as a macro
+// — clicking the Hot Bar macro fires this function in the context of this weapon.
+function rollWeaponFromGear() {
+  var ctx  = getItemContext();
+  var item = ctx.item;
+  if (!item || !item.data) return;
+  rollAttackForItem(item);
 }
 </script>
 
@@ -103,6 +114,12 @@ function checkRepairBtn() {
       minvalue="0" maxvalue="6" defaultvalue="0"
       style="width:46px; flex-shrink:0;">
     </numberfield>
+  </box>
+
+  <!-- Roll Attack — shown for weapons; drag to Hot Bar for a per-weapon attack macro -->
+  <box field="rollAttackBox">
+    <button field="rollAttackBtn" label="Roll" color="red" size="xs"
+      onclick="rollWeaponFromGear();"></button>
   </box>
 
   <!-- Repair section — shown only when bonus < maxBonus -->
