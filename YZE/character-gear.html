@@ -168,7 +168,7 @@ function yzeGearId() {
   return s.join('');
 }
 
-function onDrop(type, recordLink) {
+function onDrop(type, recordLink, sourceInfo) {
   if (type !== 'gear') return;
   var rec = recordLink.value;
   if (!rec || !rec.data) return;
@@ -190,6 +190,17 @@ function onDrop(type, recordLink) {
   api.addValue('data.gearList', newItem, function() {
     drawGearCanvas();
   });
+  // Remove the item from its source when dragged off another list / the party
+  // sheet (Sean's 5e onDrop pattern, ES5).
+  if (sourceInfo) {
+    if (sourceInfo.type === 'list') {
+      api.getRecord(sourceInfo.recordType, sourceInfo.recordId, function(sourceRecord) {
+        api.removeValueFromRecord(sourceRecord, sourceInfo.dataPath, sourceInfo.index);
+      });
+    } else if (sourceInfo.type === 'partysheet') {
+      api.removePartySheetItem(sourceInfo.itemId);
+    }
+  }
 }
 
 function drawGearCanvas() {
