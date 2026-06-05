@@ -1,12 +1,12 @@
 <script>
 // Roll a travel task. diceField = stored base dice, modField = terrain modifier.
 function rollTravel(diceField, modField, skillName, attrKey) {
-  var base  = parseInt(api.getValue('data.' + diceField)  || '3', 10);
-  var mod   = parseInt(api.getValue('data.' + modField)   || '0', 10);
-  var total = Math.max(1, base + mod);
+  const base  = parseInt(api.getValue(`data.${diceField}`)  || '3', 10);
+  const mod   = parseInt(api.getValue(`data.${modField}`)   || '0', 10);
+  let total = Math.max(1, base + mod);
   if (isNaN(total)) total = 1;
-  api.roll(total + 'd6', {
-    skillName:  skillName,
+  api.roll(`${total}d6`, {
+    skillName,
     attrKey:    attrKey || 'wits',
     attrCount:  total,
     skillCount: 0,

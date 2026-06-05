@@ -135,8 +135,8 @@
 
 <script>
 function toggleXpRef() {
-  var cur    = api.getValue('data.xpRefOpen');
-  var isOpen = (cur === true || cur === 1 || cur === '1' || cur === 'true');
+  const cur    = api.getValue('data.xpRefOpen');
+  const isOpen = (cur === true || cur === 1 || cur === '1' || cur === 'true');
   api.setValues({ 'data.xpRefOpen': !isOpen, 'fields.xpRefPanel.hidden': isOpen });
 }
 </script>

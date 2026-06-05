@@ -6,16 +6,16 @@
 //
 // Structure matches yze-crit.js exactly.
 
-var meta        = (data && data.roll && data.roll.metadata) || {};
-var dice        = (data && data.roll && data.roll.dice)     || [];
-var vehicleName = meta.vehicleName || 'Vehicle';
+const meta        = (data && data.roll && data.roll.metadata) || {};
+const dice        = (data && data.roll && data.roll.dice)     || [];
+const vehicleName = meta.vehicleName || 'Vehicle';
 
-var result = dice.length > 0 ? parseInt(dice[0].value, 10) : 1;
+let result = dice.length > 0 ? parseInt(dice[0].value, 10) : 1;
 if (isNaN(result) || result < 1)  result = 1;
 if (result > 12) result = 12;
 
 // ── Critical vehicle damage table (D12, SRD p.26) ────────────────────────
-var VCRIT = {
+const VCRIT = {
   1:  { name: 'Ricochet',
         effect: 'The attack bounces off the vehicle and strikes another random target in the same zone, inflicting the same damage to it.' },
   2:  { name: 'Skid',
@@ -44,13 +44,13 @@ var VCRIT = {
         wrecked: true }
 };
 
-var entry = VCRIT[result] || { name: 'Unknown', effect: 'No table entry for result ' + result + '.', wrecked: false };
+const entry = VCRIT[result] || { name: 'Unknown', effect: `No table entry for result ${result}.`, wrecked: false };
 
 // ── Build chat card (matches yze-crit.js style) ───────────────────────────
-var msg = '**[center][color=red]VEHICLE CRITICAL DAMAGE[/color][/center]**';
-msg += '\n[center]' + vehicleName + ' — D12: ' + result + '[/center]';
-msg += '\n**[center]' + result + '. ' + entry.name + '[/center]**';
-msg += '\n[center]' + entry.effect + '[/center]';
+let msg = '**[center][color=red]VEHICLE CRITICAL DAMAGE[/color][/center]**';
+msg += `\n[center]${vehicleName} — D12: ${result}[/center]`;
+msg += `\n**[center]${result}. ${entry.name}[/center]**`;
+msg += `\n[center]${entry.effect}[/center]`;
 
 if (entry.wrecked) {
   msg += '\n**[center][color=red]VEHICLE WRECKED[/color][/center]**';

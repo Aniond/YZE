@@ -144,7 +144,7 @@
 <!-- ═══ END PERSISTENT HEADER ═══ -->
 
 <script>
-  var COL = {
+  const COL = {
     bg:           '#1a1612',
     bgDeep:       '#111009',
     bgSection:    '#1e1a14',
@@ -171,7 +171,7 @@
     stripe:       'rgba(200,144,42,0.04)'
   };
 
-  var YZE_ATTRS = [
+  const YZE_ATTRS = [
     { key: 'strength', label: 'STRENGTH' },
     { key: 'agility',  label: 'AGILITY'  },
     { key: 'wits',     label: 'WITS'     },
@@ -179,7 +179,7 @@
   ];
 
   // Two-column grid layout — colW and barY are set dynamically in drawAttrs()
-  var AC = {
+  const AC = {
     colW:         0,
     rowH:         52,
     startY:        6,
@@ -195,8 +195,8 @@
     barH:         40
   };
 
-  function attrVal(key) { return parseInt(api.getValue('data.' + key) || '0', 10); }
-  function curVal(key)  { return parseInt(api.getValue('data.' + key) || '0', 10); }
+  function attrVal(key) { return parseInt(api.getValue(`data.${key}`) || '0', 10); }
+  function curVal(key)  { return parseInt(api.getValue(`data.${key}`) || '0', 10); }
 
   // Max pools derive from base attributes (SRD p.5). Current pools are stored,
   // damageable values — see updateDerived().
@@ -207,12 +207,12 @@
   // first time the sheet is opened (data.hrInit). Writes only when something
   // actually changes, to avoid an onrecordchanged feedback loop.
   function updateDerived() {
-    var mh = calcMaxHealth(), mr = calcMaxResolve();
-    var inited = parseInt(api.getValue('data.hrInit') || '0', 10);
-    var curH = curVal('curHealth');
-    var curR = curVal('curResolve');
+    const mh = calcMaxHealth(), mr = calcMaxResolve();
+    const inited = parseInt(api.getValue('data.hrInit') || '0', 10);
+    const curH = curVal('curHealth');
+    const curR = curVal('curResolve');
 
-    var updates = {};
+    const updates = {};
     if (parseInt(api.getValue('data.maxHealth')  || '0', 10) !== mh) updates['data.maxHealth']  = mh;
     if (parseInt(api.getValue('data.maxResolve') || '0', 10) !== mr) updates['data.maxResolve'] = mr;
 
@@ -225,13 +225,13 @@
       if (curR > mr) updates['data.curResolve'] = mr;
     }
 
-    var hasUpdate = false;
-    for (var uk in updates) { if (updates.hasOwnProperty(uk)) { hasUpdate = true; break; } }
+    let hasUpdate = false;
+    for (const uk in updates) { if (updates.hasOwnProperty(uk)) { hasUpdate = true; break; } }
     if (hasUpdate) api.setValues(updates);
   }
 
   // Accent color per attribute (spec §2 tokens)
-  var ATTR_ACCENT = {
+  const ATTR_ACCENT = {
     strength: '#b85050',
     agility:  '#5a8ac8',
     wits:     '#6aa07a',
@@ -239,16 +239,16 @@
   };
 
   function drawAttrs() {
-    var c = api.getCanvas('attrCanvas');
+    const c = api.getCanvas('attrCanvas');
     if (!c) return;
-    var W = c.width, H = c.height;
+    const W = c.width, H = c.height;
     AC.colW  = Math.floor(W / 4);
     AC.pipR  = 5;
     AC.pipGap = 12;
 
     // Pip strip width (edge of first to edge of last): 4 gaps + 2 radii each end
-    var pipSpan  = 4 * AC.pipGap;                        // center[0] to center[4]
-    var pipLeft  = Math.floor((AC.colW - (pipSpan + 2 * AC.pipR)) / 2) + AC.pipR;
+    const pipSpan  = 4 * AC.pipGap;                        // center[0] to center[4]
+    const pipLeft  = Math.floor((AC.colW - (pipSpan + 2 * AC.pipR)) / 2) + AC.pipR;
 
     // TODO: ask Sean if c.clearOverlayFields() is a supported canvas API —
     // it is not in the confirmed reference and throws at runtime if absent.
@@ -257,12 +257,12 @@
     c.setFillStyle(COL.bgDeep);
     c.fillRect(0, 0, W, H);
 
-    for (var i = 0; i < YZE_ATTRS.length; i++) {
-      var attr     = YZE_ATTRS[i];
-      var cellLeft = i * AC.colW;
-      var accent   = ATTR_ACCENT[attr.key] || COL.gold;
-      var val      = attrVal(attr.key);
-      var pipCY    = 62;
+    for (let i = 0; i < YZE_ATTRS.length; i++) {
+      const attr     = YZE_ATTRS[i];
+      const cellLeft = i * AC.colW;
+      const accent   = ATTR_ACCENT[attr.key] || COL.gold;
+      const val      = attrVal(attr.key);
+      const pipCY    = 62;
 
       // Card background (alternating)
       c.setFillStyle(i % 2 === 0 ? COL.bgSection : COL.bg);
@@ -293,8 +293,8 @@
       c.fillText(String(val), cellLeft + 10, 42);
 
       // Pips (5, centred, below number)
-      for (var p = 0; p < 5; p++) {
-        var px = cellLeft + pipLeft + p * AC.pipGap;
+      for (let p = 0; p < 5; p++) {
+        const px = cellLeft + pipLeft + p * AC.pipGap;
         c.beginPath();
         c.arc(px, pipCY, AC.pipR, 0, Math.PI * 2);
         c.closePath();
@@ -304,12 +304,12 @@
         } else {
           c.setFillStyle(COL.goldPip);
           c.fill();
-          c.setStrokeStyle(accent + '55');
+          c.setStrokeStyle(`${accent}55`);
           c.setLineWidth(1);
           c.stroke();
         }
         c.tooltip(px - AC.pipR, pipCY - AC.pipR, AC.pipR * 2, AC.pipR * 2,
-          attr.label + ': set to ' + (p + 1));
+          `${attr.label}: set to ${p + 1}`);
       }
 
       // "TAP TO ROLL" hint (bottom-centre)
@@ -324,20 +324,20 @@
   // Attribute-only roll (no skill). Uses the same pool/modifier/push pipeline
   // as skill rolls so common.js handlers work unchanged.
   function rollAttrOnly(key) {
-    var base    = attrVal(key);
-    var pen        = yzeCondPenalty(key);
-    var mod        = yzeReadModifier() + yzeReadDifficulty();
-    var opposed    = yzeReadOpposed();
-    var difficulty = api.getValue('data.difficulty') || 'average';
-    var counts     = yzeApplyPenalty({ attr: base, skill: 0, gear: 0 }, pen);
+    const base    = attrVal(key);
+    const pen        = yzeCondPenalty(key);
+    const mod        = yzeReadModifier() + yzeReadDifficulty();
+    const opposed    = yzeReadOpposed();
+    const difficulty = api.getValue('data.difficulty') || 'average';
+    const counts     = yzeApplyPenalty({ attr: base, skill: 0, gear: 0 }, pen);
     yzeApplyModifier(counts, mod);
-    var total   = counts.attr + counts.skill + counts.gear;
+    const total   = counts.attr + counts.skill + counts.gear;
     if (total <= 0) {
       api.showNotification('No dice to roll!', 'red', 'Cannot Roll');
       return;
     }
-    var label = key.charAt(0).toUpperCase() + key.slice(1);
-    api.roll(total + 'd6', {
+    const label = key.charAt(0).toUpperCase() + key.slice(1);
+    api.roll(`${total}d6`, {
       attrKey:    key,
       attrCount:  counts.attr,
       skillCount: 0,
@@ -353,30 +353,30 @@
 
   // ── Canvas click — 4-column hit detection ────────────────────────────────
   function onAttrClick() {
-    var cx = event.x;
-    var cy = event.y;
-    var c  = api.getCanvas('attrCanvas');
+    const cx = event.x;
+    const cy = event.y;
+    const c  = api.getCanvas('attrCanvas');
     if (!c) return;
-    var W    = c.width;
-    var colW = Math.floor(W / 4);
+    const W    = c.width;
+    const colW = Math.floor(W / 4);
 
     // Pip geometry must mirror drawAttrs()
-    var pipSpan = 4 * AC.pipGap;
-    var pipLeft = Math.floor((colW - (pipSpan + 2 * AC.pipR)) / 2) + AC.pipR;
-    var pipCY   = 62;
+    const pipSpan = 4 * AC.pipGap;
+    const pipLeft = Math.floor((colW - (pipSpan + 2 * AC.pipR)) / 2) + AC.pipR;
+    const pipCY   = 62;
 
-    for (var i = 0; i < YZE_ATTRS.length; i++) {
-      var attr     = YZE_ATTRS[i];
-      var cellLeft = i * colW;
+    for (let i = 0; i < YZE_ATTRS.length; i++) {
+      const attr     = YZE_ATTRS[i];
+      const cellLeft = i * colW;
 
       if (cx < cellLeft || cx >= cellLeft + colW) continue;
 
       // Pip click?
-      for (var p = 0; p < 5; p++) {
-        var px = cellLeft + pipLeft + p * AC.pipGap;
+      for (let p = 0; p < 5; p++) {
+        const px = cellLeft + pipLeft + p * AC.pipGap;
         if (Math.abs(cx - px) <= AC.pipR && Math.abs(cy - pipCY) <= AC.pipR) {
-          var newVal = Math.max(1, p + 1);
-          api.setValue('data.' + attr.key, newVal, function() {
+          const newVal = Math.max(1, p + 1);
+          api.setValue(`data.${attr.key}`, newVal, () => {
             updateDerived();
             drawAttrs();
           });
@@ -404,26 +404,26 @@
   // Checking the FOURTH condition of a type breaks you in the matching pool
   // (Health for physical, Resolve for mental) and triggers a crit of that type.
   function takeCondition(type) {
-    var boxes = (type === 'mental')
+    const boxes = (type === 'mental')
       ? ['cond_angry', 'cond_scared', 'cond_disheartened']
       : ['cond_exhausted', 'cond_battered', 'cond_wounded'];
-    function on(f) { var v = api.getValue('data.' + f); return (v === true || v === 1 || v === '1' || v === 'true'); }
+    function on(f) { const v = api.getValue(`data.${f}`); return (v === true || v === 1 || v === '1' || v === 'true'); }
 
     // Tick the next unheld condition of this type, if any.
-    for (var i = 0; i < boxes.length; i++) {
+    for (let i = 0; i < boxes.length; i++) {
       if (!on(boxes[i])) {
-        api.setValue('data.' + boxes[i], true, function() { drawAttrs(); });
+        api.setValue(`data.${boxes[i]}`, true, () => { drawAttrs(); });
         return;
       }
     }
 
     // All three already held — this is the fourth: broken + critical injury.
-    var pool  = (type === 'mental') ? 'curResolve' : 'curHealth';
-    var label = (type === 'mental') ? 'mental' : 'physical';
-    var upd = {}; upd['data.' + pool] = 0;
-    api.setValues(upd, function() {
+    const pool  = (type === 'mental') ? 'curResolve' : 'curHealth';
+    const label = (type === 'mental') ? 'mental' : 'physical';
+    const upd = {}; upd[`data.${pool}`] = 0;
+    api.setValues(upd, () => {
       drawAttrs();
-      api.showNotification('Fourth ' + label + ' condition - you are BROKEN!', 'red', 'Broken');
+      api.showNotification(`Fourth ${label} condition - you are BROKEN!`, 'red', 'Broken');
       rollCrit(type);
     });
   }

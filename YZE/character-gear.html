@@ -134,9 +134,9 @@
 <!-- ═══ END PERSISTENT HEADER ═══ -->
 
 <script>
-var ROW_H = 44;
+const ROW_H = 44;
 
-var COL = {
+const COL = {
   bg:         '#1a1612',
   bgAlt:      '#1e1a14',
   bgDeep:     '#111009',
@@ -160,8 +160,8 @@ var COL = {
 };
 
 function yzeGearId() {
-  var s = [], h = '0123456789abcdef';
-  for (var i = 0; i < 36; i++) s[i] = h.charAt(Math.floor(Math.random() * 16));
+  const s = [], h = '0123456789abcdef';
+  for (let i = 0; i < 36; i++) s[i] = h.charAt(Math.floor(Math.random() * 16));
   s[14] = '4';
   s[19] = h.charAt((parseInt(s[19], 16) & 0x3) | 0x8);
   s[8] = s[13] = s[18] = s[23] = '-';
@@ -220,16 +220,16 @@ function onDrop(type, recordLink, sourceInfo) {
 }
 
 function drawGearCanvas() {
-  var c = api.getCanvas('gearCanvas');
+  const c = api.getCanvas('gearCanvas');
   if (!c) return;
 
-  var list = getGearList();
-  var W    = c.width;
-  var H    = c.height;
+  const list = getGearList();
+  const W    = c.width;
+  const H    = c.height;
   c.clearRect(0, 0, W, H);
   c.clearTooltips();
 
-  var layout = buildGearLayout();
+  const layout = buildGearLayout();
 
   if (layout.rows.length === 0) {
     c.setFillStyle(COL.bgDeep);
@@ -242,8 +242,8 @@ function drawGearCanvas() {
     return;
   }
 
-  for (var r = 0; r < layout.rows.length; r++) {
-    var row = layout.rows[r];
+  for (let r = 0; r < layout.rows.length; r++) {
+    const row = layout.rows[r];
     if (row.kind === 'header') {
       drawGearHeader(c, W, row);
     } else {
@@ -255,28 +255,28 @@ function drawGearCanvas() {
 // Group gear by type into an ordered list of header + item rows.
 // Each item row carries its original index in data.gearList for click routing.
 function buildGearLayout() {
-  var list = getGearList();
-  var cats = [
+  const list = getGearList();
+  const cats = [
     { key: 'weapon',    label: 'WEAPONS',   color: COL.red,   stroke: COL.redStroke },
     { key: 'armor',     label: 'ARMOR',     color: COL.blue,  stroke: COL.blueStroke },
     { key: 'equipment', label: 'EQUIPMENT', color: COL.green, stroke: COL.greenStroke },
     { key: 'other',     label: 'OTHER',     color: COL.gold,  stroke: COL.goldStroke }
   ];
-  var HDR_H = 22;
-  var rows  = [];
-  var yCur  = 0;
-  for (var ci = 0; ci < cats.length; ci++) {
-    var cat = cats[ci];
-    var members = [];
-    for (var i = 0; i < list.length; i++) {
-      var t = (list[i].data && list[i].data.gearType) || 'equipment';
+  const HDR_H = 22;
+  const rows  = [];
+  let yCur  = 0;
+  for (let ci = 0; ci < cats.length; ci++) {
+    const cat = cats[ci];
+    const members = [];
+    for (let i = 0; i < list.length; i++) {
+      let t = (list[i].data && list[i].data.gearType) || 'equipment';
       if (t !== 'weapon' && t !== 'armor' && t !== 'other') t = 'equipment';
       if (t === cat.key) members.push({ item: list[i], idx: i });
     }
     if (members.length === 0) continue;
     rows.push({ kind: 'header', cat: cat, y: yCur, h: HDR_H, count: members.length });
     yCur += HDR_H;
-    for (var m = 0; m < members.length; m++) {
+    for (let m = 0; m < members.length; m++) {
       rows.push({ kind: 'item', cat: cat, item: members[m].item, idx: members[m].idx, y: yCur, h: ROW_H });
       yCur += ROW_H;
     }
@@ -285,8 +285,8 @@ function buildGearLayout() {
 }
 
 function drawGearHeader(c, W, row) {
-  var y   = row.y;
-  var cat = row.cat;
+  const y   = row.y;
+  const cat = row.cat;
   c.setFillStyle(COL.bgDeep);
   c.fillRect(0, y, W, row.h);
   // left accent bar
@@ -309,11 +309,11 @@ function drawGearHeader(c, W, row) {
 }
 
 function drawGearItemRow(c, W, row, stripeIdx) {
-  var item     = row.item;
-  var d        = item.data || {};
-  var y        = row.y;
-  var gearType = row.cat.key;
-  var cy       = y + Math.floor(ROW_H / 2);
+  const item     = row.item;
+  const d        = item.data || {};
+  const y        = row.y;
+  const gearType = row.cat.key;
+  const cy       = y + Math.floor(ROW_H / 2);
 
   // Row background + bottom border
   c.setFillStyle(stripeIdx % 2 === 0 ? COL.bg : COL.bgAlt);
@@ -322,8 +322,8 @@ function drawGearItemRow(c, W, row, stripeIdx) {
   c.fillRect(0, y + ROW_H - 1, W, 1);
 
   // Portrait
-  var imgX = 6, imgY = y + Math.floor((ROW_H - 32) / 2);
-  var portraitUrl = item.portrait || (d && d.portraitUrl) || '';
+  const imgX = 6, imgY = y + Math.floor((ROW_H - 32) / 2);
+  const portraitUrl = item.portrait || (d && d.portraitUrl) || '';
   if (portraitUrl) {
     c.drawImage(portraitUrl, imgX, imgY, 32, 32);
   } else {
@@ -340,7 +340,7 @@ function drawGearItemRow(c, W, row, stripeIdx) {
   c.fillText(item.name || 'Unnamed', 48, cy);
 
   // Stats by gear type
-  var statX = W - 118;
+  const statX = W - 118;
   if (gearType === 'armor') {
     c.setFont('400 9px sans-serif');
     c.setTextAlign('left');
@@ -356,7 +356,7 @@ function drawGearItemRow(c, W, row, stripeIdx) {
   }
 
   // Delete ×
-  var delX = W - 16, delR = 5;
+  const delX = W - 16, delR = 5;
   c.setStrokeStyle(COL.redStroke);
   c.setLineWidth(1.5);
   c.beginPath();
@@ -367,33 +367,33 @@ function drawGearItemRow(c, W, row, stripeIdx) {
 }
 
 function onGearCanvasClick() {
-  var x = event.x;
-  var y = event.y;
-  var rows = buildGearLayout().rows;
-  var row  = null;
-  for (var r = 0; r < rows.length; r++) {
+  const x = event.x;
+  const y = event.y;
+  const rows = buildGearLayout().rows;
+  let row  = null;
+  for (let r = 0; r < rows.length; r++) {
     if (y >= rows[r].y && y < rows[r].y + rows[r].h) { row = rows[r]; break; }
   }
   if (!row || row.kind !== 'item') return;
 
-  var item = row.item;
+  const item = row.item;
   if (!item) return;
-  var c = api.getCanvas('gearCanvas');
-  var W = c ? c.width : 460;
+  const c = api.getCanvas('gearCanvas');
+  const W = c ? c.width : 460;
 
   if (x >= W - 30) {
     deleteGearItem(row.idx, item);
   } else if (x <= 42) {
-    api.openListRecord('data.gearList.' + row.idx, item.recordType || 'gear_entry');
+    api.openListRecord(`data.gearList.${row.idx}`, item.recordType || 'gear_entry');
   }
 }
 
 function deleteGearItem(rowIdx, item) {
   api.showConfirm(
     'Remove Item',
-    'Remove ' + (item.name || 'this item') + ' from your inventory?',
+    `Remove ${item.name || 'this item'} from your inventory?`,
     'Remove', 'Cancel',
-    function() { api.removeValue('data.gearList', rowIdx, function() { drawGearCanvas(); }); }
+    () => { api.removeValue('data.gearList', rowIdx, () => { drawGearCanvas(); }); }
   );
 }
 

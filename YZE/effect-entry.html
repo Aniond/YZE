@@ -3,32 +3,32 @@
 // In a list-item template, api.getValue('data.X') reads the OWNING record.
 // Use ctx.dataPrefix to read THIS effect entry's own fields.
 function getNearestParentDataPath(dp) {
-  var parts = dp.split('.data');
+  const parts = dp.split('.data');
   return parts.length > 1 ? parts.slice(0, -1).join('.data') : '';
 }
 function getItemContext() {
-  var itemDataPath = getNearestParentDataPath(dataPath);
-  var dp           = itemDataPath ? itemDataPath + '.data' : 'data';
+  const itemDataPath = getNearestParentDataPath(dataPath);
+  const dp           = itemDataPath ? `${itemDataPath}.data` : 'data';
   return { dataPrefix: dp };
 }
 
 // Build a one-line modifier summary and store it on this item's own `summary`
 // field. Guarded so it only writes when the value changed (no onrecordchanged loop).
 function effectSummary() {
-  var ctx = getItemContext();
-  function gv(f) { return api.getValue(ctx.dataPrefix + '.' + f); }
+  const ctx = getItemContext();
+  function gv(f) { return api.getValue(`${ctx.dataPrefix}.${f}`); }
   function tru(v) { return v === true || v === 1 || v === '1' || v === 'true'; }
-  var sm  = parseInt(gv('strMod') || '0', 10); if (isNaN(sm)) sm = 0;
-  var wm  = parseInt(gv('witMod') || '0', 10); if (isNaN(wm)) wm = 0;
-  var dpr = parseInt(gv('damagePerRound') || '0', 10); if (isNaN(dpr)) dpr = 0;
-  var parts = [];
-  if (sm !== 0) parts.push('STR/AGI ' + (sm > 0 ? '+' : '') + sm);
-  if (wm !== 0) parts.push('WIT/EMP ' + (wm > 0 ? '+' : '') + wm);
-  if (dpr > 0)  parts.push(dpr + ' dmg/round');
+  let sm  = parseInt(gv('strMod') || '0', 10); if (isNaN(sm)) sm = 0;
+  let wm  = parseInt(gv('witMod') || '0', 10); if (isNaN(wm)) wm = 0;
+  let dpr = parseInt(gv('damagePerRound') || '0', 10); if (isNaN(dpr)) dpr = 0;
+  const parts = [];
+  if (sm !== 0) parts.push(`STR/AGI ${sm > 0 ? '+' : ''}${sm}`);
+  if (wm !== 0) parts.push(`WIT/EMP ${wm > 0 ? '+' : ''}${wm}`);
+  if (dpr > 0)  parts.push(`${dpr} dmg/round`);
   if (tru(gv('blockPhysHeal')) || tru(gv('blockMentHeal'))) parts.push('blocks healing');
-  var s = parts.length ? parts.join('  ·  ') : 'no modifiers';
-  if (api.getValue(ctx.dataPrefix + '.summary') !== s) {
-    var upd = {}; upd[ctx.dataPrefix + '.summary'] = s;
+  const s = parts.length ? parts.join('  ·  ') : 'no modifiers';
+  if (api.getValue(`${ctx.dataPrefix}.summary`) !== s) {
+    const upd = {}; upd[`${ctx.dataPrefix}.summary`] = s;
     api.setValues(upd);
   }
 }

@@ -1,7 +1,7 @@
 <script>
 // Local wrapper: reads this record's fields and calls castSpell() from common.js.
 function onCastSpell() {
-  function bool(f) { var v = api.getValue('data.' + f); return (v === true || v === 1 || v === '1' || v === 'true'); }
+  function bool(f) { const v = api.getValue(`data.${f}`); return (v === true || v === 1 || v === '1' || v === 'true'); }
   castSpell(
     parseInt(api.getValue('data.wpSpend')        || '1', 10),
     api.getValue('data.name')                    || 'Spell',
@@ -19,20 +19,20 @@ function onCastSpell() {
 
 // Show/hide safecastDice stepper based on the safeCast checkbox.
 function onSafeCastChange() {
-  var on = api.getValue('data.safeCast');
-  var checked = (on === true || on === 1 || on === '1' || on === 'true');
+  const on = api.getValue('data.safeCast');
+  const checked = (on === true || on === 1 || on === '1' || on === 'true');
   api.setValues({ 'fields.safecastDiceBox.hidden': !checked });
 }
 
 // Discipline badge color: amber for Awareness/Healing/Shapeshifting, purple for others.
 // _lastDisc guard: api.setValues() in onrecordchanged triggers onrecordchanged again —
 // bail early if discipline hasn't changed to prevent an infinite loop.
-var _lastDisc = null;
+let _lastDisc = null;
 function onSpellEntryLoad() {
-  var disc = api.getValue('data.discipline') || '';
+  const disc = api.getValue('data.discipline') || '';
   if (disc === _lastDisc) return;
   _lastDisc = disc;
-  var isAmber = (disc === 'Awareness' || disc === 'Healing' || disc === 'Shapeshifting');
+  const isAmber = (disc === 'Awareness' || disc === 'Healing' || disc === 'Shapeshifting');
   api.setValues({
     'fields.discBadgeAmber.hidden':  !isAmber,
     'fields.discBadgePurple.hidden':  isAmber

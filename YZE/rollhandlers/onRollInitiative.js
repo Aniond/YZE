@@ -2,18 +2,18 @@
 // Fires from Combat Tracker Menu > Roll Initiative
 // SRD: Cards 1-10, lowest acts first, fixed for whole combat.
 
-var token = api.getToken(record);
+const token = api.getToken(record);
 
-var callback = function(item) {
+const callback = function(item) {
   if (!item) return;
   // api.dealFromDeck() delivers the card value as a scalar (number or string),
   // not an object — item.name would be undefined. Treat item directly as the value.
-  var cardNum     = parseInt(item, 10);
-  var chatDisplay = isNaN(cardNum) ? String(item) : String(cardNum);
-  api.setValue('data.initiative', item, function() {
-    var name = token ? token.name : (record.name || 'Unknown');
+  const cardNum     = parseInt(item, 10);
+  const chatDisplay = isNaN(cardNum) ? String(item) : String(cardNum);
+  api.setValue('data.initiative', item, () => {
+    const name = token ? token.name : (record.name || 'Unknown');
     api.sendMessage(
-      name + ' draws initiative ' + chatDisplay,
+      `${name} draws initiative ${chatDisplay}`,
       undefined, [], []
     );
   });

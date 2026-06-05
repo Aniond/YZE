@@ -1,9 +1,9 @@
 <script>
 // Roll Stamina against a hazard. fieldName = the data field holding the dice count.
 function rollHazard(fieldName, skillName) {
-  var n = parseInt(api.getValue('data.' + fieldName) || '3', 10);
+  let n = parseInt(api.getValue(`data.${fieldName}`) || '3', 10);
   if (isNaN(n) || n < 1) n = 1;
-  api.roll(n + 'd6', { skillName: skillName, attrCount: n,
+  api.roll(`${n}d6`, { skillName, attrCount: n,
     attrKey: 'strength', skillCount: 0, gearCount: 0 }, 'yze_pool');
 }
 </script>

@@ -2,7 +2,7 @@
 // Accent band by effectType: Physical=red, Mental=purple, Environmental=green,
 // Combat=amber. One band shown at a time (mirrors spell-main's discipline band).
 function onEffectTypeChange() {
-  var t = api.getValue('data.effectType') || 'Physical';
+  const t = api.getValue('data.effectType') || 'Physical';
   api.setValues({
     'fields.bandPhysical.hidden':      t !== 'Physical',
     'fields.bandMental.hidden':        t !== 'Mental',

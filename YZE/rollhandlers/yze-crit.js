@@ -7,12 +7,12 @@
 //   physical → SRD "Critical Injuries — Physical"  (lethal, with death saves)
 //   mental   → SRD "Critical Injuries — Mental"    (trauma, ranged results)
 
-var meta     = (data && data.roll && data.roll.metadata) || {};
-var dice     = (data && data.roll && data.roll.dice)     || [];
-var critType = (meta.critType === 'mental') ? 'mental' : 'physical';
+const meta     = (data && data.roll && data.roll.metadata) || {};
+const dice     = (data && data.roll && data.roll.dice)     || [];
+const critType = (meta.critType === 'mental') ? 'mental' : 'physical';
 
 // ── Build the D66 value from two d6 (tens, ones) ──────────────────────────
-var d66, tens, ones;
+let d66, tens, ones;
 if (dice.length >= 2) {
   tens = parseInt(dice[0].value, 10);
   ones = parseInt(dice[1].value, 10);
@@ -27,7 +27,7 @@ if (dice.length >= 2) {
 
 // ── Physical table — keyed by exact D66 value ─────────────────────────────
 // time/mod only apply to lethal injuries; instant injuries kill with no save.
-var PHYS = {
+const PHYS = {
   11: { name: 'Winded',            heal: '--', effect: 'None.' },
   12: { name: 'Stunned',           heal: '--', effect: 'None.' },
   13: { name: 'Crippling pain',    heal: '--', effect: 'None.' },
@@ -67,7 +67,7 @@ var PHYS = {
 };
 
 // ── Mental table — keyed by D66 range [min, max] ──────────────────────────
-var MENT = [
+const MENT = [
   { min: 11, max: 16, name: 'Trembling',     heal: 'D6',  effect: 'Modifier -1 on all Agility-based rolls.' },
   { min: 21, max: 21, name: 'White hair',    heal: 'Permanent', effect: 'None.' },
   { min: 22, max: 24, name: 'Anxious',       heal: 'D6',  effect: 'Modifier -1 on all Wits-based rolls.' },
@@ -88,38 +88,38 @@ var MENT = [
 ];
 
 // ── Look up the result ────────────────────────────────────────────────────
-var entry, heading;
+let entry, heading;
 if (critType === 'mental') {
   heading = 'Critical Injury — Mental';
-  for (var m = 0; m < MENT.length; m++) {
+  for (let m = 0; m < MENT.length; m++) {
     if (d66 >= MENT[m].min && d66 <= MENT[m].max) { entry = MENT[m]; break; }
   }
 } else {
   heading = 'Critical Injury - Physical';
   entry = PHYS[d66];
 }
-if (!entry) entry = { name: 'Unknown (' + d66 + ')', heal: '--', effect: 'No table entry - check the roll.' };
+if (!entry) entry = { name: `Unknown (${d66})`, heal: '--', effect: 'No table entry - check the roll.' };
 
 // ── Build the chat card (Realm renders the 2d6; text carries the result) ──
-var msg = '**[center]' + heading + '[/center]**';
-msg += '\n[center]D66: ' + d66 + ' (' + tens + ' / ' + ones + ')[/center]';
-msg += '\n**[center]' + entry.name + '[/center]**';
+let msg = `**[center]${heading}[/center]**`;
+msg += `\n[center]D66: ${d66} (${tens} / ${ones})[/center]`;
+msg += `\n**[center]${entry.name}[/center]**`;
 
 if (entry.instant) {
   msg += '\n**[center][color=red]INSTANT DEATH - no death save[/color][/center]**';
 } else if (entry.lethal) {
-  var saveLine = 'death save after ' + entry.time;
-  if (entry.mod) saveLine += ' (' + entry.mod + ' to the save)';
-  msg += '\n**[center][color=red]LETHAL[/color] - ' + saveLine + '[/center]**';
+  let saveLine = `death save after ${entry.time}`;
+  if (entry.mod) saveLine += ` (${entry.mod} to the save)`;
+  msg += `\n**[center][color=red]LETHAL[/color] - ${saveLine}[/center]**`;
 }
 
-msg += '\n[center]' + entry.effect + '[/center]';
+msg += `\n[center]${entry.effect}[/center]`;
 
 if (entry.heal && entry.heal !== '--') {
-  var healText = (entry.heal === 'Permanent')
+  const healText = (entry.heal === 'Permanent')
     ? '[color=orange]Permanent - never heals[/color]'
-    : 'Healing time: ' + entry.heal + ' days';
-  msg += '\n[center]' + healText + '[/center]';
+    : `Healing time: ${entry.heal} days`;
+  msg += `\n[center]${healText}[/center]`;
 }
 
 data.roll.total = d66;

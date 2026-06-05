@@ -1,8 +1,8 @@
 <script>
 // Update discipline accent band on load and on change.
 function onDisciplineChange() {
-  var disc = api.getValue('data.discipline') || '';
-  var isAmber = (disc === 'Awareness' || disc === 'Healing' || disc === 'Shapeshifting');
+  const disc = api.getValue('data.discipline') || '';
+  const isAmber = (disc === 'Awareness' || disc === 'Healing' || disc === 'Shapeshifting');
   api.setValues({
     'fields.discBandAmber.hidden':  !isAmber,
     'fields.discBandPurple.hidden':  isAmber

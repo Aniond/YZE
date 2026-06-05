@@ -1,12 +1,12 @@
 // YZE yze_vehicle_obstacle — Vehicle Chase Obstacle (D10), SRD p.29.
 // Structure matches yze-crit.js exactly.
 
-var dice   = (data && data.roll && data.roll.dice) || [];
-var result = dice.length > 0 ? parseInt(dice[0].value, 10) : 1;
+const dice   = (data && data.roll && data.roll.dice) || [];
+let result = dice.length > 0 ? parseInt(dice[0].value, 10) : 1;
 if (isNaN(result) || result < 1)  result = 1;
 if (result > 10) result = 10;
 
-var VEHICLE = {
+const VEHICLE = {
   1:  { name: 'Dead End',
         effect: 'If the prey has chosen to Pursue/Flee, Hide, or Block, the maneuver fails automatically.' },
   2:  { name: 'Downpour',
@@ -29,12 +29,12 @@ var VEHICLE = {
         effect: 'The chase enters a narrow alley. A separate skill roll (no action) is required before any maneuver is resolved — failure means the vehicle is wrecked and the chase is over. The driver can cancel their maneuver and navigate the alley slowly and carefully (no roll required).' }
 };
 
-var entry = VEHICLE[result] || { name: 'Unknown', effect: 'No table entry for result ' + result + '.' };
+const entry = VEHICLE[result] || { name: 'Unknown', effect: `No table entry for result ${result}.` };
 
-var msg = '**[center][color=orange]CHASE OBSTACLE[/color][/center]**';
-msg += '\n[center]Vehicle Chase — D10: ' + result + '[/center]';
-msg += '\n**[center]' + result + '. ' + entry.name + '[/center]**';
-msg += '\n[center]' + entry.effect + '[/center]';
+let msg = '**[center][color=orange]CHASE OBSTACLE[/color][/center]**';
+msg += `\n[center]Vehicle Chase — D10: ${result}[/center]`;
+msg += `\n**[center]${result}. ${entry.name}[/center]**`;
+msg += `\n[center]${entry.effect}[/center]`;
 
 data.roll.total = result;
 api.sendMessage(msg, data.roll, [], [{ name: entry.name, tooltip: entry.effect }]);

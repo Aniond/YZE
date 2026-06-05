@@ -1,12 +1,12 @@
 // YZE onTurnStart
-var token = data && data.token;
+const token = data && data.token;
 if (!token) return;
 
-var tokenName = token.name || 'Unknown';
+const tokenName = token.name || 'Unknown';
 
 // Announce turn start
 api.sendMessage(
-  '**[center]' + tokenName + '\'s turn[/center]**',
+  `**[center]${tokenName}'s turn[/center]**`,
   undefined,
   [],
   []

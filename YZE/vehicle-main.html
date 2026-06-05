@@ -1,21 +1,21 @@
 <script>
 function toggleVehicleRef() {
-  var cur    = api.getValue('data.vehicleRefOpen');
-  var isOpen = (cur === true || cur === 1 || cur === '1' || cur === 'true');
+  const cur    = api.getValue('data.vehicleRefOpen');
+  const isOpen = (cur === true || cur === 1 || cur === '1' || cur === 'true');
   api.setValues({ 'data.vehicleRefOpen': !isOpen, 'fields.vehicleRefPanel.hidden': isOpen });
 }
 
 function rollRam() {
-  var hull   = parseInt(api.getValue('data.hull') || '4', 10);
-  var ramDmg = Math.ceil(hull / 2);
+  const hull   = parseInt(api.getValue('data.hull') || '4', 10);
+  const ramDmg = Math.ceil(hull / 2);
   api.showNotification(
-    'Ram damage rating: ' + ramDmg + ' (Hull ' + hull + ' / 2)',
+    `Ram damage rating: ${ramDmg} (Hull ${hull} / 2)`,
     'red', 'Ram Attack'
   );
 }
 
 function rollComponentDamage() {
-  var name = api.getValue('data.name') || 'Vehicle';
+  const name = api.getValue('data.name') || 'Vehicle';
   api.roll('1d12', { vehicleName: name }, 'yze_vehicle_crit');
 }
 

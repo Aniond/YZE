@@ -15,15 +15,15 @@
   function rollNpcSkill(skillName, attrKey, diceCount) {
     // Conditions remove dice (SRD p.21) — same field names as the PC sheet, so
     // yzeCondPenalty in common.js reads this NPC's condition checkboxes.
-    var pen     = yzeCondPenalty(attrKey);
-    var counts  = yzeApplyPenalty({ attr: diceCount, skill: 0, gear: 0 }, pen);
+    const pen     = yzeCondPenalty(attrKey);
+    const counts  = yzeApplyPenalty({ attr: diceCount, skill: 0, gear: 0 }, pen);
 
     // Ad-hoc modifier (help/difficulty) + opposed (successes to beat) — SRD p.10-11.
-    var mod        = yzeReadModifier() + yzeReadDifficulty();
-    var opposed    = yzeReadOpposed();
-    var difficulty = api.getValue('data.difficulty') || 'average';
+    const mod        = yzeReadModifier() + yzeReadDifficulty();
+    const opposed    = yzeReadOpposed();
+    const difficulty = api.getValue('data.difficulty') || 'average';
     yzeApplyModifier(counts, mod);
-    var total   = counts.attr + counts.skill + counts.gear;
+    const total   = counts.attr + counts.skill + counts.gear;
 
     if (total <= 0) {
       api.showNotification((pen > 0 || mod < 0)
@@ -32,13 +32,13 @@
       return;
     }
 
-    var tags = [];
-    if (pen > 0)     tags.push('-' + pen + ' cond');
-    if (mod !== 0)   tags.push((mod > 0 ? '+' : '') + mod + ' mod');
-    if (opposed > 0) tags.push('vs ' + opposed);
-    var label = skillName + (tags.length ? ' (' + tags.join(', ') + ')' : '');
+    const tags = [];
+    if (pen > 0)     tags.push(`-${pen} cond`);
+    if (mod !== 0)   tags.push(`${mod > 0 ? '+' : ''}${mod} mod`);
+    if (opposed > 0) tags.push(`vs ${opposed}`);
+    const label = skillName + (tags.length ? ` (${tags.join(', ')})` : '');
 
-    api.roll(total + 'd6', {
+    api.roll(`${total}d6`, {
       attrKey:    attrKey,
       attrCount:  counts.attr,
       skillCount: counts.skill,
@@ -58,20 +58,20 @@
   // PCs use, so it does armor soak on the target, damage application (gated by the
   // Auto-apply toggle), target locking, and push. `idx` is the action number 1-4.
   function rollNpcAttack(idx) {
-    var attrKey = api.getValue('data.atkAttr' + idx)  || 'strength';
-    var bonus   = parseInt(api.getValue('data.atkBonus' + idx) || '0', 10);
-    var dmg      = parseInt(api.getValue('data.atkDmg' + idx)  || '0', 10);
-    var range   = api.getValue('data.atkRange' + idx) || 'engaged';
-    var nameVal = api.getValue('data.action' + idx + 'name') || 'Attack';
+    const attrKey = api.getValue(`data.atkAttr${idx}`)  || 'strength';
+    const bonus   = parseInt(api.getValue(`data.atkBonus${idx}`) || '0', 10);
+    const dmg      = parseInt(api.getValue(`data.atkDmg${idx}`)  || '0', 10);
+    const range   = api.getValue(`data.atkRange${idx}`) || 'engaged';
+    const nameVal = api.getValue(`data.action${idx}name`) || 'Attack';
 
-    var base    = getNpcAttr(attrKey);
-    var pen     = yzeCondPenalty(attrKey);
+    const base    = getNpcAttr(attrKey);
+    const pen     = yzeCondPenalty(attrKey);
     // Bonus dice are gear-type (can take gear banes), matching a weapon's bonus.
-    var counts  = yzeApplyPenalty({ attr: base, skill: 0, gear: bonus }, pen);
-    var mod        = yzeReadModifier() + yzeReadDifficulty();
-    var difficulty = api.getValue('data.difficulty') || 'average';
+    const counts  = yzeApplyPenalty({ attr: base, skill: 0, gear: bonus }, pen);
+    const mod        = yzeReadModifier() + yzeReadDifficulty();
+    const difficulty = api.getValue('data.difficulty') || 'average';
     yzeApplyModifier(counts, mod);
-    var pool    = counts.attr + counts.skill + counts.gear;
+    const pool    = counts.attr + counts.skill + counts.gear;
 
     if (pool <= 0) {
       api.showNotification((pen > 0 || mod < 0)
@@ -80,12 +80,12 @@
       return;
     }
 
-    var tags = [];
-    if (pen > 0)   tags.push('-' + pen + ' cond');
-    if (mod !== 0) tags.push((mod > 0 ? '+' : '') + mod + ' mod');
-    var label = nameVal + (tags.length ? ' (' + tags.join(', ') + ')' : '');
+    const tags = [];
+    if (pen > 0)   tags.push(`-${pen} cond`);
+    if (mod !== 0) tags.push(`${mod > 0 ? '+' : ''}${mod} mod`);
+    const label = nameVal + (tags.length ? ` (${tags.join(', ')})` : '');
 
-    api.roll(pool + 'd6', {
+    api.roll(`${pool}d6`, {
       attrKey:    attrKey,
       attrCount:  counts.attr,
       skillCount: counts.skill,
@@ -113,35 +113,35 @@
   // only (no Resolve pool), so a physical break zeroes Health while a mental break
   // just flags Broken — both roll the matching crit.
   function takeCondition(type) {
-    var boxes = (type === 'mental')
+    const boxes = (type === 'mental')
       ? ['cond_angry', 'cond_scared', 'cond_disheartened']
       : ['cond_exhausted', 'cond_battered', 'cond_wounded'];
-    function on(f) { var v = api.getValue('data.' + f); return (v === true || v === 1 || v === '1' || v === 'true'); }
+    function on(f) { const v = api.getValue(`data.${f}`); return (v === true || v === 1 || v === '1' || v === 'true'); }
 
-    for (var i = 0; i < boxes.length; i++) {
-      if (!on(boxes[i])) { api.setValue('data.' + boxes[i], true, refreshCondUI); return; }
+    for (let i = 0; i < boxes.length; i++) {
+      if (!on(boxes[i])) { api.setValue(`data.${boxes[i]}`, true, refreshCondUI); return; }
     }
 
-    var label = (type === 'mental') ? 'mental' : 'physical';
-    var upd = { 'data.isBroken': true };
+    const label = (type === 'mental') ? 'mental' : 'physical';
+    const upd = { 'data.isBroken': true };
     if (type !== 'mental') upd['data.curHealth'] = 0;
-    api.setValues(upd, function() {
+    api.setValues(upd, () => {
       drawNpcHealth();
       refreshBroken();
       refreshCondUI();
-      api.showNotification('Fourth ' + label + ' condition - NPC is BROKEN!', 'red', 'Broken');
+      api.showNotification(`Fourth ${label} condition - NPC is BROKEN!`, 'red', 'Broken');
       rollNpcCrit(type);
     });
   }
 
   function getNpcAttr(key) {
-    return parseInt(api.getValue('data.' + key) || '0', 10);
+    return parseInt(api.getValue(`data.${key}`) || '0', 10);
   }
 
   // Speed shows the Agility value (YZE movement is Agility-based). Mirror it into
   // the read-only Speed field, guarded so it never loops via onrecordchanged.
   function syncSpeed() {
-    var agi = String(getNpcAttr('agility'));
+    const agi = String(getNpcAttr('agility'));
     if ((api.getValue('data.speed') || '') !== agi) {
       api.setValues({ 'data.speed': agi });
     }
@@ -150,25 +150,25 @@
   // ── Attribute strip (canvas: big value + tap-to-roll) ──────────────────────
   function drawNpcAttrs() {
     // api.getCanvas() returns the 2D context directly — no .getContext('2d').
-    var c = api.getCanvas('npcAttrCanvas');
+    const c = api.getCanvas('npcAttrCanvas');
     if (!c) return;
-    var W = c.width;
-    var H = c.height;
+    const W = c.width;
+    const H = c.height;
     c.clearRect(0, 0, W, H);
     c.clearTooltips();
 
-    var colSurface = '#1c1610';
-    var colBg      = '#1a140d';
-    var colBorder  = '#2a2015';
-    var colLabel   = '#7d6b54';
-    var colText    = '#f0d9b5';
-    var colPrimary = '#c8902a';
-    var colW = Math.floor(W / 4);
+    const colSurface = '#1c1610';
+    const colBg      = '#1a140d';
+    const colBorder  = '#2a2015';
+    const colLabel   = '#7d6b54';
+    const colText    = '#f0d9b5';
+    const colPrimary = '#c8902a';
+    const colW = Math.floor(W / 4);
 
-    for (var i = 0; i < NPC_ATTR_DEFS.length; i++) {
-      var attr = NPC_ATTR_DEFS[i];
-      var val  = parseInt(api.getValue('data.' + attr.key) || '0', 10);
-      var x    = i * colW;
+    for (let i = 0; i < NPC_ATTR_DEFS.length; i++) {
+      const attr = NPC_ATTR_DEFS[i];
+      const val  = parseInt(api.getValue(`data.${attr.key}`) || '0', 10);
+      const x    = i * colW;
 
       c.setFillStyle(i % 2 === 0 ? colSurface : colBg);
       c.fillRect(x, 0, colW, H);
@@ -194,50 +194,50 @@
       c.setTextBaseline('bottom');
       c.fillText('TAP TO ROLL', x + colW / 2, H - 6);
 
-      c.tooltip(x, 0, colW, H, 'Roll ' + attr.rollLabel + ' (' + val + 'd6)');
+      c.tooltip(x, 0, colW, H, `Roll ${attr.rollLabel} (${val}d6)`);
     }
   }
 
   function onNpcAttrClick() {
     // Canvas click coords come from event.x / event.y (not passed args).
-    var c = api.getCanvas('npcAttrCanvas');
+    const c = api.getCanvas('npcAttrCanvas');
     if (!c) return;
-    var colW = Math.floor(c.width / 4);
-    var idx  = Math.floor(event.x / colW);
+    const colW = Math.floor(c.width / 4);
+    const idx  = Math.floor(event.x / colW);
     if (idx < 0 || idx >= NPC_ATTR_DEFS.length) return;
-    var attr = NPC_ATTR_DEFS[idx];
-    var val  = parseInt(api.getValue('data.' + attr.key) || '0', 10);
+    const attr = NPC_ATTR_DEFS[idx];
+    const val  = parseInt(api.getValue(`data.${attr.key}`) || '0', 10);
     rollNpcSkill(attr.rollLabel, attr.key, val);
   }
 
   // ── Health pip strip (canvas: click a pip to set current Health) ───────────
   function drawNpcHealth() {
-    var c = api.getCanvas('npcHealthCanvas');
+    const c = api.getCanvas('npcHealthCanvas');
     if (!c) return;
-    var W = c.width;
-    var H = c.height;
+    const W = c.width;
+    const H = c.height;
     c.clearRect(0, 0, W, H);
     c.clearTooltips();
 
-    var cur = parseInt(api.getValue('data.curHealth') || '0', 10);
-    var max = parseInt(api.getValue('data.maxHealth') || '6', 10);
+    const cur = parseInt(api.getValue('data.curHealth') || '0', 10);
+    const max = parseInt(api.getValue('data.maxHealth') || '6', 10);
     if (max <= 0) return;
 
-    var colPrimary = '#c8902a';
-    var colEmpty   = '#1c1610';
-    var colBorder  = '#2a2015';
+    const colPrimary = '#c8902a';
+    const colEmpty   = '#1c1610';
+    const colBorder  = '#2a2015';
 
-    var pipW   = 12;
-    var pipH   = 12;
-    var gap    = 5;
-    var r      = 3;
-    var startX = 0;
-    var y      = Math.floor((H - pipH) / 2);
+    const pipW   = 12;
+    const pipH   = 12;
+    const gap    = 5;
+    const r      = 3;
+    const startX = 0;
+    const y      = Math.floor((H - pipH) / 2);
 
-    for (var i = 0; i < max; i++) {
-      var x      = startX + i * (pipW + gap);
-      var filled = (i < cur);
-      var isCrit = (cur > 0 && i === cur - 1 && cur < max);
+    for (let i = 0; i < max; i++) {
+      const x      = startX + i * (pipW + gap);
+      const filled = (i < cur);
+      const isCrit = (cur > 0 && i === cur - 1 && cur < max);
 
       if (isCrit) {
         c.setFillStyle('#cc3333');
@@ -282,15 +282,15 @@
   }
 
   function onNpcHealthClick() {
-    var cur  = parseInt(api.getValue('data.curHealth') || '0', 10);
-    var max  = parseInt(api.getValue('data.maxHealth') || '6', 10);
-    var pipW = 12;
-    var gap  = 5;
-    for (var i = 0; i < max; i++) {
-      var px = i * (pipW + gap);
+    const cur  = parseInt(api.getValue('data.curHealth') || '0', 10);
+    const max  = parseInt(api.getValue('data.maxHealth') || '6', 10);
+    const pipW = 12;
+    const gap  = 5;
+    for (let i = 0; i < max; i++) {
+      const px = i * (pipW + gap);
       if (event.x >= px && event.x <= px + pipW) {
-        var newVal = (i < cur) ? i : i + 1;
-        api.setValue('data.curHealth', newVal, function() { drawNpcHealth(); });
+        const newVal = (i < cur) ? i : i + 1;
+        api.setValue('data.curHealth', newVal, () => { drawNpcHealth(); });
         return;
       }
     }
@@ -304,9 +304,10 @@
   }
 
   function condCount(type) {
-    var fields = condBoxes(type), n = 0;
-    for (var i = 0; i < fields.length; i++) {
-      var v = api.getValue('data.' + fields[i]);
+    const fields = condBoxes(type);
+    let n = 0;
+    for (let i = 0; i < fields.length; i++) {
+      const v = api.getValue(`data.${fields[i]}`);
       if (v === true || v === 1 || v === '1' || v === 'true') n++;
     }
     return n;
@@ -314,11 +315,11 @@
 
   // + : set the next unchecked condition (fixed order). All three set -> Break.
   function addCond(type) {
-    var fields = condBoxes(type);
-    for (var i = 0; i < fields.length; i++) {
-      var v = api.getValue('data.' + fields[i]);
+    const fields = condBoxes(type);
+    for (let i = 0; i < fields.length; i++) {
+      const v = api.getValue(`data.${fields[i]}`);
       if (!(v === true || v === 1 || v === '1' || v === 'true')) {
-        api.setValue('data.' + fields[i], true, refreshCondUI);
+        api.setValue(`data.${fields[i]}`, true, refreshCondUI);
         return;
       }
     }
@@ -327,11 +328,11 @@
 
   // - : clear the highest-set condition.
   function removeCond(type) {
-    var fields = condBoxes(type);
-    for (var i = fields.length - 1; i >= 0; i--) {
-      var v = api.getValue('data.' + fields[i]);
+    const fields = condBoxes(type);
+    for (let i = fields.length - 1; i >= 0; i--) {
+      const v = api.getValue(`data.${fields[i]}`);
       if (v === true || v === 1 || v === '1' || v === 'true') {
-        api.setValue('data.' + fields[i], false, refreshCondUI);
+        api.setValue(`data.${fields[i]}`, false, refreshCondUI);
         return;
       }
     }
@@ -340,27 +341,27 @@
   // Mirror the counts into the display stringfields. Guarded so it never loops
   // when called from onrecordchanged (only writes when the value actually changed).
   function refreshCondUI() {
-    var p = condCount('physical') + '/3';
-    var m = condCount('mental') + '/3';
-    var upd = {};
+    const p = `${condCount('physical')}/3`;
+    const m = `${condCount('mental')}/3`;
+    const upd = {};
     if (api.getValue('data.condPhysDisplay') !== p) upd['data.condPhysDisplay'] = p;
     if (api.getValue('data.condMentDisplay') !== m) upd['data.condMentDisplay'] = m;
-    var has = false; for (var k in upd) { if (upd.hasOwnProperty(k)) { has = true; break; } }
+    let has = false; for (const k in upd) { if (upd.hasOwnProperty(k)) { has = true; break; } }
     if (has) api.setValues(upd);
   }
 
   // ── Broken badge (isBroken stored on a hidden checkbox) ────────────────────
   function isBrokenNow() {
-    var b = api.getValue('data.isBroken');
+    const b = api.getValue('data.isBroken');
     return (b === true || b === 1 || b === '1' || b === 'true');
   }
 
   function setBroken(v) {
-    api.setValues({ 'data.isBroken': !!v }, function() { refreshBroken(); });
+    api.setValues({ 'data.isBroken': !!v }, () => { refreshBroken(); });
   }
 
   function refreshBroken() {
-    var broken = isBrokenNow();
+    const broken = isBrokenNow();
     api.setValues({
       'fields.brokenBadge.hidden': !broken,
       'fields.brokenSet.hidden':    broken
@@ -379,20 +380,20 @@
 
   // ── Action card collapse ────────────────────────────────────────────────────
   function applyActionCollapse() {
-    var upd = {};
-    for (var i = 1; i <= 4; i++) {
-      var on = parseInt(api.getValue('data.action' + i + 'Open') || '0', 10);
-      upd['fields.action' + i + 'Body.hidden'] = (on !== 1);
+    const upd = {};
+    for (let i = 1; i <= 4; i++) {
+      const on = parseInt(api.getValue(`data.action${i}Open`) || '0', 10);
+      upd[`fields.action${i}Body.hidden`] = (on !== 1);
     }
     api.setValues(upd);
   }
 
   function toggleAction(idx) {
-    var key = 'data.action' + idx + 'Open';
-    var on  = parseInt(api.getValue(key) || '0', 10);
-    var upd = {};
+    const key = `data.action${idx}Open`;
+    const on  = parseInt(api.getValue(key) || '0', 10);
+    const upd = {};
     upd[key] = on ? 0 : 1;
-    upd['fields.action' + idx + 'Body.hidden'] = on ? true : false;
+    upd[`fields.action${idx}Body.hidden`] = on ? true : false;
     api.setValues(upd);
   }
 

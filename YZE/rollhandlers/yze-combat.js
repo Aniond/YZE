@@ -18,58 +18,58 @@
 // post-hit Health in the session. The push re-uses those exact targets (writing
 // by id via setValueOnTokenById) so it always lands on the originally-hit foe.
 
-var meta = (data && data.roll && data.roll.metadata) || {};
-var dice = (data && data.roll && data.roll.dice)     || [];
+const meta = (data && data.roll && data.roll.metadata) || {};
+const dice = (data && data.roll && data.roll.dice)     || [];
 
-var skillName  = meta.skillName  || 'Attack';
-var baseDamage = parseInt(meta.baseDamage || '0', 10);
-var range      = meta.range || 'engaged';
-var attrKey    = meta.attrKey || 'strength';
-var isPush     = meta.isPush  || false;
+const skillName  = meta.skillName  || 'Attack';
+const baseDamage = parseInt(meta.baseDamage || '0', 10);
+const range      = meta.range || 'engaged';
+const attrKey    = meta.attrKey || 'strength';
+const isPush     = meta.isPush  || false;
 // Campaign setting replaces the per-character autoApply toggle.
 // api.getSetting() is the confirmed Realm API (same as 5e/PF2e coinWeight pattern).
-var auto       = api.getSetting('autoApplyDamage') === 'yes';
+const auto       = api.getSetting('autoApplyDamage') === 'yes';
 
 // Apply `dmg` to the currently targeted tokens. Returns { lines, targets } where
 // targets is [{ id, recordType, hp }] (hp = Health left after the hit), so a push
 // can re-apply to the same foes.
 function applyDamageToTargets(dmg) {
-  var out = { lines: '', targets: [] };
+  const out = { lines: '', targets: [] };
   if (dmg <= 0) return out;
-  var targets = api.getTargets ? api.getTargets() : [];
+  const targets = api.getTargets ? api.getTargets() : [];
   if (targets.length === 0) {
-    out.lines += '\n[center]No target selected - apply ' + dmg + ' damage manually (after armor).[/center]';
+    out.lines += `\n[center]No target selected - apply ${dmg} damage manually (after armor).[/center]`;
     return out;
   }
-  for (var t = 0; t < targets.length; t++) {
-    var tok = targets[t].token;
+  for (let t = 0; t < targets.length; t++) {
+    const tok = targets[t].token;
     if (!tok) continue;
-    var rtype = tok.recordType || 'characters';
+    const rtype = tok.recordType || 'characters';
 
     // Armor soak (SRD p.20): roll the target's armor rating in d6, each 6 cancels
     // one point of damage. Armor protects against attack damage, never against
     // self-inflicted push damage (which is applied elsewhere). Banes (1s) degrade
     // the armor by one step each, but only if damage actually penetrated.
-    var armorRating = yzeArmorTotal(function(p) { return api.getValueOnRecord(tok, p); });
-    var soak = 0, armorLine = '';
+    const armorRating = yzeArmorTotal((p) => api.getValueOnRecord(tok, p));
+    let soak = 0, armorLine = '';
     if (armorRating > 0) {
-      var ar = yzeRollPoolN(armorRating);
+      const ar = yzeRollPoolN(armorRating);
       soak = ar.sixes;
-      armorLine = ' [armor ' + armorRating + ': -' + soak + ']';
+      armorLine = ` [armor ${armorRating}: -${soak}]`;
       if (ar.ones > 0 && (dmg - soak) > 0 && rtype === 'npcs') {
         // Penetrated — degrade NPC armor by the number of banes rolled.
-        var newArmor = Math.max(0, armorRating - ar.ones);
+        const newArmor = Math.max(0, armorRating - ar.ones);
         api.setValuesOnRecord(tok, { 'data.armor': newArmor });
-        armorLine += ' (armor degraded to ' + newArmor + ')';
+        armorLine += ` (armor degraded to ${newArmor})`;
       }
     }
 
-    var net = Math.max(0, dmg - soak);
-    var cur = parseInt(api.getValueOnRecord(tok, 'data.curHealth') || '0', 10);
-    var next = Math.max(0, cur - net);
+    const net = Math.max(0, dmg - soak);
+    const cur = parseInt(api.getValueOnRecord(tok, 'data.curHealth') || '0', 10);
+    const next = Math.max(0, cur - net);
     api.setValuesOnRecord(tok, { 'data.curHealth': next }); // have the token here
     out.targets.push({ id: tok._id, recordType: rtype, hp: next });
-    out.lines += '\n[center]' + (tok.name || 'Target') + armorLine + ': ' + cur + ' to ' + next + ' Health'
+    out.lines += `\n[center]${tok.name || 'Target'}${armorLine}: ${cur} to ${next} Health`
                + (next === 0 ? ' [color=red]BROKEN[/color]' : '') + '[/center]';
   }
   return out;
@@ -77,14 +77,14 @@ function applyDamageToTargets(dmg) {
 
 // ═══ PUSH ═══════════════════════════════════════════════════════════════════
 if (isPush) {
-  var allDice = yzeRebuildPool(meta, dice);
-  var counts  = yzeCountPool(allDice);
-  var successes = counts.successes;
-  var attrBanes = counts.attrBanes;
-  var gearBanes = counts.gearBanes;
+  const allDice = yzeRebuildPool(meta, dice);
+  const counts  = yzeCountPool(allDice);
+  const successes = counts.successes;
+  const attrBanes = counts.attrBanes;
+  const gearBanes = counts.gearBanes;
 
-  var newDamage = successes > 0 ? baseDamage + (successes - 1) : 0;
-  var delta     = Math.max(0, newDamage - (parseInt(meta.prevDamage || '0', 10)));
+  const newDamage = successes > 0 ? baseDamage + (successes - 1) : 0;
+  const delta     = Math.max(0, newDamage - (parseInt(meta.prevDamage || '0', 10)));
 
   yzeColorDice(data.roll.dice, { // Realm renders the re-rolled dice, tinted by source
     attrCount:  meta.rerollAttr  || 0,
@@ -92,35 +92,35 @@ if (isPush) {
     gearCount:  meta.rerollGear  || 0
   });
 
-  var pushThreshold = yzeEffectiveThreshold(record);
+  const pushThreshold = yzeEffectiveThreshold(record);
 
-  var msgP;
+  let msgP;
   if (successes >= pushThreshold) {
-    msgP = '**[center][color=green]HIT[/color] - ' + successes + ' success' + (successes > 1 ? 'es' : '')
-         + (pushThreshold > 1 ? ' (needed ' + pushThreshold + ')' : '') + '[/center]**';
-    msgP += '\n[center]Damage: ' + newDamage;
-    if (successes > 1) msgP += ' (base ' + baseDamage + ' +' + (successes - 1) + ' extra)';
+    msgP = `**[center][color=green]HIT[/color] - ${successes} success${successes > 1 ? 'es' : ''}`
+         + (pushThreshold > 1 ? ` (needed ${pushThreshold})` : '') + '[/center]**';
+    msgP += `\n[center]Damage: ${newDamage}`;
+    if (successes > 1) msgP += ` (base ${baseDamage} +${successes - 1} extra)`;
     msgP += '[/center]';
 
     if (delta > 0 && auto) {
       // Re-apply the extra damage to the originally-hit targets (locked at hit).
-      var sess   = api.getSession ? api.getSession('yzeLastRoll') : null;
-      var locked = (sess && sess.targets) ? sess.targets : [];
+      const sess   = api.getSession ? api.getSession('yzeLastRoll') : null;
+      const locked = (sess && sess.targets) ? sess.targets : [];
       if (locked.length > 0) {
-        for (var k = 0; k < locked.length; k++) {
-          var tg = locked[k];
-          var before  = parseInt(tg.hp || '0', 10);
-          var finalHp = Math.max(0, before - delta);
+        for (let k = 0; k < locked.length; k++) {
+          const tg = locked[k];
+          const before  = parseInt(tg.hp || '0', 10);
+          const finalHp = Math.max(0, before - delta);
           api.setValueOnTokenById(tg.id, tg.recordType || 'characters', 'data.curHealth', finalHp);
-          msgP += '\n[center]Target: ' + before + ' to ' + finalHp + ' Health'
+          msgP += `\n[center]Target: ${before} to ${finalHp} Health`
                 + (finalHp === 0 ? ' [color=red]BROKEN[/color]' : '') + '[/center]';
         }
       } else {
         msgP += applyDamageToTargets(delta).lines;
       }
     } else if (delta > 0 && !auto) {
-      msgP += '\n[center]+' + delta + ' extra damage from push (after armor).[/center]';
-      var _acp = 'var _d=' + delta + ','
+      msgP += `\n[center]+${delta} extra damage from push (after armor).[/center]`;
+      const _acp = 'var _d=' + delta + ','
         + '_ts=api.getTargets?api.getTargets():[];'
         + "if(!_ts.length){api.showNotification('Select a target first.','red','Apply Damage');}"
         + 'else{'
@@ -133,36 +133,36 @@ if (isPush) {
       msgP += '\n```Apply_Push_Damage_(' + delta + ')\n' + _acp + '\n```';
     }
   } else if (successes > 0) {
-    msgP = '**[center][color=orange]PARTIAL[/color] - ' + successes + ' of ' + pushThreshold + ' required — not a hit[/center]**';
+    msgP = `**[center][color=orange]PARTIAL[/color] - ${successes} of ${pushThreshold} required — not a hit[/center]**`;
   } else {
     msgP = '**[center][color=red]MISS[/color][/center]**';
   }
 
   // Attribute banes hurt the attacker (Melee=Str / Marksmanship=Agi -> Health).
   if (attrBanes > 0) {
-    var poolA = yzePoolFieldForRecord(record, attrKey);
-    var stressA = (poolA === 'curResolve');
-    var curA = parseInt((record && record.data && record.data[poolA]) || '0', 10);
-    var updA = {}; updA['data.' + poolA] = Math.max(0, curA - attrBanes);
+    const poolA = yzePoolFieldForRecord(record, attrKey);
+    const stressA = (poolA === 'curResolve');
+    const curA = parseInt((record && record.data && record.data[poolA]) || '0', 10);
+    const updA = {}; updA['data.' + poolA] = Math.max(0, curA - attrBanes);
     api.setValues(updA);
-    msgP += '\n**[center][color=red]' + attrBanes + ' bane' + (attrBanes > 1 ? 's' : '') + ' - attacker takes '
+    msgP += `\n**[center][color=red]${attrBanes} bane${attrBanes > 1 ? 's' : ''} - attacker takes `
           + attrBanes + (stressA ? ' stress (Resolve)' : ' damage (Health)') + '[/color][/center]**';
   }
 
   // Gear banes degrade this weapon's own bonus (SRD p.11). At 0 it breaks.
   if (gearBanes > 0) {
-    var degraded = false;
+    let degraded = false;
     if (meta.weaponId) {
-      var list = (record && record.data && record.data.gearList) || [];
-      for (var g = 0; g < list.length; g++) {
+      const list = (record && record.data && record.data.gearList) || [];
+      for (let g = 0; g < list.length; g++) {
         if (list[g] && list[g]._id === meta.weaponId) {
-          var curBonus = parseInt((list[g].data && list[g].data.bonus) || '0', 10);
-          var newBonus = Math.max(0, curBonus - gearBanes);
-          var pathB = {}; pathB['data.gearList.' + g + '.data.bonus'] = newBonus;
+          const curBonus = parseInt((list[g].data && list[g].data.bonus) || '0', 10);
+          const newBonus = Math.max(0, curBonus - gearBanes);
+          const pathB = {}; pathB['data.gearList.' + g + '.data.bonus'] = newBonus;
           api.setValues(pathB);
           degraded = true;
-          msgP += '\n[center]Gear bane x' + gearBanes + ' - ' + (list[g].name || 'weapon')
-                + ' bonus ' + curBonus + ' to ' + newBonus + (newBonus === 0 ? ' (BROKEN)' : '') + '[/center]';
+          msgP += `\n[center]Gear bane x${gearBanes} - ${list[g].name || 'weapon'}`
+                + ` bonus ${curBonus} to ${newBonus}${newBonus === 0 ? ' (BROKEN)' : ''}[/center]`;
           break;
         }
       }
@@ -174,56 +174,56 @@ if (isPush) {
 
   api.setValues({ 'data.canPush': 0, 'data.successThreshold': 1 });
   data.roll.total = successes;
-  api.sendMessage(msgP, data.roll, [], [{ name: skillName + ' (Pushed)', tooltip: range + ' attack, pushed' }]);
+  api.sendMessage(msgP, data.roll, [], [{ name: `${skillName} (Pushed)`, tooltip: `${range} attack, pushed` }]);
   return;
 }
 
 // ═══ INITIAL ATTACK ══════════════════════════════════════════════════════════
-var attrCount  = parseInt(meta.attrCount  || '0', 10);
-var skillCount = parseInt(meta.skillCount || '0', 10);
+const attrCount  = parseInt(meta.attrCount  || '0', 10);
+const skillCount = parseInt(meta.skillCount || '0', 10);
 
-var p = yzeParseInitial(dice, attrCount, skillCount);
-var successes   = p.successes;
+const p = yzeParseInitial(dice, attrCount, skillCount);
+let successes   = p.successes;
 
 // ── Pride bonus (+1 free success, once per session) ───────────────────────
-var prideBonus = parseInt(api.getValue('data.prideBonus') || '0', 10);
+const prideBonus = parseInt(api.getValue('data.prideBonus') || '0', 10);
 if (prideBonus > 0) {
   successes += prideBonus;
   api.setValues({ 'data.prideBonus': 0 });
 }
 
-var threshold   = yzeEffectiveThreshold(record);
+const threshold   = yzeEffectiveThreshold(record);
 
-var totalDamage = successes >= threshold ? baseDamage + (successes - 1) : 0;
+const totalDamage = successes >= threshold ? baseDamage + (successes - 1) : 0;
 
 yzeColorDice(data.roll.dice, meta); // Realm renders the dice, tinted by source
 
-var msg;
-var hitTargets = []; // {id, recordType, hp} — locked for the push
-var diffLabel = yzeFormatDifficulty(meta.difficulty || '');
+let msg;
+let hitTargets = []; // {id, recordType, hp} — locked for the push
+const diffLabel = yzeFormatDifficulty(meta.difficulty || '');
 
 if (successes >= threshold) {
-  msg = '**[center][color=green]HIT[/color] - ' + successes + ' success' + (successes > 1 ? 'es' : '')
-      + (threshold > 1 ? ' (needed ' + threshold + ')' : '') + '[/center]**';
+  msg = `**[center][color=green]HIT[/color] - ${successes} success${successes > 1 ? 'es' : ''}`
+      + (threshold > 1 ? ` (needed ${threshold})` : '') + '[/center]**';
   if (prideBonus > 0) {
-    msg += '\n[center][color=olive]Pride — +' + prideBonus + ' success[/color][/center]';
+    msg += `\n[center][color=olive]Pride — +${prideBonus} success[/color][/center]`;
   }
   if (diffLabel) {
-    msg += '\n[center][color=orange]Difficulty: ' + diffLabel + '[/color][/center]';
+    msg += `\n[center][color=orange]Difficulty: ${diffLabel}[/color][/center]`;
   }
-  msg += '\n[center]Damage: ' + totalDamage;
-  if (successes > 1) msg += ' (base ' + baseDamage + ' +' + (successes - 1) + ' extra)';
+  msg += `\n[center]Damage: ${totalDamage}`;
+  if (successes > 1) msg += ` (base ${baseDamage} +${successes - 1} extra)`;
   msg += '[/center]';
   if (auto) {
-    var ret = applyDamageToTargets(totalDamage);
+    const ret = applyDamageToTargets(totalDamage);
     msg += ret.lines;
     hitTargets = ret.targets;
   } else if (totalDamage > 0) {
-    msg += '\n[center]Auto-apply off - deal ' + totalDamage + ' damage (after armor roll).[/center]';
+    msg += `\n[center]Auto-apply off - deal ${totalDamage} damage (after armor roll).[/center]`;
     // Apply Damage chat button — GM selects/targets a token then clicks this.
     // Inline code per PF2e damage.js pattern: damage baked as literal, no custom
     // function deps needed. Armor is handled separately via the Roll Armor button.
-    var _ac = 'var _d=' + totalDamage + ','
+    const _ac = 'var _d=' + totalDamage + ','
       + '_ts=api.getTargets?api.getTargets():[];'
       + "if(!_ts.length){api.showNotification('Select a target first.','red','Apply Damage');}"
       + 'else{'
@@ -236,35 +236,35 @@ if (successes >= threshold) {
     msg += '\n```Apply_Damage_(' + totalDamage + ')\n' + _ac + '\n```';
   }
 } else if (successes > 0) {
-  msg = '**[center][color=orange]PARTIAL[/color] - ' + successes + ' of ' + threshold + ' required — not a hit[/center]**';
+  msg = `**[center][color=orange]PARTIAL[/color] - ${successes} of ${threshold} required — not a hit[/center]**`;
   if (prideBonus > 0) {
-    msg += '\n[center][color=olive]Pride — +' + prideBonus + ' success[/color][/center]';
+    msg += `\n[center][color=olive]Pride — +${prideBonus} success[/color][/center]`;
   }
   if (diffLabel) {
-    msg += '\n[center][color=orange]Difficulty: ' + diffLabel + '[/color][/center]';
+    msg += `\n[center][color=orange]Difficulty: ${diffLabel}[/color][/center]`;
   }
 } else {
   msg = '**[center][color=red]MISS[/color][/center]**';
   if (prideBonus > 0) {
-    msg += '\n[center][color=olive]Pride — +' + prideBonus + ' success (still a miss)[/color][/center]';
+    msg += `\n[center][color=olive]Pride — +${prideBonus} success (still a miss)[/color][/center]`;
   }
   if (diffLabel) {
-    msg += '\n[center][color=orange]Difficulty: ' + diffLabel + '[/color][/center]';
+    msg += `\n[center][color=orange]Difficulty: ${diffLabel}[/color][/center]`;
   }
 }
 
 msg += yzeEffectChatLine();
 
 // ── Push eligibility — store context so the PUSH button can re-roll blanks ──
-var canPush = p.rerollCount > 0;
+const canPush = p.rerollCount > 0;
 if (canPush) {
   // Self-contained inline Push chip: roll params baked in as literals so the
   // button works without api.getSession. (The session is still set below so a
   // pushed HIT can re-apply extra damage to the locked targets.)
-  var _snC = String(skillName).replace(/'/g, '');
-  var _rgC = String(range).replace(/'/g, '');
-  var _wid = String(meta.weaponId || '').replace(/'/g, '');
-  var _pmC = "{isPush:true,mode:'combat'"
+  const _snC = String(skillName).replace(/'/g, '');
+  const _rgC = String(range).replace(/'/g, '');
+  const _wid = String(meta.weaponId || '').replace(/'/g, '');
+  const _pmC = "{isPush:true,mode:'combat'"
     + ",attrKey:'" + attrKey + "'"
     + ",skillName:'" + _snC + "'"
     + ",baseDamage:" + baseDamage
@@ -298,4 +298,4 @@ if (canPush) {
 api.setValues({ 'data.canPush': canPush ? 1 : 0, 'data.successThreshold': 1 });
 
 data.roll.total = successes;
-api.sendMessage(msg, data.roll, [], [{ name: skillName, tooltip: range + ' attack' }]);
+api.sendMessage(msg, data.roll, [], [{ name: skillName, tooltip: `${range} attack` }]);

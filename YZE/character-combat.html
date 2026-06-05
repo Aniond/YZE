@@ -134,7 +134,7 @@
 <!-- ═══ END PERSISTENT HEADER ═══ -->
 
 <script>
-  var COL = {
+  const COL = {
     bg:         '#1a1612',
     bgDeep:     '#111009',
     bgSection:  '#1e1a14',
@@ -152,46 +152,46 @@
   };
 
   // Canvas layout constants
-  var BANNER_H = 80;   // equipped weapon banner
-  var EMPTY_H  = 46;   // no-weapon placeholder
-  var WG_HDR   = 22;   // "WEAPONS" divider
-  var CARD_H   = 74;   // weapon card height
-  var CARD_PAD = 5;    // gap between card rows / between columns
-  var CARD_GAP = 6;    // horizontal gap between 2 columns
+  const BANNER_H = 80;   // equipped weapon banner
+  const EMPTY_H  = 46;   // no-weapon placeholder
+  const WG_HDR   = 22;   // "WEAPONS" divider
+  const CARD_H   = 74;   // weapon card height
+  const CARD_PAD = 5;    // gap between card rows / between columns
+  const CARD_GAP = 6;    // horizontal gap between 2 columns
 
   // ── Combat-tab-specific gear helpers ────────────────────────────────────
   // getGearList / yzeAttackMod / rollAttackForItem live in common.js.
 
   function yzeGearId() {
-    var s = [], h = '0123456789abcdef';
-    for (var i = 0; i < 36; i++) s[i] = h.charAt(Math.floor(Math.random() * 16));
+    const s = [], h = '0123456789abcdef';
+    for (let i = 0; i < 36; i++) s[i] = h.charAt(Math.floor(Math.random() * 16));
     s[14] = '4'; s[19] = h.charAt((parseInt(s[19], 16) & 0x3) | 0x8);
     s[8] = s[13] = s[18] = s[23] = '-';
     return s.join('');
   }
 
   function getWeapons() {
-    var list = getGearList();
-    var out  = [];
-    for (var i = 0; i < list.length; i++) {
-      var d = list[i].data || {};
+    const list = getGearList();
+    const out  = [];
+    for (let i = 0; i < list.length; i++) {
+      const d = list[i].data || {};
       if ((d.gearType || 'equipment') === 'weapon') out.push({ item: list[i], idx: i });
     }
     return out;
   }
 
   function getEquippedItem() {
-    var id   = api.getValue('data.equippedWeaponId');
+    const id   = api.getValue('data.equippedWeaponId');
     if (!id) return null;
-    var list = getGearList();
-    for (var i = 0; i < list.length; i++) {
+    const list = getGearList();
+    for (let i = 0; i < list.length; i++) {
       if (list[i]._id === id) return list[i];
     }
     return null;
   }
 
   function rollAttackFromSheet() {
-    var item = getEquippedItem();
+    const item = getEquippedItem();
     if (!item) {
       api.showNotification('Tap the pip on a weapon to equip it first.', 'red', 'No Weapon');
       return;
@@ -200,51 +200,51 @@
   }
 
   function rollArmorDefense() {
-    var rating = yzeArmorTotal(function(p) { return api.getValue(p); });
+    const rating = yzeArmorTotal((p) => api.getValue(p));
     if (rating <= 0) {
       api.showNotification('No armor worn.', 'red', 'No Armor');
       return;
     }
-    api.roll(rating + 'd6', { kind: 'armor', rating: rating, label: 'Armor' }, 'yze_armor');
+    api.roll(`${rating}d6`, { kind: 'armor', rating: rating, label: 'Armor' }, 'yze_armor');
   }
 
   function rollCoverDefense() {
-    var rating = parseInt(api.getValue('data.coverRating') || '0', 10);
+    const rating = parseInt(api.getValue('data.coverRating') || '0', 10);
     if (rating <= 0) {
       api.showNotification('Pick a cover type first.', 'red', 'No Cover');
       return;
     }
-    api.roll(rating + 'd6', { kind: 'cover', rating: rating, label: 'Cover' }, 'yze_armor');
+    api.roll(`${rating}d6`, { kind: 'cover', rating: rating, label: 'Cover' }, 'yze_armor');
   }
 
   // ── Attack mods summary ──────────────────────────────────────────────────
   function buildModsSummary() {
-    function on(f) { var v = api.getValue('data.' + f); return (v === true || v === 1 || v === '1' || v === 'true'); }
-    var parts = [];
+    function on(f) { const v = api.getValue(`data.${f}`); return (v === true || v === 1 || v === '1' || v === 'true'); }
+    const parts = [];
     if (on('atkAim'))          parts.push('Aim');
     if (on('atkDefenseless'))  parts.push('Defenseless');
     if (on('modMovingTarget')) parts.push('Moving');
     if (on('modCover'))        parts.push('Cover');
     if (on('modMounted'))      parts.push('Mounted');
     if (on('modHelpless'))     parts.push('Helpless');
-    var rcode = api.getValue('data.atkRange') || 'short';
+    const rcode = api.getValue('data.atkRange') || 'short';
     if (rcode !== 'short') parts.push(rcode);
-    var light = parseInt(api.getValue('data.atkLight') || '0', 10);
+    const light = parseInt(api.getValue('data.atkLight') || '0', 10);
     if (light < 0) parts.push(light === -1 ? 'dim' : 'dark');
-    var total = yzeAttackMod();
+    const total = yzeAttackMod();
     if (parts.length === 0 && total === 0) return 'No modifiers';
-    var sign = total > 0 ? '+' : '';
-    return sign + total + (parts.length ? '  \xb7  ' + parts.join(' / ') : '');
+    const sign = total > 0 ? '+' : '';
+    return `${sign}${total}${parts.length ? `  \xb7  ${parts.join(' / ')}` : ''}`;
   }
 
   function refreshModsSummary() {
-    var s = buildModsSummary();
+    const s = buildModsSummary();
     if (api.getValue('data.modsSummary') !== s) api.setValues({ 'data.modsSummary': s });
   }
 
   function toggleMods() {
-    var on   = parseInt(api.getValue('data.modsOpen') || '0', 10);
-    var next = on ? 0 : 1;
+    const on   = parseInt(api.getValue('data.modsOpen') || '0', 10);
+    const next = on ? 0 : 1;
     api.setValues({
       'data.modsOpen': next,
       'fields.modsCollapseBody.hidden': !next
@@ -254,10 +254,10 @@
   // ── onDrop — adds gear to gearList from compendium drag ─────────────────
   function onDrop(type, recordLink) {
     if (type !== 'gear') return;
-    var rec = recordLink.value;
+    const rec = recordLink.value;
     if (!rec || !rec.data) return;
-    var newItem = {};
-    for (var k in rec) { if (Object.prototype.hasOwnProperty.call(rec, k)) newItem[k] = rec[k]; }
+    const newItem = {};
+    for (const k in rec) { if (Object.prototype.hasOwnProperty.call(rec, k)) newItem[k] = rec[k]; }
     newItem._id  = yzeGearId();
     newItem.data = {
       gearType:    rec.data.gearType    || 'weapon',
@@ -268,7 +268,7 @@
       linkedSkill: rec.data.linkedSkill || 'Melee',
       range:       rec.data.range       || 'engaged'
     };
-    api.addValue('data.gearList', newItem, function() { drawWeaponsCanvas(); });
+    api.addValue('data.gearList', newItem, () => { drawWeaponsCanvas(); });
   }
 
   // ── Rounded rect helper ──────────────────────────────────────────────────
@@ -288,22 +288,22 @@
 
   // ── Weapons canvas draw ─────────────────────────────────────────────────
   function drawWeaponsCanvas() {
-    var c = api.getCanvas('weaponsCanvas');
+    const c = api.getCanvas('weaponsCanvas');
     if (!c) return;
-    var W    = c.width, H = c.height;
-    var colW = Math.floor((W - CARD_GAP) / 2);
+    const W    = c.width, H = c.height;
+    const colW = Math.floor((W - CARD_GAP) / 2);
     c.clearRect(0, 0, W, H);
     c.clearTooltips();
     c.setFillStyle(COL.bgDeep);
     c.fillRect(0, 0, W, H);
 
-    var weapons    = getWeapons();
-    var equippedId = api.getValue('data.equippedWeaponId') || '';
-    var y = 0;
+    const weapons    = getWeapons();
+    const equippedId = api.getValue('data.equippedWeaponId') || '';
+    let y = 0;
 
     // ── Equipped weapon banner ─────────────────────────────────────────────
-    var eq = null;
-    for (var wi = 0; wi < weapons.length; wi++) {
+    let eq = null;
+    for (let wi = 0; wi < weapons.length; wi++) {
       if (weapons[wi].item._id === equippedId) { eq = weapons[wi].item; break; }
     }
 
@@ -321,12 +321,12 @@
       c.fillText('No weapon equipped — tap the pip on a weapon below', W / 2, y + EMPTY_H / 2);
       y += EMPTY_H;
     } else {
-      var d = eq.data || {};
-      var attr  = (d.linkedAttr  || 'strength').substring(0, 3).toUpperCase();
-      var skill = d.linkedSkill  || 'Melee';
-      var range = d.range        || 'engaged';
-      var bonus = parseInt(d.bonus  || '0', 10);
-      var dmg   = parseInt(d.damage || '0', 10);
+      const d = eq.data || {};
+      const attr  = (d.linkedAttr  || 'strength').substring(0, 3).toUpperCase();
+      const skill = d.linkedSkill  || 'Melee';
+      const range = d.range        || 'engaged';
+      const bonus = parseInt(d.bonus  || '0', 10);
+      const dmg   = parseInt(d.damage || '0', 10);
 
       // Banner background + amber border
       c.setFillStyle('#15110b');
@@ -338,7 +338,7 @@
       c.fillRect(0, y, 3, BANNER_H);
 
       // Portrait
-      var purl = eq.portrait || '';
+      const purl = eq.portrait || '';
       if (purl) {
         c.drawImage(purl, 12, y + 14, 52, 52);
       } else {
@@ -356,12 +356,12 @@
       // Meta
       c.setFillStyle(COL.textMuted);
       c.setFont('400 10px sans-serif');
-      c.fillText(attr + '  \xb7  ' + skill + '  \xb7  ' + range, 74, y + 42);
+      c.fillText(`${attr}  \xb7  ${skill}  \xb7  ${range}`, 74, y + 42);
 
       // Stats
       c.setFillStyle(COL.gold);
       c.setFont('700 10px sans-serif');
-      c.fillText('Bonus +' + bonus + '   Dmg ' + dmg, 74, y + 60);
+      c.fillText(`Bonus +${bonus}   Dmg ${dmg}`, 74, y + 60);
 
       y += BANNER_H;
     }
@@ -390,26 +390,26 @@
       c.setTextAlign('center'); c.setTextBaseline('middle');
       c.fillText('Drag a weapon from the compendium to add it.', W / 2, y + 30);
     } else {
-      for (var wi2 = 0; wi2 < weapons.length; wi2++) {
-        var wcol = wi2 % 2;
-        var wrow = Math.floor(wi2 / 2);
-        var cx   = wcol * (colW + CARD_GAP);
-        var cy   = y + wrow * (CARD_H + CARD_PAD);
+      for (let wi2 = 0; wi2 < weapons.length; wi2++) {
+        const wcol = wi2 % 2;
+        const wrow = Math.floor(wi2 / 2);
+        const cx   = wcol * (colW + CARD_GAP);
+        const cy   = y + wrow * (CARD_H + CARD_PAD);
         drawWeaponCard(c, cx, cy, colW, weapons[wi2], equippedId);
       }
     }
   }
 
   function drawWeaponCard(c, x, y, colW, we, equippedId) {
-    var item     = we.item;
-    var d        = item.data || {};
-    var equipped = item._id === equippedId;
-    var cy       = y + Math.floor(CARD_H / 2);
-    var bonus    = parseInt(d.bonus  || '0', 10);
-    var dmg      = parseInt(d.damage || '0', 10);
-    var attr     = (d.linkedAttr  || 'strength').substring(0, 3).toUpperCase();
-    var skill    = d.linkedSkill  || 'Melee';
-    var range    = d.range        || 'engaged';
+    const item     = we.item;
+    const d        = item.data || {};
+    const equipped = item._id === equippedId;
+    const cy       = y + Math.floor(CARD_H / 2);
+    const bonus    = parseInt(d.bonus  || '0', 10);
+    const dmg      = parseInt(d.damage || '0', 10);
+    const attr     = (d.linkedAttr  || 'strength').substring(0, 3).toUpperCase();
+    const skill    = d.linkedSkill  || 'Melee';
+    const range    = d.range        || 'engaged';
 
     // Card background + border
     c.setFillStyle(equipped ? 'rgba(200,144,42,0.06)' : COL.bg);
@@ -421,19 +421,19 @@
     c.fillRect(x, y, 2, CARD_H);
 
     // Portrait
-    var purl = item.portrait || '';
+    const purl = item.portrait || '';
     if (purl) {
       c.drawImage(purl, x + 8, y + 10, 34, 34);
     } else {
       c.setFillStyle('#2a1e10'); c.fillRect(x + 8, y + 10, 34, 34);
       c.setStrokeStyle('#3a2e22'); c.setLineWidth(1); c.strokeRect(x + 8, y + 10, 34, 34);
     }
-    c.tooltip(x + 8, y + 10, 34, 34, 'Open ' + (item.name || 'weapon'));
+    c.tooltip(x + 8, y + 10, 34, 34, `Open ${item.name || 'weapon'}`);
 
     // Equip pip (top-right)
-    var pipX = x + colW - 16;
-    var pipY = y + 16;
-    var pipR = 6;
+    const pipX = x + colW - 16;
+    const pipY = y + 16;
+    const pipR = 6;
     c.beginPath();
     c.arc(pipX, pipY, pipR, 0, Math.PI * 2);
     c.closePath();
@@ -444,24 +444,24 @@
 
     // Weapon name
     c.setFillStyle(equipped ? COL.textPrimary : COL.textMid);
-    c.setFont((equipped ? '500' : '400') + ' 12px sans-serif');
+    c.setFont(`${equipped ? '500' : '400'} 12px sans-serif`);
     c.setTextAlign('left'); c.setTextBaseline('middle');
     c.fillText(item.name || 'Unnamed', x + 50, y + 18);
 
     // Meta
     c.setFillStyle(COL.textMuted);
     c.setFont('400 9px sans-serif');
-    c.fillText(attr + ' \xb7 ' + skill + ' \xb7 ' + range, x + 50, y + 34);
+    c.fillText(`${attr} \xb7 ${skill} \xb7 ${range}`, x + 50, y + 34);
 
     // Stats
     c.setFillStyle(COL.textDim);
     c.setFont('400 9px sans-serif');
-    c.fillText('+' + bonus + ' bonus   Dmg ' + dmg, x + 50, y + 50);
+    c.fillText(`+${bonus} bonus   Dmg ${dmg}`, x + 50, y + 50);
 
     // Delete ×
-    var delX = x + colW - 14;
-    var delY = y + CARD_H - 14;
-    var delR = 5;
+    const delX = x + colW - 14;
+    const delY = y + CARD_H - 14;
+    const delR = 5;
     c.setStrokeStyle(COL.redStroke);
     c.setLineWidth(1.5);
     c.beginPath();
@@ -474,69 +474,69 @@
 
   // ── Canvas click ──────────────────────────────────────────────────────────
   function onWeaponsClick() {
-    var cx = event.x;
-    var cy = event.y;
-    var c  = api.getCanvas('weaponsCanvas');
+    const cx = event.x;
+    const cy = event.y;
+    const c  = api.getCanvas('weaponsCanvas');
     if (!c) return;
-    var W    = c.width;
-    var colW = Math.floor((W - CARD_GAP) / 2);
+    const W    = c.width;
+    const colW = Math.floor((W - CARD_GAP) / 2);
 
-    var weapons    = getWeapons();
-    var equippedId = api.getValue('data.equippedWeaponId') || '';
+    const weapons    = getWeapons();
+    const equippedId = api.getValue('data.equippedWeaponId') || '';
 
     // Determine banner height (must match draw logic)
-    var eq = null;
-    for (var wi = 0; wi < weapons.length; wi++) {
+    let eq = null;
+    for (let wi = 0; wi < weapons.length; wi++) {
       if (weapons[wi].item._id === equippedId) { eq = weapons[wi].item; break; }
     }
-    var bannerH = eq ? BANNER_H : EMPTY_H;
+    const bannerH = eq ? BANNER_H : EMPTY_H;
 
     // Banner zone — roll is now a real <button> field below the canvas
     if (cy < bannerH) return;
 
     // Section header zone
-    var cardsY = bannerH + CARD_PAD + WG_HDR;
+    const cardsY = bannerH + CARD_PAD + WG_HDR;
     if (cy < cardsY) return;
 
     // Cards zone
-    var relY = cy - cardsY;
-    var rowH = CARD_H + CARD_PAD;
+    const relY = cy - cardsY;
+    const rowH = CARD_H + CARD_PAD;
     if (relY % rowH >= CARD_H) return;  // in padding gap
-    var wrow = Math.floor(relY / rowH);
-    var wcol = cx < colW ? 0 : 1;
-    var idx  = wrow * 2 + wcol;
+    const wrow = Math.floor(relY / rowH);
+    const wcol = cx < colW ? 0 : 1;
+    const idx  = wrow * 2 + wcol;
     if (idx < 0 || idx >= weapons.length) return;
 
-    var we   = weapons[idx];
-    var item = we.item;
-    var cardX = wcol * (colW + CARD_GAP);
-    var cardY = cardsY + wrow * rowH;
+    const we   = weapons[idx];
+    const item = we.item;
+    const cardX = wcol * (colW + CARD_GAP);
+    const cardY = cardsY + wrow * rowH;
 
     // Portrait zone → open record
     if (cx >= cardX + 8 && cx <= cardX + 42 && cy >= cardY + 10 && cy <= cardY + 44) {
-      api.openListRecord('data.gearList.' + we.idx, item.recordType || 'gear_slot');
+      api.openListRecord(`data.gearList.${we.idx}`, item.recordType || 'gear_slot');
       return;
     }
 
     // Equip pip zone (top-right of card)
-    var pipX = cardX + colW - 16;
-    var pipY = cardY + 16;
+    const pipX = cardX + colW - 16;
+    const pipY = cardY + 16;
     if (Math.abs(cx - pipX) <= 14 && Math.abs(cy - pipY) <= 14) {
-      var newId = (item._id === equippedId) ? '' : item._id;
-      api.setValues({'data.equippedWeaponId': newId}, function() { drawWeaponsCanvas(); });
+      const newId = (item._id === equippedId) ? '' : item._id;
+      api.setValues({'data.equippedWeaponId': newId}, () => { drawWeaponsCanvas(); });
       return;
     }
 
     // Delete × zone (bottom-right)
-    var delX = cardX + colW - 14;
-    var delY = cardY + CARD_H - 14;
+    const delX = cardX + colW - 14;
+    const delY = cardY + CARD_H - 14;
     if (Math.abs(cx - delX) <= 12 && Math.abs(cy - delY) <= 12) {
-      api.showConfirm('Remove Weapon', 'Remove ' + (item.name || 'this weapon') + '?',
-        'Remove', 'Cancel', function() {
-          var wasEquipped = (equippedId && equippedId === item._id);
-          api.removeValue('data.gearList', we.idx, function() {
+      api.showConfirm('Remove Weapon', `Remove ${item.name || 'this weapon'}?`,
+        'Remove', 'Cancel', () => {
+          const wasEquipped = (equippedId && equippedId === item._id);
+          api.removeValue('data.gearList', we.idx, () => {
             if (wasEquipped) {
-              api.setValues({'data.equippedWeaponId': ''}, function() { drawWeaponsCanvas(); });
+              api.setValues({'data.equippedWeaponId': ''}, () => { drawWeaponsCanvas(); });
             } else {
               drawWeaponsCanvas();
             }
@@ -549,9 +549,9 @@
   // ── Turn tracker ─────────────────────────────────────────────────────────
   // When a slow action is used, fast actions are blocked (same turn budget).
   function onTurnActionChange() {
-    var slow    = api.getValue('data.usedSlowAction');
-    var usedSlow = (slow === true || slow === 1 || slow === '1' || slow === 'true');
-    var currentlyHidden = api.getValue('fields.fastActionsRow.hidden');
+    const slow    = api.getValue('data.usedSlowAction');
+    const usedSlow = (slow === true || slow === 1 || slow === '1' || slow === 'true');
+    const currentlyHidden = api.getValue('fields.fastActionsRow.hidden');
     if (currentlyHidden !== usedSlow) {
       api.setValues({ 'fields.fastActionsRow.hidden': usedSlow });
     }
@@ -568,8 +568,8 @@
 
   // ── Special Actions ───────────────────────────────────────────────────────
   function toggleSpecialActions() {
-    var cur  = parseInt(api.getValue('data.specialActionsOpen') || '0', 10);
-    var next = cur ? 0 : 1;
+    const cur  = parseInt(api.getValue('data.specialActionsOpen') || '0', 10);
+    const next = cur ? 0 : 1;
     api.setValues({
       'data.specialActionsOpen': next,
       'fields.specialActionsBody.hidden': !next
@@ -579,19 +579,19 @@
   // Roll a combat skill check from the combat tab (Grapple, Block, Diving Blow…).
   // Mirrors the rollSkill() pipeline in character-skills.html.
   function rollCombatAction(skillKey, attrKey, actionName) {
-    var attr   = parseInt(api.getValue('data.' + attrKey)          || '0', 10);
-    var skill  = parseInt(api.getValue('data.sk_' + skillKey)      || '0', 10);
-    var pen    = yzeCondPenalty(attrKey);
-    var mod    = yzeReadModifier() + yzeReadDifficulty();
-    var diff   = api.getValue('data.difficulty') || 'average';
-    var counts = yzeApplyPenalty({ attr: attr, skill: skill, gear: 0 }, pen);
+    const attr   = parseInt(api.getValue(`data.${attrKey}`)          || '0', 10);
+    const skill  = parseInt(api.getValue(`data.sk_${skillKey}`)      || '0', 10);
+    const pen    = yzeCondPenalty(attrKey);
+    const mod    = yzeReadModifier() + yzeReadDifficulty();
+    const diff   = api.getValue('data.difficulty') || 'average';
+    const counts = yzeApplyPenalty({ attr: attr, skill: skill, gear: 0 }, pen);
     yzeApplyModifier(counts, mod);
-    var total  = counts.attr + counts.skill + counts.gear;
+    const total  = counts.attr + counts.skill + counts.gear;
     if (total <= 0) {
       api.showNotification('No dice to roll!', 'red', actionName);
       return;
     }
-    api.roll(total + 'd6', {
+    api.roll(`${total}d6`, {
       attrKey:    attrKey,
       attrCount:  counts.attr,
       skillCount: counts.skill,
@@ -605,9 +605,9 @@
 
   // ── Init / change ─────────────────────────────────────────────────────────
   function initCombat() {
-    var modsOpen = parseInt(api.getValue('data.modsOpen') || '0', 10);
+    const modsOpen = parseInt(api.getValue('data.modsOpen') || '0', 10);
     api.setValues({ 'fields.modsCollapseBody.hidden': !modsOpen });
-    var specialOpen = parseInt(api.getValue('data.specialActionsOpen') || '0', 10);
+    const specialOpen = parseInt(api.getValue('data.specialActionsOpen') || '0', 10);
     api.setValues({ 'fields.specialActionsBody.hidden': !specialOpen });
     onTurnActionChange();
     drawWeaponsCanvas();

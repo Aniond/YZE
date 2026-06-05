@@ -3,21 +3,21 @@
   // Inside a list-item template, api.getValue('data.X') reads the TOP-LEVEL
   // owning record. To read this item's OWN fields use ctx.dataPrefix instead.
   function getNearestParentDataPath(dp) {
-    var parts = dp.split('.data');
+    const parts = dp.split('.data');
     return parts.length > 1 ? parts.slice(0, -1).join('.data') : '';
   }
 
   function getItemContext() {
-    var itemDataPath = getNearestParentDataPath(dataPath);
-    var item         = itemDataPath ? api.getValue(itemDataPath) : record;
-    var dp           = itemDataPath ? itemDataPath + '.data'     : 'data';
-    var fp           = itemDataPath ? itemDataPath + '.fields'   : 'fields';
+    const itemDataPath = getNearestParentDataPath(dataPath);
+    const item         = itemDataPath ? api.getValue(itemDataPath) : record;
+    const dp           = itemDataPath ? `${itemDataPath}.data`     : 'data';
+    const fp           = itemDataPath ? `${itemDataPath}.fields`   : 'fields';
     return { item: item, dataPrefix: dp, fieldsPath: fp };
   }
 
   function onTypeChange() {
-    var ctx = getItemContext();
-    var t   = api.getValue(ctx.dataPrefix + '.gearType') || 'weapon';
+    const ctx = getItemContext();
+    const t   = api.getValue(`${ctx.dataPrefix}.gearType`) || 'weapon';
     api.setValues({
       'fields.weaponFields.hidden': t !== 'weapon',
       'fields.armorFields.hidden':  t !== 'armor',
@@ -26,20 +26,20 @@
   }
 
   function rollAttack() {
-    var ctx         = getItemContext();
-    var itemName    = api.getValue(ctx.dataPrefix + '.name')        || 'Weapon';
-    var gearBonus   = parseInt(api.getValue(ctx.dataPrefix + '.bonus')  || '0', 10);
-    var damage      = parseInt(api.getValue(ctx.dataPrefix + '.damage') || '0', 10);
-    var range       = api.getValue(ctx.dataPrefix + '.range')       || 'engaged';
-    var linkedSkill = api.getValue(ctx.dataPrefix + '.linkedSkill') || 'Melee';
-    var linkedAttr  = api.getValue(ctx.dataPrefix + '.linkedAttr')  || 'strength';
+    const ctx         = getItemContext();
+    const itemName    = api.getValue(`${ctx.dataPrefix}.name`)        || 'Weapon';
+    const gearBonus   = parseInt(api.getValue(`${ctx.dataPrefix}.bonus`)  || '0', 10);
+    const damage      = parseInt(api.getValue(`${ctx.dataPrefix}.damage`) || '0', 10);
+    const range       = api.getValue(`${ctx.dataPrefix}.range`)       || 'engaged';
+    const linkedSkill = api.getValue(`${ctx.dataPrefix}.linkedSkill`) || 'Melee';
+    const linkedAttr  = api.getValue(`${ctx.dataPrefix}.linkedAttr`)  || 'strength';
 
     // Read the character's attribute from the TOP-LEVEL record (confirmed by Sean).
     // dmgKey handles games with per-attribute damage; in YZE dmgVal is always 0.
-    var dmgKey  = 'dmg' + linkedAttr.charAt(0).toUpperCase() + linkedAttr.slice(1);
-    var attrVal = parseInt(api.getValue('data.' + linkedAttr) || '0', 10);
-    var dmgVal  = parseInt(api.getValue('data.' + dmgKey)     || '0', 10);
-    var effAttr = Math.max(0, attrVal - dmgVal);
+    const dmgKey  = `dmg${linkedAttr.charAt(0).toUpperCase()}${linkedAttr.slice(1)}`;
+    const attrVal = parseInt(api.getValue(`data.${linkedAttr}`) || '0', 10);
+    const dmgVal  = parseInt(api.getValue(`data.${dmgKey}`)     || '0', 10);
+    const effAttr = Math.max(0, attrVal - dmgVal);
 
     if (effAttr === 0 && gearBonus === 0) {
       api.showNotification('No dice to roll!', 'red', 'Cannot Attack');
@@ -47,7 +47,7 @@
     }
 
     api.roll(
-      (effAttr + gearBonus) + 'd6',
+      `${effAttr + gearBonus}d6`,
       {
         attrKey:    linkedAttr,
         attrCount:  effAttr,

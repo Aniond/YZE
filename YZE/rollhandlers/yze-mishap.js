@@ -8,13 +8,13 @@
 // Results 8–9 trigger a critical injury roll (yze_crit).
 // Clears data.mishapTriggered after resolving.
 
-var dice   = (data && data.roll && data.roll.dice) || [];
-var result = dice.length > 0 ? parseInt(dice[0].value, 10) : 1;
+const dice   = (data && data.roll && data.roll.dice) || [];
+let result = dice.length > 0 ? parseInt(dice[0].value, 10) : 1;
 if (isNaN(result) || result < 1)  result = 1;
 if (result > 12) result = 12;
 
 // ── Mishap table (D12) ────────────────────────────────────────────────────
-var MISHAP = {
+const MISHAP = {
   1:  { name: 'Sleepless',        effect: 'The magic makes you unable to sleep for D6 days.' },
   2:  { name: 'Drained',          effect: 'Your spell drains your energy, inflicting one point of stress.', stress: true },
   3:  { name: 'Backlash',         effect: 'Your magic hurts your body and you suffer one point of damage.', damage: true },
@@ -29,16 +29,16 @@ var MISHAP = {
   12: { name: 'Consumed',         effect: 'The magic consumes you. You die.', death: true }
 };
 
-var entry = MISHAP[result] || { name: 'Unknown (' + result + ')', effect: 'No table entry.' };
+const entry = MISHAP[result] || { name: `Unknown (${result})`, effect: 'No table entry.' };
 
 // ── Apply immediate mechanical effects ───────────────────────────────────
 if (entry.stress) {
-  var curStress = parseInt(api.getValue('data.stress') || '0', 10);
+  let curStress = parseInt(api.getValue('data.stress') || '0', 10);
   if (isNaN(curStress)) curStress = 0;
   api.setValues({ 'data.stress': Math.min(10, curStress + 1) });
 }
 if (entry.damage) {
-  var curHp = parseInt((record && record.data && record.data.curHealth) || '0', 10);
+  const curHp = parseInt((record && record.data && record.data.curHealth) || '0', 10);
   api.setValues({ 'data.curHealth': Math.max(0, curHp - 1) });
 }
 if (entry.death) {
@@ -48,10 +48,10 @@ if (entry.death) {
 api.setValues({ 'data.mishapTriggered': false });
 
 // ── Build chat card (matches yze-crit.js style) ───────────────────────────
-var msg = '**[center][color=red]MAGIC MISHAP[/color][/center]**';
-msg += '\n[center]D12: ' + result + '[/center]';
-msg += '\n**[center]' + entry.name + '[/center]**';
-msg += '\n[center]' + entry.effect + '[/center]';
+let msg = '**[center][color=red]MAGIC MISHAP[/color][/center]**';
+msg += `\n[center]D12: ${result}[/center]`;
+msg += `\n**[center]${entry.name}[/center]**`;
+msg += `\n[center]${entry.effect}[/center]`;
 
 if (entry.stress) {
   msg += '\n[center][color=orange]+1 stress[/color][/center]';
@@ -74,4 +74,4 @@ if (entry.physCrit) {
 }
 
 data.roll.total = result;
-api.sendMessage(msg, data.roll, [], [{ name: 'Mishap: ' + entry.name, tooltip: entry.effect }]);
+api.sendMessage(msg, data.roll, [], [{ name: `Mishap: ${entry.name}`, tooltip: entry.effect }]);

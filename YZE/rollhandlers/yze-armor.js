@@ -10,25 +10,25 @@
 // meta: { kind: 'armor' | 'cover', rating: N, label: '...' }
 // Cover only protects against ranged attacks and is rolled BEFORE armor.
 
-var meta = (data && data.roll && data.roll.metadata) || {};
-var dice = (data && data.roll && data.roll.dice)     || [];
+const meta = (data && data.roll && data.roll.metadata) || {};
+const dice = (data && data.roll && data.roll.dice)     || [];
 
-var kind  = meta.kind  || 'armor';
-var label = meta.label || (kind === 'cover' ? 'Cover' : 'Armor');
+const kind  = meta.kind  || 'armor';
+const label = meta.label || (kind === 'cover' ? 'Cover' : 'Armor');
 
-var soak = 0, banes = 0;
-for (var i = 0; i < dice.length; i++) {
-  var v = parseInt(dice[i].value, 10);
+let soak = 0, banes = 0;
+for (let i = 0; i < dice.length; i++) {
+  const v = parseInt(dice[i].value, 10);
   if (v === 6) { soak++;  dice[i].customColor = 'green'; }
   else if (v === 1) { banes++; dice[i].customColor = 'red'; }
 }
 
-var msg = '**[center][color=blue]' + label + '[/color] - soak ' + soak + '[/center]**';
-msg += '\n[center]Reduce incoming damage by ' + soak + '[/center]';
+let msg = `**[center][color=blue]${label}[/color] - soak ${soak}[/center]**`;
+msg += `\n[center]Reduce incoming damage by ${soak}[/center]`;
 if (banes > 0) {
-  msg += '\n[center][color=orange]' + banes + ' bane' + (banes > 1 ? 's' : '')
+  msg += `\n[center][color=orange]${banes} bane${banes > 1 ? 's' : ''}`
        + ' - if damage got through, ' + (kind === 'cover' ? 'cover' : 'armor')
-       + ' degrades by ' + banes + '[/color][/center]';
+       + ` degrades by ${banes}[/color][/center]`;
 }
 if (kind === 'cover') {
   msg += '\n[center]Cover protects vs ranged attacks only[/center]';

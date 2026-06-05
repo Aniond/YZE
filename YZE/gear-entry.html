@@ -3,23 +3,23 @@
 // gear-entry.html is a list-item template. api.getValue('data.X') reads
 // the TOP-LEVEL owning record. Use ctx.dataPrefix to read THIS item's fields.
 function getNearestParentDataPath(dp) {
-  var parts = dp.split('.data');
+  const parts = dp.split('.data');
   return parts.length > 1 ? parts.slice(0, -1).join('.data') : '';
 }
 
 function getItemContext() {
-  var itemDataPath = getNearestParentDataPath(dataPath);
-  var item         = itemDataPath ? api.getValue(itemDataPath) : record;
-  var dp           = itemDataPath ? itemDataPath + '.data'     : 'data';
-  var fp           = itemDataPath ? itemDataPath + '.fields'   : 'fields';
+  const itemDataPath = getNearestParentDataPath(dataPath);
+  const item         = itemDataPath ? api.getValue(itemDataPath) : record;
+  const dp           = itemDataPath ? `${itemDataPath}.data`     : 'data';
+  const fp           = itemDataPath ? `${itemDataPath}.fields`   : 'fields';
   return { item: item, dataPrefix: dp, fieldsPath: fp };
 }
 
 function showHideStats() {
-  var ctx      = getItemContext();
-  var t        = api.getValue(ctx.dataPrefix + '.gearType') || 'equipment';
-  var isWeapon = t === 'weapon';
-  var isArmor  = t === 'armor';
+  const ctx      = getItemContext();
+  const t        = api.getValue(`${ctx.dataPrefix}.gearType`) || 'equipment';
+  const isWeapon = t === 'weapon';
+  const isArmor  = t === 'armor';
   api.setValues({
     'fields.badgeWeapon.hidden':   !isWeapon,
     'fields.badgeArmor.hidden':    !isArmor,
@@ -33,9 +33,9 @@ function showHideStats() {
 
 // Show repair section when bonus is below its recorded maximum.
 function checkRepairBtn() {
-  var ctx      = getItemContext();
-  var bonus    = parseInt(api.getValue(ctx.dataPrefix + '.bonus')    || '0', 10);
-  var maxBonus = parseInt(api.getValue(ctx.dataPrefix + '.maxBonus') || '0', 10);
+  const ctx      = getItemContext();
+  const bonus    = parseInt(api.getValue(`${ctx.dataPrefix}.bonus`)    || '0', 10);
+  const maxBonus = parseInt(api.getValue(`${ctx.dataPrefix}.maxBonus`) || '0', 10);
   api.setValues({ 'fields.repairSection.hidden': !(maxBonus > 0 && bonus < maxBonus) });
 }
 
@@ -43,8 +43,8 @@ function checkRepairBtn() {
 // When this button is dragged to the Hot Bar, Realm stores the onclick as a macro
 // — clicking the Hot Bar macro fires this function in the context of this weapon.
 function rollWeaponFromGear() {
-  var ctx  = getItemContext();
-  var item = ctx.item;
+  const ctx  = getItemContext();
+  const item = ctx.item;
   if (!item || !item.data) return;
   rollAttackForItem(item);
 }

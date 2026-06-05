@@ -7,15 +7,15 @@
 // Trigger: api.roll('1d6', {}, 'yze_panic')  OR  auto-triggered when
 // data.panicTriggered is set by yze-pool.js / yze-push.js.
 
-var dice = (data && data.roll && data.roll.dice) || [];
+const dice = (data && data.roll && data.roll.dice) || [];
 
-var dieResult = dice.length > 0 ? parseInt(dice[0].value, 10) : 1;
-var stress    = parseInt(api.getValue('data.stress') || '0', 10);
+const dieResult = dice.length > 0 ? parseInt(dice[0].value, 10) : 1;
+let stress    = parseInt(api.getValue('data.stress') || '0', 10);
 if (isNaN(stress) || stress < 0) stress = 0;
-var total     = dieResult + stress;
+const total     = dieResult + stress;
 
 // ── Panic table (D6 + stress) ─────────────────────────────────────────────
-var PANIC = [
+const PANIC = [
   {
     min: 1, max: 6, name: 'Keeping it Together', reducesStress: false,
     effect: 'You manage to keep your nerves in check. Barely.'
@@ -59,8 +59,8 @@ var PANIC = [
 ];
 
 // ── Look up result ────────────────────────────────────────────────────────
-var entry = null;
-for (var i = 0; i < PANIC.length; i++) {
+let entry = null;
+for (let i = 0; i < PANIC.length; i++) {
   if (total >= PANIC[i].min && total <= PANIC[i].max) {
     entry = PANIC[i];
     break;
@@ -69,20 +69,20 @@ for (var i = 0; i < PANIC.length; i++) {
 if (!entry) entry = PANIC[PANIC.length - 1]; // clamp to Catatonic
 
 // ── Apply state changes ───────────────────────────────────────────────────
-var updates = { 'data.panicTriggered': false };
+const updates = { 'data.panicTriggered': false };
 if (entry.reducesStress && stress > 0) {
   updates['data.stress'] = stress - 1;
 }
 api.setValues(updates);
 
 // ── Build chat card (matches yze-crit.js style) ───────────────────────────
-var msg = '**[center][color=red]PANIC ROLL[/color][/center]**';
-msg += '\n[center]' + dieResult + ' (die) + ' + stress + ' (stress) = ' + total + '[/center]';
-msg += '\n**[center]' + entry.name + '[/center]**';
-msg += '\n[center]' + entry.effect + '[/center]';
+let msg = '**[center][color=red]PANIC ROLL[/color][/center]**';
+msg += `\n[center]${dieResult} (die) + ${stress} (stress) = ${total}[/center]`;
+msg += `\n**[center]${entry.name}[/center]**`;
+msg += `\n[center]${entry.effect}[/center]`;
 if (entry.reducesStress) {
   msg += '\n[center][color=green]−1 stress[/color][/center]';
 }
 
 data.roll.total = dieResult;
-api.sendMessage(msg, data.roll, [], [{ name: 'Panic: ' + entry.name, tooltip: entry.effect }]);
+api.sendMessage(msg, data.roll, [], [{ name: `Panic: ${entry.name}`, tooltip: entry.effect }]);

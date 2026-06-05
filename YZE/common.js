@@ -17,13 +17,13 @@
 // Parse an initial roll's dice into typed dice + per-type kept/reroll counts.
 // Dice order is [attr][skill][gear].
 function yzeParseInitial(dice, attrCount, skillCount) {
-  var o = { typed: [], successes: 0, rerollCount: 0,
+  const o = { typed: [], successes: 0, rerollCount: 0,
             s6Attr: 0, s6Skill: 0, s6Gear: 0,
             b1Attr: 0, b1Skill: 0, b1Gear: 0,
             rerollAttr: 0, rerollSkill: 0, rerollGear: 0 };
-  for (var i = 0; i < dice.length; i++) {
-    var v = parseInt(dice[i].value, 10);
-    var t = (i < attrCount) ? 'base_attr'
+  for (let i = 0; i < dice.length; i++) {
+    const v = parseInt(dice[i].value, 10);
+    const t = (i < attrCount) ? 'base_attr'
           : (i < attrCount + skillCount) ? 'base_skill'
           : 'gear';
     o.typed.push({ value: v, type: t });
@@ -43,14 +43,14 @@ function yzeParseInitial(dice, attrCount, skillCount) {
 // Rebuild the full pool after a push: kept dice (from per-type counts in meta)
 // plus the freshly re-rolled dice (re-tagged by position: attr, then skill, gear).
 function yzeRebuildPool(meta, rerolled) {
-  var all = [];
-  function add(n, val, type) { for (var k = 0; k < (n || 0); k++) all.push({ value: val, type: type }); }
+  const all = [];
+  function add(n, val, type) { for (let k = 0; k < (n || 0); k++) all.push({ value: val, type: type }); }
   add(meta.s6Attr, 6, 'base_attr'); add(meta.s6Skill, 6, 'base_skill'); add(meta.s6Gear, 6, 'gear');
   add(meta.b1Attr, 1, 'base_attr'); add(meta.b1Skill, 1, 'base_skill'); add(meta.b1Gear, 1, 'gear');
-  var ra = meta.rerollAttr || 0, rs = meta.rerollSkill || 0;
-  for (var i = 0; i < rerolled.length; i++) {
-    var v = parseInt(rerolled[i].value, 10);
-    var t = (i < ra) ? 'base_attr' : (i < ra + rs) ? 'base_skill' : 'gear';
+  const ra = meta.rerollAttr || 0, rs = meta.rerollSkill || 0;
+  for (let i = 0; i < rerolled.length; i++) {
+    const v = parseInt(rerolled[i].value, 10);
+    const t = (i < ra) ? 'base_attr' : (i < ra + rs) ? 'base_skill' : 'gear';
     all.push({ value: v, type: t });
   }
   return all;
@@ -58,9 +58,9 @@ function yzeRebuildPool(meta, rerolled) {
 
 // Count successes (6s) and banes (1s) by source over a typed pool.
 function yzeCountPool(all) {
-  var r = { successes: 0, attrBanes: 0, gearBanes: 0 };
-  for (var i = 0; i < all.length; i++) {
-    var v = all[i].value, t = all[i].type;
+  const r = { successes: 0, attrBanes: 0, gearBanes: 0 };
+  for (let i = 0; i < all.length; i++) {
+    const v = all[i].value, t = all[i].type;
     if (v === 6) r.successes++;
     else if (v === 1) { if (t === 'base_attr') r.attrBanes++; else if (t === 'gear') r.gearBanes++; }
   }
@@ -93,16 +93,16 @@ function yzeAutoApply(rec) {
 
 // Carry limit = 2 × Strength (dice pool system).
 function yzeCarryLimit() {
-  var str = parseInt(api.getValue('data.strength') || '0', 10);
+  const str = parseInt(api.getValue('data.strength') || '0', 10);
   return 2 * (isNaN(str) ? 0 : str);
 }
 
 // Sum the weight of all items in data.gearList (default weight 1 per item).
 function yzeCurrentLoad() {
-  var list  = getGearList();
-  var total = 0;
-  for (var i = 0; i < list.length; i++) {
-    var w = parseFloat((list[i].data && list[i].data.weight !== undefined)
+  const list  = getGearList();
+  let total = 0;
+  for (let i = 0; i < list.length; i++) {
+    let w = parseFloat((list[i].data && list[i].data.weight !== undefined)
               ? list[i].data.weight : 1);
     if (isNaN(w)) w = 1;
     total += w;
@@ -113,19 +113,20 @@ function yzeCurrentLoad() {
 // Check encumbrance and update data.overEncumbered + display fields.
 // Guarded so it only writes when values actually change (prevents onrecordchanged loop).
 function yzeEncumbranceCheck() {
-  var limit  = yzeCarryLimit();
-  var load   = yzeCurrentLoad();
-  var pack   = api.getValue('data.hasBackpack');
-  var hasPack = (pack === true || pack === 1 || pack === '1' || pack === 'true');
-  var effectiveLimit = hasPack ? limit * 2 : limit;
-  var over   = load > effectiveLimit;
-  var display = load + ' / ' + effectiveLimit;
+  const limit  = yzeCarryLimit();
+  const load   = yzeCurrentLoad();
+  const pack   = api.getValue('data.hasBackpack');
+  const hasPack = (pack === true || pack === 1 || pack === '1' || pack === 'true');
+  const effectiveLimit = hasPack ? limit * 2 : limit;
+  const over   = load > effectiveLimit;
+  const display = `${load} / ${effectiveLimit}`;
 
-  var curOver    = api.getValue('data.overEncumbered');
-  var wasOver    = (curOver === true || curOver === 1 || curOver === '1' || curOver === 'true');
-  var curDisplay = api.getValue('data.encumbranceDisplay') || '';
+  const curOver    = api.getValue('data.overEncumbered');
+  const wasOver    = (curOver === true || curOver === 1 || curOver === '1' || curOver === 'true');
+  const curDisplay = api.getValue('data.encumbranceDisplay') || '';
 
-  var upd = {}, dirty = false;
+  const upd = {};
+  let dirty = false;
   if (over !== wasOver) {
     upd['data.overEncumbered']     = over;
     upd['fields.encWarning.hidden'] = !over;
@@ -151,7 +152,7 @@ function yzeEncumbranceCheck() {
 //
 // SRD penalties, keyed by exact effect name. strMod hits STR/AGI rolls; witMod
 // hits WIT/EMP rolls. Negative = dice removed.
-var YZE_EFFECT_PENALTIES = {
+const YZE_EFFECT_PENALTIES = {
   'Hypothermic':           { strMod: -1 },
   'Poisoned (Paralyzing)': { strMod: -3 },
   'Poisoned (Sleeping)':   { strMod: -3, witMod: -3 },
@@ -165,7 +166,7 @@ var YZE_EFFECT_PENALTIES = {
 // Get the current sheet's own token. api.getToken() (no args) works in sheet
 // context (Sean's 5e character-features.html); fall back to api.getToken(record).
 function yzeGetOwnToken() {
-  var t = null;
+  let t = null;
   try { t = api.getToken ? api.getToken() : null; } catch (e) { t = null; }
   if (!t) { try { if (typeof record !== 'undefined') t = api.getToken(record); } catch (e2) {} }
   return t;
@@ -174,23 +175,23 @@ function yzeGetOwnToken() {
 // Sum the relevant modifier (strMod for STR/AGI, witMod for WIT/EMP) across all
 // active named effects on this token. Returns a NEGATIVE number for penalties.
 function yzeEffectPenalty(attrKey) {
-  var key = (attrKey === 'strength' || attrKey === 'agility') ? 'strMod'
+  const key = (attrKey === 'strength' || attrKey === 'agility') ? 'strMod'
           : (attrKey === 'wits' || attrKey === 'empathy')     ? 'witMod' : null;
   if (!key) return 0;
-  var token   = yzeGetOwnToken();
-  var effects = (token && token.effects)
+  const token   = yzeGetOwnToken();
+  const effects = (token && token.effects)
              || (typeof record !== 'undefined' && record && record.effects)
              || [];
-  var sum = 0;
-  for (var i = 0; i < effects.length; i++) {
-    var nm = effects[i] && effects[i].name;
+  let sum = 0;
+  for (let i = 0; i < effects.length; i++) {
+    const nm = effects[i] && effects[i].name;
     if (typeof nm !== 'string') continue;
-    var e = YZE_EFFECT_PENALTIES[nm];
+    const e = YZE_EFFECT_PENALTIES[nm];
     if (e && typeof e[key] === 'number') sum += e[key];
   }
   // Fallback for custom effects that managed to write the record's data field.
   if (sum === 0) {
-    var rv = parseInt(api.getValue('data.' + key) || '0', 10);
+    const rv = parseInt(api.getValue('data.' + key) || '0', 10);
     if (!isNaN(rv)) sum = rv;
   }
   return sum; // negative for penalties
@@ -199,13 +200,13 @@ function yzeEffectPenalty(attrKey) {
 // Names of the status effects currently on this token, for chat display.
 // Excludes the "Difficulty N" markers (those drive successThreshold, not effects).
 function yzeActiveEffectNames() {
-  var token   = yzeGetOwnToken();
-  var effects = (token && token.effects)
+  const token   = yzeGetOwnToken();
+  const effects = (token && token.effects)
              || (typeof record !== 'undefined' && record && record.effects)
              || [];
-  var out = [];
-  for (var i = 0; i < effects.length; i++) {
-    var nm = effects[i] && effects[i].name;
+  const out = [];
+  for (let i = 0; i < effects.length; i++) {
+    const nm = effects[i] && effects[i].name;
     if (typeof nm === 'string' && nm && nm.substring(0, 10) !== 'Difficulty') {
       out.push(nm);
     }
@@ -216,16 +217,16 @@ function yzeActiveEffectNames() {
 // One chat line listing active effects (empty string when none). Appended to
 // roll output so players can see what is affecting the roll.
 function yzeEffectChatLine() {
-  var names = yzeActiveEffectNames();
+  const names = yzeActiveEffectNames();
   if (!names.length) return '';
-  return '\n[center][color=orange]Effects: ' + names.join(', ') + '[/color][/center]';
+  return `\n[center][color=orange]Effects: ${names.join(', ')}[/color][/center]`;
 }
 
 // Thematic dice tint per effect (Realm customColor names: green/red/blue/orange/
 // yellow/purple). Applied to the BLANK dice on a roll so the pool takes on the
 // effect's mood while 6s (green) and 1s (red) stay readable. First matching
 // active effect wins.
-var YZE_EFFECT_DICE_COLOR = {
+const YZE_EFFECT_DICE_COLOR = {
   'Hypothermic':           'blue',    // icy
   'Frozen':                'blue',    // icy
   'On Fire':               'orange',  // flame
@@ -242,9 +243,9 @@ var YZE_EFFECT_DICE_COLOR = {
 
 // Color of the first themed active effect on this token, or null if none.
 function yzeEffectDiceColor() {
-  var names = yzeActiveEffectNames();
-  for (var i = 0; i < names.length; i++) {
-    var c = YZE_EFFECT_DICE_COLOR[names[i]];
+  const names = yzeActiveEffectNames();
+  for (let i = 0; i < names.length; i++) {
+    const c = YZE_EFFECT_DICE_COLOR[names[i]];
     if (c) return c;
   }
   return null;
@@ -258,10 +259,10 @@ function yzeEffectDiceColor() {
 // a negative number, so we SUBTRACT it to turn it into extra dice removed).
 // Returns the number of dice to remove for a roll on attrKey (clamped >= 0).
 function yzeCondPenalty(attrKey) {
-  function on(f) { var v = api.getValue('data.' + f); return (v === true || v === 1 || v === '1' || v === 'true') ? 1 : 0; }
-  var effPen = yzeEffectPenalty(attrKey); // negative for penalties
+  function on(f) { const v = api.getValue('data.' + f); return (v === true || v === 1 || v === '1' || v === 'true') ? 1 : 0; }
+  const effPen = yzeEffectPenalty(attrKey); // negative for penalties
   if (attrKey === 'strength' || attrKey === 'agility') {
-    var encPen = on('overEncumbered') ? 2 : 0;
+    const encPen = on('overEncumbered') ? 2 : 0;
     return Math.max(0, on('cond_exhausted') + on('cond_battered') + on('cond_wounded') + encPen - effPen);
   }
   if (attrKey === 'wits' || attrKey === 'empathy') {
@@ -274,37 +275,37 @@ function yzeCondPenalty(attrKey) {
 // rollSupply(ratingField, nameField) — rolls D6 for a consumable supply.
 // On 1-2 the supply decreases by 1. Uses Math.random() (sheet context only).
 function rollSupply(ratingField, nameField) {
-  var supply = parseInt(api.getValue('data.' + ratingField) || '0', 10);
-  var label  = api.getValue('data.' + nameField) || ratingField;
+  const supply = parseInt(api.getValue('data.' + ratingField) || '0', 10);
+  const label  = api.getValue('data.' + nameField) || ratingField;
   if (isNaN(supply) || supply <= 0) {
-    api.showNotification(label + ' is already exhausted.', 'red', 'Supply');
+    api.showNotification(`${label} is already exhausted.`, 'red', 'Supply');
     return;
   }
-  var roll = Math.floor(Math.random() * 6) + 1;
-  var msg  = '**[center]' + label + ' — Supply Roll[/center]**';
-  msg     += '\n[center]D6: ' + roll + '[/center]';
+  const roll = Math.floor(Math.random() * 6) + 1;
+  let msg  = `**[center]${label} — Supply Roll[/center]**`;
+  msg     += `\n[center]D6: ${roll}[/center]`;
   if (roll <= 2) {
-    var newSupply = Math.max(0, supply - 1);
-    var upd = {};
+    const newSupply = Math.max(0, supply - 1);
+    const upd = {};
     upd['data.' + ratingField] = newSupply;
     api.setValues(upd);
     if (newSupply === 0) {
       msg += '\n**[center][color=red]Exhausted — supply depleted[/color][/center]**';
     } else {
-      msg += '\n[center][color=red]Supply used — now ' + newSupply + ' remaining[/color][/center]';
+      msg += `\n[center][color=red]Supply used — now ${newSupply} remaining[/color][/center]`;
     }
   } else {
-    msg += '\n[center][color=green]Supply holds — ' + supply + ' remaining[/color][/center]';
+    msg += `\n[center][color=green]Supply holds — ${supply} remaining[/color][/center]`;
   }
-  api.sendMessage(msg, undefined, [], [{ name: label + ' Supply', tooltip: 'Supply roll' }]);
+  api.sendMessage(msg, undefined, [], [{ name: `${label} Supply`, tooltip: 'Supply roll' }]);
 }
 
 // Apply a negative dice modifier to a {attr, skill, gear} count, removing dice
 // from skill first, then gear, then attribute (SRD p.10 modifier order). Mutates
 // and returns the counts object.
 function yzeApplyPenalty(counts, penalty) {
-  var rem = penalty || 0;
-  var take;
+  let rem = penalty || 0;
+  let take;
   take = Math.min(counts.skill, rem); counts.skill -= take; rem -= take;
   take = Math.min(counts.gear,  rem); counts.gear  -= take; rem -= take;
   take = Math.min(counts.attr,  rem); counts.attr  -= take; rem -= take;
@@ -329,7 +330,7 @@ function yzeApplyModifier(counts, mod) {
 // Read the active difficulty setting and return its modifier integer.
 // 'average' / blank = 0. Stacks with rollMod; both are reset after each roll.
 function yzeReadDifficulty() {
-  var d = (api.getValue('data.difficulty') || '').toLowerCase().trim();
+  const d = (api.getValue('data.difficulty') || '').toLowerCase().trim();
   if (d === 'trivial')   return  3;
   if (d === 'simple')    return  2;
   if (d === 'easy')      return  1;
@@ -341,7 +342,7 @@ function yzeReadDifficulty() {
 
 // Human-readable difficulty label for chat (blank when Average).
 function yzeFormatDifficulty(d) {
-  var MAP = {
+  const MAP = {
     trivial:    'Trivial (+3)',
     simple:     'Simple (+2)',
     easy:       'Easy (+1)',
@@ -356,14 +357,14 @@ function yzeFormatDifficulty(d) {
 // Read-only — the roll builder resets it after rolling so it never silently
 // carries to the next roll.
 function yzeReadModifier() {
-  var m = parseInt(api.getValue('data.rollMod') || '0', 10);
+  let m = parseInt(api.getValue('data.rollMod') || '0', 10);
   if (isNaN(m)) m = 0;
   return Math.max(-10, Math.min(10, m));
 }
 
 // Read the "opposed — successes to beat" field, clamped to >= 0. Read-only.
 function yzeReadOpposed() {
-  var o = parseInt(api.getValue('data.opposed') || '0', 10);
+  let o = parseInt(api.getValue('data.opposed') || '0', 10);
   if (isNaN(o) || o < 0) o = 0;
   return Math.min(20, o);
 }
@@ -375,13 +376,13 @@ function yzeReadOpposed() {
 function yzeVerdict(successes, opposed) {
   opposed = parseInt(opposed || 0, 10);
   if (opposed > 0) {
-    var net = successes - opposed;
-    if (net > 0)  return '**[center][color=green]SUCCESS[/color] - won by ' + net + ' (' + successes + ' vs ' + opposed + ')[/center]**';
-    if (net === 0) return '**[center][color=red]TIE - you fail[/color] (' + successes + ' vs ' + opposed + ')[/center]**';
-    return '**[center][color=red]FAILURE[/color] (' + successes + ' vs ' + opposed + ')[/center]**';
+    const net = successes - opposed;
+    if (net > 0)  return `**[center][color=green]SUCCESS[/color] - won by ${net} (${successes} vs ${opposed})[/center]**`;
+    if (net === 0) return `**[center][color=red]TIE - you fail[/color] (${successes} vs ${opposed})[/center]**`;
+    return `**[center][color=red]FAILURE[/color] (${successes} vs ${opposed})[/center]**`;
   }
   return successes > 0
-    ? '**[center][color=green]SUCCESS[/color] - ' + successes + ' success' + (successes > 1 ? 'es' : '') + '[/center]**'
+    ? `**[center][color=green]SUCCESS[/color] - ${successes} success${successes > 1 ? 'es' : ''}[/center]**`
     : '**[center][color=red]FAILURE[/color][/center]**';
 }
 
@@ -391,18 +392,18 @@ function yzeVerdict(successes, opposed) {
 // `getter(path)` reads a value — pass api.getValue for the current sheet, or a
 // closure over api.getValueOnRecord(token, ...) for a target token.
 function yzeArmorTotal(getter) {
-  var direct = parseInt(getter('data.armor') || '0', 10);
+  const direct = parseInt(getter('data.armor') || '0', 10);
   if (direct > 0) return direct;
-  var list = getter('data.gearList') || [];
-  var arr = [];
+  const list = getter('data.gearList') || [];
+  const arr = [];
   if (list && list.length !== undefined && typeof list !== 'string') {
-    for (var i = 0; i < list.length; i++) arr.push(list[i]);
+    for (let i = 0; i < list.length; i++) arr.push(list[i]);
   } else if (list) {
-    for (var k in list) { if (Object.prototype.hasOwnProperty.call(list, k)) arr.push(list[k]); }
+    for (const k in list) { if (Object.prototype.hasOwnProperty.call(list, k)) arr.push(list[k]); }
   }
-  var sum = 0;
-  for (var j = 0; j < arr.length; j++) {
-    var d = arr[j] && arr[j].data;
+  let sum = 0;
+  for (let j = 0; j < arr.length; j++) {
+    const d = arr[j] && arr[j].data;
     if (d && d.gearType === 'armor') sum += parseInt(d.armorRating || '0', 10);
   }
   return sum;
@@ -412,9 +413,9 @@ function yzeArmorTotal(getter) {
 // where a separate api.roll can't be awaited). Returns counts of 6s and 1s plus
 // the raw values for display. Armor: 6 cancels 1 damage, 1 (bane) degrades armor.
 function yzeRollPoolN(n) {
-  var r = { sixes: 0, ones: 0, vals: [] };
-  for (var i = 0; i < (n || 0); i++) {
-    var v = Math.floor(Math.random() * 6) + 1;
+  const r = { sixes: 0, ones: 0, vals: [] };
+  for (let i = 0; i < (n || 0); i++) {
+    const v = Math.floor(Math.random() * 6) + 1;
     r.vals.push(v);
     if (v === 6) r.sixes++; else if (v === 1) r.ones++;
   }
@@ -425,9 +426,9 @@ function yzeRollPoolN(n) {
 // push (yze_push) or the attack push (yze_combat). Lives here so the PUSH button
 // on any tab does the right thing.
 function yzePushRoll() {
-  var last = api.getSession('yzeLastRoll');
+  const last = api.getSession('yzeLastRoll');
   if (!last || last.rerollCount <= 0) return;
-  var meta = {
+  const meta = {
     mode:        last.mode,
     attrKey:     last.attrKey,
     skillName:   last.skillName,
@@ -437,7 +438,7 @@ function yzePushRoll() {
     rerollAttr: last.rerollAttr, rerollSkill: last.rerollSkill, rerollGear: last.rerollGear,
     isPush: true
   };
-  var rollType = 'yze_push';
+  let rollType = 'yze_push';
   if (last.mode === 'combat') {
     meta.baseDamage = last.baseDamage;
     meta.range      = last.range;
@@ -445,7 +446,7 @@ function yzePushRoll() {
     meta.prevDamage = last.prevDamage;
     rollType = 'yze_combat';
   }
-  api.roll(last.rerollCount + 'd6', meta, rollType);
+  api.roll(`${last.rerollCount}d6`, meta, rollType);
   api.setValues({ 'data.canPush': 0 });
   api.setHidden('pushSection', true);
 }
@@ -466,17 +467,17 @@ function yzePushRoll() {
 // digit 1-6. So "Difficulty 3", "difficulty 3", "Difficulty: 3", and
 // "Difficulty Lvl 3" all resolve to 3.
 function yzeDifficultyFromEffects(record) {
-  var token   = (api.getToken && record) ? api.getToken(record) : null;
-  var effects = (token && token.effects) || [];
-  for (var i = 0; i < effects.length; i++) {
-    var nm = effects[i] && effects[i].name;
+  const token   = (api.getToken && record) ? api.getToken(record) : null;
+  const effects = (token && token.effects) || [];
+  for (let i = 0; i < effects.length; i++) {
+    const nm = effects[i] && effects[i].name;
     if (typeof nm !== 'string') continue;
-    var low = nm.toLowerCase();
-    var pos = low.indexOf('difficulty');
+    const low = nm.toLowerCase();
+    const pos = low.indexOf('difficulty');
     if (pos === -1) continue;
-    var rest = nm.substring(pos + 10); // text after the word "difficulty"
-    for (var c = 0; c < rest.length; c++) {
-      var ch = rest.charAt(c);
+    const rest = nm.substring(pos + 10); // text after the word "difficulty"
+    for (let c = 0; c < rest.length; c++) {
+      const ch = rest.charAt(c);
       if (ch >= '1' && ch <= '6') return parseInt(ch, 10);
       if (ch >= '0' && ch <= '9') break; // 0/7/8/9 -> not a valid level, stop
     }
@@ -487,9 +488,9 @@ function yzeDifficultyFromEffects(record) {
 // Effective required-successes threshold for a roll. A "Difficulty N" token
 // effect wins if present; otherwise the per-sheet data.successThreshold (>= 1).
 function yzeEffectiveThreshold(record) {
-  var fromEffect = yzeDifficultyFromEffects(record);
+  const fromEffect = yzeDifficultyFromEffects(record);
   if (fromEffect > 0) return fromEffect;
-  var t = parseInt(api.getValue('data.successThreshold') || '1', 10);
+  let t = parseInt(api.getValue('data.successThreshold') || '1', 10);
   if (isNaN(t) || t < 1) t = 1;
   return t;
 }
@@ -498,29 +499,29 @@ function yzeEffectiveThreshold(record) {
 // Shared by character-gear.html and character-combat.html.
 
 function getGearList() {
-  var raw = api.getValue('data.gearList');
+  const raw = api.getValue('data.gearList');
   if (!raw) return [];
   if (Array.isArray(raw)) return raw;
-  var arr = [];
-  for (var k in raw) {
+  const arr = [];
+  for (const k in raw) {
     if (Object.prototype.hasOwnProperty.call(raw, k)) arr.push(raw[k]);
   }
   return arr;
 }
 
-var ATK_RANGE_MOD = { short: 0, medium: -1, long: -2, extreme: -3, engaged: -3 };
+const ATK_RANGE_MOD = { short: 0, medium: -1, long: -2, extreme: -3, engaged: -3 };
 
 function yzeAttackMod() {
-  function on(f) { var v = api.getValue('data.' + f); return (v === true || v === 1 || v === '1' || v === 'true'); }
-  var aim      = on('atkAim')          ?  2 : 0;
-  var defl     = on('atkDefenseless')  ?  3 : 0;
-  var moving   = on('modMovingTarget') ? -2 : 0;
-  var cover    = on('modCover')        ? -2 : 0;
-  var mounted  = on('modMounted')      ? -2 : 0;
-  var helpless = on('modHelpless')     ?  2 : 0;
-  var light    = parseInt(api.getValue('data.atkLight') || '0', 10);
-  var rcode    = api.getValue('data.atkRange') || 'short';
-  var rng      = ATK_RANGE_MOD[rcode];
+  function on(f) { const v = api.getValue('data.' + f); return (v === true || v === 1 || v === '1' || v === 'true'); }
+  const aim      = on('atkAim')          ?  2 : 0;
+  const defl     = on('atkDefenseless')  ?  3 : 0;
+  const moving   = on('modMovingTarget') ? -2 : 0;
+  const cover    = on('modCover')        ? -2 : 0;
+  const mounted  = on('modMounted')      ? -2 : 0;
+  const helpless = on('modHelpless')     ?  2 : 0;
+  const light    = parseInt(api.getValue('data.atkLight') || '0', 10);
+  const rcode    = api.getValue('data.atkRange') || 'short';
+  let rng      = ATK_RANGE_MOD[rcode];
   if (rng === undefined) rng = 0;
   if (defl && rcode === 'engaged') rng = 0;
   return aim + defl + moving + cover + mounted + helpless + light + rng + yzeReadModifier() + yzeReadDifficulty();
@@ -528,30 +529,30 @@ function yzeAttackMod() {
 
 function rollAttackForItem(item) {
   if (!item) return;
-  var d           = item.data || {};
-  var linkedAttr  = d.linkedAttr  || 'strength';
-  var linkedSkill = d.linkedSkill || 'Melee';
-  var gearBonus   = parseInt(d.bonus  || '0', 10);
-  var damage      = parseInt(d.damage || '0', 10);
-  var range       = d.range || 'engaged';
-  var base        = parseInt(api.getValue('data.' + linkedAttr) || '0', 10);
-  var skKey       = 'sk_' + String(linkedSkill).toLowerCase();
-  var skLvl       = parseInt(api.getValue('data.' + skKey) || '0', 10);
-  var pen         = yzeCondPenalty(linkedAttr);
-  var counts      = yzeApplyPenalty({ attr: base, skill: skLvl, gear: gearBonus }, pen);
-  var difficulty  = api.getValue('data.difficulty') || 'average';
-  var mod         = yzeAttackMod();  // already includes yzeReadDifficulty()
+  const d           = item.data || {};
+  const linkedAttr  = d.linkedAttr  || 'strength';
+  const linkedSkill = d.linkedSkill || 'Melee';
+  const gearBonus   = parseInt(d.bonus  || '0', 10);
+  const damage      = parseInt(d.damage || '0', 10);
+  const range       = d.range || 'engaged';
+  const base        = parseInt(api.getValue('data.' + linkedAttr) || '0', 10);
+  const skKey       = 'sk_' + String(linkedSkill).toLowerCase();
+  const skLvl       = parseInt(api.getValue('data.' + skKey) || '0', 10);
+  const pen         = yzeCondPenalty(linkedAttr);
+  const counts      = yzeApplyPenalty({ attr: base, skill: skLvl, gear: gearBonus }, pen);
+  const difficulty  = api.getValue('data.difficulty') || 'average';
+  const mod         = yzeAttackMod();  // already includes yzeReadDifficulty()
   yzeApplyModifier(counts, mod);
-  var pool        = counts.attr + counts.skill + counts.gear;
+  const pool        = counts.attr + counts.skill + counts.gear;
   if (pool <= 0) {
     api.showNotification('Modifiers removed all dice — no attack possible.', 'red', 'Cannot Attack');
     return;
   }
-  var tags = [];
-  if (pen > 0)   tags.push('-' + pen + ' cond');
+  const tags = [];
+  if (pen > 0)   tags.push(`-${pen} cond`);
   if (mod !== 0) tags.push((mod > 0 ? '+' : '') + mod + ' mod');
-  var label = (item.name || linkedSkill) + (tags.length ? ' (' + tags.join(', ') + ')' : '');
-  api.roll(pool + 'd6', {
+  const label = (item.name || linkedSkill) + (tags.length ? ` (${tags.join(', ')})` : '');
+  api.roll(`${pool}d6`, {
     attrKey:    linkedAttr,
     attrCount:  counts.attr,
     skillCount: counts.skill,
@@ -581,21 +582,21 @@ function rollAttackForItem(item) {
 // in the skills-tab section headers. Same pipeline as skill rolls so push
 // and roll handlers work unchanged.
 function rollAttrOnly(key) {
-  var base       = parseInt(api.getValue('data.' + key) || '0', 10);
-  var pen        = yzeCondPenalty(key);
-  var mod        = yzeReadModifier() + yzeReadDifficulty();
-  var opposed    = parseInt(api.getValue('data.opposed')  || '0', 10);
-  var difficulty = api.getValue('data.difficulty') || 'average';
+  const base       = parseInt(api.getValue('data.' + key) || '0', 10);
+  const pen        = yzeCondPenalty(key);
+  const mod        = yzeReadModifier() + yzeReadDifficulty();
+  let opposed    = parseInt(api.getValue('data.opposed')  || '0', 10);
+  const difficulty = api.getValue('data.difficulty') || 'average';
   if (isNaN(opposed)) opposed = 0;
-  var counts = yzeApplyPenalty({ attr: base, skill: 0, gear: 0 }, pen);
+  const counts = yzeApplyPenalty({ attr: base, skill: 0, gear: 0 }, pen);
   yzeApplyModifier(counts, mod);
-  var total = counts.attr + counts.skill + counts.gear;
+  const total = counts.attr + counts.skill + counts.gear;
   if (total <= 0) {
     api.showNotification('No dice to roll!', 'red', 'Cannot Roll');
     return;
   }
-  var label = key.charAt(0).toUpperCase() + key.slice(1);
-  api.roll(total + 'd6', {
+  const label = key.charAt(0).toUpperCase() + key.slice(1);
+  api.roll(`${total}d6`, {
     attrKey:     key,
     attrCount:   counts.attr,
     skillCount:  0,
@@ -619,18 +620,18 @@ function rollAttrOnly(key) {
 // Roll the Healing skill (Empathy) to restore a broken ally.
 // Target a broken ally token first; each success restores 1 Health.
 function rollHealBroken() {
-  var emp    = parseInt(api.getValue('data.empathy')    || '0', 10);
-  var heal   = parseInt(api.getValue('data.sk_healing') || '0', 10);
-  var pen    = yzeCondPenalty('empathy');
-  var mod    = yzeReadModifier() + yzeReadDifficulty();
-  var counts = yzeApplyPenalty({ attr: emp, skill: heal, gear: 0 }, pen);
+  const emp    = parseInt(api.getValue('data.empathy')    || '0', 10);
+  const heal   = parseInt(api.getValue('data.sk_healing') || '0', 10);
+  const pen    = yzeCondPenalty('empathy');
+  const mod    = yzeReadModifier() + yzeReadDifficulty();
+  const counts = yzeApplyPenalty({ attr: emp, skill: heal, gear: 0 }, pen);
   yzeApplyModifier(counts, mod);
-  var pool   = counts.attr + counts.skill + counts.gear;
+  const pool   = counts.attr + counts.skill + counts.gear;
   if (pool <= 0) {
     api.showNotification('No Healing dice to roll!', 'red', 'Heal Broken');
     return;
   }
-  api.roll(pool + 'd6', {
+  api.roll(`${pool}d6`, {
     skillName:  'Heal (Broken)',
     attrKey:    'empathy',
     attrCount:  counts.attr,
@@ -643,12 +644,12 @@ function rollHealBroken() {
 
 // Stamina (Strength) death save for a lethal critical injury. Cannot push (SRD rule).
 function rollDeathSave() {
-  var str = parseInt(api.getValue('data.strength') || '0', 10);
+  const str = parseInt(api.getValue('data.strength') || '0', 10);
   if (str <= 0) {
     api.showNotification('Strength is 0 — cannot make death save!', 'red', 'Death Save');
     return;
   }
-  api.roll(str + 'd6', {
+  api.roll(`${str}d6`, {
     skillName:   'Death Save',
     attrKey:     'strength',
     attrCount:   str,
@@ -661,11 +662,12 @@ function rollDeathSave() {
 // SRD "on your own" recovery: restore 1 Health or Resolve after a shift of rest.
 // Not broken, not starving, not hypothermic.
 function selfHealShift() {
-  var curH = parseInt(api.getValue('data.curHealth')  || '0', 10);
-  var maxH = parseInt(api.getValue('data.maxHealth')  || '1', 10);
-  var curR = parseInt(api.getValue('data.curResolve') || '0', 10);
-  var maxR = parseInt(api.getValue('data.maxResolve') || '1', 10);
-  var upd  = {}, healed = '';
+  const curH = parseInt(api.getValue('data.curHealth')  || '0', 10);
+  const maxH = parseInt(api.getValue('data.maxHealth')  || '1', 10);
+  const curR = parseInt(api.getValue('data.curResolve') || '0', 10);
+  const maxR = parseInt(api.getValue('data.maxResolve') || '1', 10);
+  const upd  = {};
+  let healed = '';
   if (curH < maxH) {
     upd['data.curHealth'] = curH + 1; healed = 'Health';
   } else if (curR < maxR) {
@@ -675,8 +677,8 @@ function selfHealShift() {
     api.showNotification('Already at full Health and Resolve.', 'blue', 'Self-Heal');
     return;
   }
-  api.setValues(upd, function() { drawHeader(); });
-  api.showNotification('Self-healed 1 point of ' + healed + ' after a shift of rest.', 'green', 'Self-Heal');
+  api.setValues(upd, () => { drawHeader(); });
+  api.showNotification(`Self-healed 1 point of ${healed} after a shift of rest.`, 'green', 'Self-Heal');
 }
 
 // ── Gear Repair (SRD p.11) ─────────────────────────────────────────────────
@@ -686,15 +688,15 @@ function selfHealShift() {
 // Uses data.repairDice (player-set dice count) since character stats
 // are not accessible from the list-item record context.
 function rollGearRepair() {
-  var n        = parseInt(api.getValue('data.repairDice') || '3', 10);
-  var curBonus = parseInt(api.getValue('data.bonus')      || '0', 10);
-  var maxBonus = parseInt(api.getValue('data.maxBonus')   || '0', 10);
+  let n        = parseInt(api.getValue('data.repairDice') || '3', 10);
+  const curBonus = parseInt(api.getValue('data.bonus')      || '0', 10);
+  const maxBonus = parseInt(api.getValue('data.maxBonus')   || '0', 10);
   if (maxBonus <= 0 || curBonus >= maxBonus) {
     api.showNotification('Gear is at full bonus or max not set.', 'blue', 'Repair');
     return;
   }
   if (n < 1) n = 1;
-  api.roll(n + 'd6', {
+  api.roll(`${n}d6`, {
     skillName:  'Repair (Crafting)',
     attrKey:    'wits',
     attrCount:  n,
@@ -710,19 +712,19 @@ function rollGearRepair() {
 
 // Increment data.wp by amount (clamped 0–10). Shows blue notification.
 function gainWP(amount) {
-  var cur  = parseInt(api.getValue('data.wp') || '0', 10);
+  let cur  = parseInt(api.getValue('data.wp') || '0', 10);
   if (isNaN(cur)) cur = 0;
-  var next = Math.min(10, Math.max(0, cur + (parseInt(amount, 10) || 0)));
+  const next = Math.min(10, Math.max(0, cur + (parseInt(amount, 10) || 0)));
   if (next !== cur) {
     api.setValues({ 'data.wp': next });
-    api.showNotification('+' + amount + ' Willpower Point' + (amount > 1 ? 's' : ''), 'blue', 'Willpower');
+    api.showNotification(`+${amount} Willpower Point${amount > 1 ? 's' : ''}`, 'blue', 'Willpower');
   }
 }
 
 // Validate WP, deduct, and fire the yze_spell roll handler.
 // opts: { safeCast, safecastDice, chanceCast, fromGrimoire }
 function castSpell(wpSpend, spellName, rank, discipline, portrait, opts) {
-  var curWP = parseInt(api.getValue('data.wp') || '0', 10);
+  let curWP = parseInt(api.getValue('data.wp') || '0', 10);
   if (isNaN(curWP)) curWP = 0;
   wpSpend = parseInt(wpSpend, 10) || 1;
   if (curWP < wpSpend) {
@@ -731,7 +733,7 @@ function castSpell(wpSpend, spellName, rank, discipline, portrait, opts) {
   }
   opts = opts || {};
   api.setValues({ 'data.wp': curWP - wpSpend });
-  api.roll(wpSpend + 'd6', {
+  api.roll(`${wpSpend}d6`, {
     spellName:    spellName  || 'Spell',
     wpSpend:      wpSpend,
     rank:         parseInt(rank, 10) || 1,
@@ -756,7 +758,7 @@ function relieveStress() {
 // Spend the Pride bonus: marks it used and queues +1 success on the next roll.
 // yze-pool.js / yze-combat.js read data.prideBonus before sending chat output.
 function usePride() {
-  api.setValues({ 'data.prideBonus': 1, 'data.prideUsed': true }, function() {
+  api.setValues({ 'data.prideBonus': 1, 'data.prideUsed': true }, () => {
     drawHeader();
     refreshHeaderBadges();
   });
@@ -765,7 +767,7 @@ function usePride() {
 
 // Call at the start of each session to restore the Pride bonus.
 function resetPrideForSession() {
-  api.setValues({ 'data.prideUsed': false, 'data.prideBonus': 0 }, function() {
+  api.setValues({ 'data.prideUsed': false, 'data.prideBonus': 0 }, () => {
     drawHeader();
     refreshHeaderBadges();
   });
@@ -777,16 +779,16 @@ function resetPrideForSession() {
 // any other write. Writes from onrecordchanged context → onrecordchanged loop
 // → Realm rate-limit error. Confirmed violations in this function = zero.
 function drawHeader() {
-  var maxH = parseInt(api.getValue('data.maxHealth'),  10);
-  var maxR = parseInt(api.getValue('data.maxResolve'), 10);
+  let maxH = parseInt(api.getValue('data.maxHealth'),  10);
+  let maxR = parseInt(api.getValue('data.maxResolve'), 10);
   if (isNaN(maxH) || maxH <= 0) {
-    var str = parseInt(api.getValue('data.strength') || '0', 10) || 0;
-    var agi = parseInt(api.getValue('data.agility')  || '0', 10) || 0;
+    const str = parseInt(api.getValue('data.strength') || '0', 10) || 0;
+    const agi = parseInt(api.getValue('data.agility')  || '0', 10) || 0;
     maxH = Math.ceil((str + agi) / 2) + 1;
   }
   if (isNaN(maxR) || maxR <= 0) {
-    var wit = parseInt(api.getValue('data.wits')    || '0', 10) || 0;
-    var emp = parseInt(api.getValue('data.empathy') || '0', 10) || 0;
+    const wit = parseInt(api.getValue('data.wits')    || '0', 10) || 0;
+    const emp = parseInt(api.getValue('data.empathy') || '0', 10) || 0;
     maxR = Math.ceil((wit + emp) / 2) + 1;
   }
   drawTinyPips('healthCanvas',  'curHealth',  maxH, '#c8902a', '#e8b85a');
@@ -798,10 +800,10 @@ function drawHeader() {
 // NEVER call from drawHeader() or any onrecordchanged handler —
 // api.setValues here writes fields.* which can trigger onrecordchanged.
 function refreshHeaderState() {
-  var broken      = api.getValue('data.isBroken');
-  var isBroken    = (broken === true || broken === 1 || broken === '1' || broken === 'true');
-  var prideUsed   = api.getValue('data.prideUsed');
-  var isPrideUsed = (prideUsed === true || prideUsed === 1 || prideUsed === '1' || prideUsed === 'true');
+  const broken      = api.getValue('data.isBroken');
+  const isBroken    = (broken === true || broken === 1 || broken === '1' || broken === 'true');
+  const prideUsed   = api.getValue('data.prideUsed');
+  const isPrideUsed = (prideUsed === true || prideUsed === 1 || prideUsed === '1' || prideUsed === 'true');
   api.setValues({
     'fields.brokenBadge.hidden': !isBroken,
     'fields.prideBtn.hidden':    isPrideUsed
@@ -812,22 +814,22 @@ function refreshHeaderBadges() { refreshHeaderState(); }
 
 // maxVal is a pre-computed integer (drawHeader resolves it before calling).
 function drawTinyPips(canvasField, curField, maxVal, fillCol, edgeCol) {
-  var c = api.getCanvas(canvasField);
+  const c = api.getCanvas(canvasField);
   if (!c) return;
-  var W = c.width, H = c.height;
+  const W = c.width, H = c.height;
   c.clearRect(0, 0, W, H);
   c.clearTooltips();
-  var cur = parseInt(api.getValue('data.' + curField) || '0', 10);
-  var max = maxVal || 0;
+  let cur = parseInt(api.getValue('data.' + curField) || '0', 10);
+  const max = maxVal || 0;
   if (isNaN(cur)) cur = 0;
   if (max <= 0) return;
-  var gap  = 2;
-  var pipW = Math.floor((W - gap * (max - 1)) / max);
+  const gap  = 2;
+  let pipW = Math.floor((W - gap * (max - 1)) / max);
   if (pipW < 4) pipW = 4;
-  for (var i = 0; i < max; i++) {
-    var x      = i * (pipW + gap);
-    var filled = i < cur;
-    var crit   = cur > 0 && i === cur - 1 && cur < max;
+  for (let i = 0; i < max; i++) {
+    const x      = i * (pipW + gap);
+    const filled = i < cur;
+    const crit   = cur > 0 && i === cur - 1 && cur < max;
     c.setFillStyle(crit ? '#cc3333' : (filled ? fillCol : 'rgba(200,144,42,0.10)'));
     c.fillRect(x, 0, pipW, H);
     if (filled) {
@@ -843,47 +845,47 @@ function onHealthPipClick()  { onPipClickGeneric('healthCanvas',  'curHealth',  
 function onResolvePipClick() { onPipClickGeneric('resolveCanvas', 'curResolve', 'maxResolve'); }
 
 function onPipClickGeneric(canvasField, curField, maxField) {
-  var c = api.getCanvas(canvasField);
+  const c = api.getCanvas(canvasField);
   if (!c) return;
-  var W   = c.width;
-  var cur = parseInt(api.getValue('data.' + curField) || '0', 10);
-  var max = parseInt(api.getValue('data.' + maxField) || '1', 10);
+  const W   = c.width;
+  let cur = parseInt(api.getValue('data.' + curField) || '0', 10);
+  const max = parseInt(api.getValue('data.' + maxField) || '1', 10);
   if (isNaN(cur)) cur = 0;
   if (isNaN(max) || max <= 0) return;
-  var gap  = 2;
-  var pipW = Math.floor((W - gap * (max - 1)) / max);
+  const gap  = 2;
+  let pipW = Math.floor((W - gap * (max - 1)) / max);
   if (pipW < 4) pipW = 4;
-  var idx  = Math.floor(event.x / (pipW + gap));
+  const idx  = Math.floor(event.x / (pipW + gap));
   if (idx < 0 || idx >= max) return;
-  var next = (idx + 1 === cur) ? idx : idx + 1;
+  let next = (idx + 1 === cur) ? idx : idx + 1;
   next = Math.max(0, Math.min(max, next));
-  var upd = {};
+  const upd = {};
   upd['data.' + curField] = next;
-  api.setValues(upd, function() { drawHeader(); });
+  api.setValues(upd, () => { drawHeader(); });
 }
 
 // Break — force all conditions of type, zero the matching pool, roll crit.
 // Lives in common.js so the Break button works from every tab's header.
 function takeConditionPlayer(type) {
-  var boxes = (type === 'mental')
+  const boxes = (type === 'mental')
     ? ['cond_angry', 'cond_scared', 'cond_disheartened']
     : ['cond_exhausted', 'cond_battered', 'cond_wounded'];
-  var pool  = (type === 'mental') ? 'curResolve' : 'curHealth';
-  var label = (type === 'mental') ? 'mental' : 'physical';
-  var upd = {}, i;
-  for (i = 0; i < boxes.length; i++) upd['data.' + boxes[i]] = true;
+  const pool  = (type === 'mental') ? 'curResolve' : 'curHealth';
+  const label = (type === 'mental') ? 'mental' : 'physical';
+  const upd = {};
+  for (let i = 0; i < boxes.length; i++) upd['data.' + boxes[i]] = true;
   upd['data.' + pool] = 0;
-  api.setValues(upd, function() {
+  api.setValues(upd, () => {
     refreshCondPlayerUI();
     drawHeader();
-    api.showNotification('Fourth ' + label + ' condition — you are BROKEN!', 'red', 'Broken');
+    api.showNotification(`Fourth ${label} condition — you are BROKEN!`, 'red', 'Broken');
     api.roll('2d6', { critType: type }, 'yze_crit');
   });
 }
 
 // Show/hide the broken badge (driven by data.isBroken). Click the badge to clear.
 function setBrokenPlayer(v) {
-  api.setValues({ 'data.isBroken': !!v }, function() {
+  api.setValues({ 'data.isBroken': !!v }, () => {
     drawHeader();
     refreshHeaderBadges();
   });
@@ -893,10 +895,10 @@ function setBrokenPlayer(v) {
 // Writes xpAvailable = xp - xpSpent. Guarded: only writes when the stored
 // value differs, so it is safe to call from onrecordchanged without looping.
 function refreshXp() {
-  var xp    = parseInt(api.getValue('data.xp')        || '0', 10);
-  var spent = parseInt(api.getValue('data.xpSpent')   || '0', 10);
-  var avail = Math.max(0, (isNaN(xp) ? 0 : xp) - (isNaN(spent) ? 0 : spent));
-  var cur   = parseInt(api.getValue('data.xpAvailable') || '0', 10);
+  const xp    = parseInt(api.getValue('data.xp')        || '0', 10);
+  const spent = parseInt(api.getValue('data.xpSpent')   || '0', 10);
+  const avail = Math.max(0, (isNaN(xp) ? 0 : xp) - (isNaN(spent) ? 0 : spent));
+  let cur   = parseInt(api.getValue('data.xpAvailable') || '0', 10);
   if (isNaN(cur)) cur = -1;
   if (avail !== cur) api.setValues({ 'data.xpAvailable': avail });
 }
@@ -908,11 +910,11 @@ function refreshXp() {
 // condMentDisplay string fields.
 
 function addCondPlayer(type) {
-  var fields = (type === 'mental')
+  const fields = (type === 'mental')
     ? ['cond_angry', 'cond_scared', 'cond_disheartened']
     : ['cond_exhausted', 'cond_battered', 'cond_wounded'];
-  for (var i = 0; i < fields.length; i++) {
-    var v = api.getValue('data.' + fields[i]);
+  for (let i = 0; i < fields.length; i++) {
+    const v = api.getValue('data.' + fields[i]);
     if (!(v === true || v === 1 || v === '1' || v === 'true')) {
       api.setValue('data.' + fields[i], true, refreshCondPlayerUI);
       return;
@@ -923,11 +925,11 @@ function addCondPlayer(type) {
 }
 
 function removeCondPlayer(type) {
-  var fields = (type === 'mental')
+  const fields = (type === 'mental')
     ? ['cond_angry', 'cond_scared', 'cond_disheartened']
     : ['cond_exhausted', 'cond_battered', 'cond_wounded'];
-  for (var i = fields.length - 1; i >= 0; i--) {
-    var v = api.getValue('data.' + fields[i]);
+  for (let i = fields.length - 1; i >= 0; i--) {
+    const v = api.getValue('data.' + fields[i]);
     if (v === true || v === 1 || v === '1' || v === 'true') {
       api.setValue('data.' + fields[i], false, refreshCondPlayerUI);
       return;
@@ -938,23 +940,24 @@ function removeCondPlayer(type) {
 // Mirror physical and mental counts into the display stringfields.
 // Guarded so it never loops when called from onrecordchanged.
 function refreshCondPlayerUI() {
-  var physF = ['cond_exhausted', 'cond_battered', 'cond_wounded'];
-  var mentF = ['cond_angry', 'cond_scared', 'cond_disheartened'];
-  var p = 0, m = 0, i, v;
-  for (i = 0; i < physF.length; i++) {
+  const physF = ['cond_exhausted', 'cond_battered', 'cond_wounded'];
+  const mentF = ['cond_angry', 'cond_scared', 'cond_disheartened'];
+  let p = 0, m = 0, v;
+  for (let i = 0; i < physF.length; i++) {
     v = api.getValue('data.' + physF[i]);
     if (v === true || v === 1 || v === '1' || v === 'true') p++;
   }
-  for (i = 0; i < mentF.length; i++) {
+  for (let i = 0; i < mentF.length; i++) {
     v = api.getValue('data.' + mentF[i]);
     if (v === true || v === 1 || v === '1' || v === 'true') m++;
   }
-  var pd = p + '/3';
-  var md = m + '/3';
-  var upd = {}, k, has = false;
+  const pd = p + '/3';
+  const md = m + '/3';
+  const upd = {};
+  let has = false;
   if (api.getValue('data.condPhysDisplay') !== pd) upd['data.condPhysDisplay'] = pd;
   if (api.getValue('data.condMentDisplay') !== md) upd['data.condMentDisplay'] = md;
-  for (k in upd) { if (upd.hasOwnProperty(k)) { has = true; break; } }
+  for (const k in upd) { if (upd.hasOwnProperty(k)) { has = true; break; } }
   if (has) api.setValues(upd);
 }
 
@@ -973,12 +976,12 @@ function refreshCondPlayerUI() {
 // before calling).
 function yzeColorDice(dice, meta) {
   if (!dice) return;
-  var effCol   = yzeEffectDiceColor(); // themed tint when a status effect is active
-  var attrEnd  = meta ? parseInt(meta.attrCount  || 0, 10) : 0;
-  var skillEnd = attrEnd  + (meta ? parseInt(meta.skillCount || 0, 10) : 0);
-  var gearEnd  = skillEnd + (meta ? parseInt(meta.gearCount  || 0, 10) : 0);
-  for (var i = 0; i < dice.length; i++) {
-    var v = parseInt(dice[i].value, 10);
+  const effCol   = yzeEffectDiceColor(); // themed tint when a status effect is active
+  const attrEnd  = meta ? parseInt(meta.attrCount  || 0, 10) : 0;
+  const skillEnd = attrEnd  + (meta ? parseInt(meta.skillCount || 0, 10) : 0);
+  const gearEnd  = skillEnd + (meta ? parseInt(meta.gearCount  || 0, 10) : 0);
+  for (let i = 0; i < dice.length; i++) {
+    const v = parseInt(dice[i].value, 10);
     if      (v === 6) { dice[i].customColor = 'green';  }
     else if (v === 1) { dice[i].customColor = 'red';    }
     else if (effCol)  { dice[i].customColor = effCol;   } // effect mood overrides source tint

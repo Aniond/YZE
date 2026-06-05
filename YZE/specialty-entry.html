@@ -2,10 +2,10 @@
 // Show rank stepper only when the specialty can be taken more than once.
 // _lastRankHidden guard: api.setValues() in onrecordchanged re-fires onrecordchanged —
 // bail early if nothing changed to prevent an infinite loop.
-var _lastRankHidden = null;
+let _lastRankHidden = null;
 function onSpecialtyEntryLoad() {
-  var maxR = parseInt(api.getValue('data.maxRanks') || '1', 10);
-  var shouldHide = maxR <= 1;
+  const maxR = parseInt(api.getValue('data.maxRanks') || '1', 10);
+  const shouldHide = maxR <= 1;
   if (shouldHide === _lastRankHidden) return;
   _lastRankHidden = shouldHide;
   api.setValues({ 'fields.rankSection.hidden': shouldHide });

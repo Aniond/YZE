@@ -595,7 +595,9 @@ in the message string. The button label is the text on the opening backtick line
 code runs when the player clicks it.
 
 ```javascript
-// ES5 — construct with string concatenation (no template literals in roll handlers)
+// Chat-button code is a STRING baked into the message. Template literals work in
+// roll handlers, but building this with string concatenation avoids nesting backticks
+// inside the ```code-block``` markers (a template literal would clash with them).
 var btn = '```Button_Label\n' +
   'var _s = api.getSession(\'myKey\');\n' +
   'if (_s) { api.roll(_s.count + \'d6\', _s.meta, \'my_rolltype\'); }\n' +
@@ -896,7 +898,7 @@ Inside a list-item template, `api.getValue('data.X')` always reads the
 Use `dataPath` + the helpers below to read the **item's own fields**:
 
 ```javascript
-// ES5 — add these to every list-item template's <script> block
+// Add these helpers to every list-item template's <script> block
 function getNearestParentDataPath(dp) {
   var parts = dp.split('.data');
   return parts.length > 1 ? parts.slice(0, -1).join('.data') : '';
@@ -1033,17 +1035,21 @@ function onDrop(type, recordLink, sourceInfo) {
 
 ## 9. JS Language Support (Realm VTT runs modern JS)
 
-**RETIRED RULE:** This section used to say "ES5 only — no const/let, no arrow
-functions, no template literals." That is no longer true. Sean confirmed the ES5
-barrier is gone, and his updated 5e ruleset (June 2026) uses modern JS pervasively
-across **sheets, roll handlers, and the embedded chat-button macros** — verified by
-direct review of `Source/realmvtt-5e-main/` (~847 `const`, 368 arrow functions, 672
-template literals in the character sheets alone).
+**JAVASCRIPT STANDARD: ES6+**
+All code uses ES6+ syntax: const/let, arrow functions, template literals, optional
+chaining (?.), nullish coalescing (??). Match Sean's confirmed ES6 patterns from his
+source files directly — no manual translation needed.
 
-Confirmed-supported (all seen in production 5e source):
+Sean (Realm VTT developer) confirmed the old "ES5 only" barrier is gone and writes
+all his rulesets in ES6; his updated 5e source (June 2026) uses modern JS pervasively
+across sheets, roll handlers, and the embedded chat-button macros. The entire YZE
+ruleset has been converted ES5 → ES6 — `common.js`, every `rollhandlers/*.js`, and
+every inline `<script>` block. Keep new code ES6 to match.
+
+Confirmed-supported (in production 5e source AND now throughout YZE):
 ```javascript
 const / let
-() => {}                      // arrow functions
+() => {}                      // arrow functions (use for callbacks)
 `template ${literals}`
 obj?.prop ?? fallback         // optional chaining + nullish coalescing
 [...spread], {...spread}
@@ -1053,16 +1059,22 @@ String.prototype.replaceAll / matchAll
 default parameters, Object.assign
 ```
 
+ONE HARD RULE (correctness, not style):
+- Keep top-level / named functions as `function name(){}` DECLARATIONS — do NOT
+  rewrite them as `const name = () => {}`. Realm calls them as globals from
+  `onclick`/`onload`/`onrecordchanged` and across scripts, and the test harness reads
+  them as context globals; a top-level `const` arrow is not visible in either place.
+  Only ANONYMOUS callbacks (e.g. `api.setValues({...}, () => {...})`) become arrows.
+  (Sean writes his the same way — named helpers stay function declarations.)
+
 Notes:
-- Existing YZE code is written in ES5 style (var, function, string concatenation,
-  for-loops). That is still 100% valid — there's no need to rewrite it. Modern JS
-  is now *allowed*, not *required*. Match the surrounding file's style when editing.
-- When copying patterns from Sean's 5e/PF2e source, keep them as written (they are
-  ES6+) — do NOT down-translate to ES5.
-- The roll-handler / list-item example snippets elsewhere in this doc were authored
-  in ES5 style and left as-is; they still run, but you may use modern syntax.
-- The YZE unit-test harness (`YZE/tests/`) loads `common.js` into a Node `vm`
-  context and exercises the pure helpers — run `node tests/run-all.js` from `YZE/`.
+- When copying patterns from Sean's 5e/PF2e source, keep them as written (ES6+) — no
+  down-translation.
+- `var`→`const`/`let`: do not move a `var` that's declared inside a block but read
+  outside it to `const`/`let` (function-scope vs block-scope would change behavior).
+- The YZE unit-test harness (`YZE/tests/`) loads `common.js` into a Node `vm` context
+  and exercises the pure helpers — run `node tests/run-all.js` from `YZE/`. A
+  script-mode parse check over every file lives at `tests/parse-check.cjs`.
 
 ---
 

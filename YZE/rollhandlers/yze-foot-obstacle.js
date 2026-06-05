@@ -1,12 +1,12 @@
 // YZE yze_foot_obstacle — Foot Chase Obstacle (D10), SRD p.29.
 // Structure matches yze-crit.js exactly.
 
-var dice   = (data && data.roll && data.roll.dice) || [];
-var result = dice.length > 0 ? parseInt(dice[0].value, 10) : 1;
+const dice   = (data && data.roll && data.roll.dice) || [];
+let result = dice.length > 0 ? parseInt(dice[0].value, 10) : 1;
 if (isNaN(result) || result < 1)  result = 1;
 if (result > 10) result = 10;
 
-var FOOT = {
+const FOOT = {
   1:  { name: 'Dead End',
         effect: 'If the prey has chosen to Pursue/Flee, Hide, or Block, the maneuver fails automatically.' },
   2:  { name: 'Food Stall',
@@ -29,12 +29,12 @@ var FOOT = {
         effect: 'D6 street thugs block the road, threatening violence. The prey must roll Persuasion (no action) to be allowed to pass. A failed roll means the thugs attack — the chosen maneuver fails and one thug attacks in close combat. If the Persuasion roll succeeds, the thugs will attack the pursuer instead.' }
 };
 
-var entry = FOOT[result] || { name: 'Unknown', effect: 'No table entry for result ' + result + '.' };
+const entry = FOOT[result] || { name: 'Unknown', effect: `No table entry for result ${result}.` };
 
-var msg = '**[center][color=orange]CHASE OBSTACLE[/color][/center]**';
-msg += '\n[center]Foot Chase — D10: ' + result + '[/center]';
-msg += '\n**[center]' + result + '. ' + entry.name + '[/center]**';
-msg += '\n[center]' + entry.effect + '[/center]';
+let msg = '**[center][color=orange]CHASE OBSTACLE[/color][/center]**';
+msg += `\n[center]Foot Chase — D10: ${result}[/center]`;
+msg += `\n**[center]${result}. ${entry.name}[/center]**`;
+msg += `\n[center]${entry.effect}[/center]`;
 
 data.roll.total = result;
 api.sendMessage(msg, data.roll, [], [{ name: entry.name, tooltip: entry.effect }]);
