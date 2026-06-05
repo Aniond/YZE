@@ -24,10 +24,14 @@ Players bring their own setting (Electric State, Tales from the Loop, etc.)
 PRIMARY REFERENCE: The Realm VTT API Reference section below.
 Read it before writing ANY Realm VTT code.
 It contains every confirmed API pattern, canvas rules,
-ES5 requirements, gotchas, and unconfirmed methods.
+JS language support, gotchas, and unconfirmed methods.
 
 Key rules at a glance:
-- ES5 only — no const/let, no arrow functions, no template literals
+- Modern JS (ES2021+) is supported — const/let, arrow functions, template
+  literals, optional chaining, spread, Set/Map, .map/.filter/.forEach all work
+  in sheets, roll handlers, AND chat-button macros. (Confirmed June 2026 from
+  Sean's updated 5e source — see Section 9. The old "ES5 only" rule is retired;
+  existing ES5-style code is still valid, it's just no longer required.)
 - api.getCanvas() returns the context directly — no .getContext('2d')
 - Canvas: setter methods only — c.setFillStyle() not c.fillStyle
 - Canvas: c.width/c.height as properties, clearRect not clear()
@@ -1027,25 +1031,38 @@ function onDrop(type, recordLink, sourceInfo) {
 
 ---
 
-## 9. ES5 Rules (Realm VTT uses ES5)
+## 9. JS Language Support (Realm VTT runs modern JS)
 
+**RETIRED RULE:** This section used to say "ES5 only — no const/let, no arrow
+functions, no template literals." That is no longer true. Sean confirmed the ES5
+barrier is gone, and his updated 5e ruleset (June 2026) uses modern JS pervasively
+across **sheets, roll handlers, and the embedded chat-button macros** — verified by
+direct review of `Source/realmvtt-5e-main/` (~847 `const`, 368 arrow functions, 672
+template literals in the character sheets alone).
+
+Confirmed-supported (all seen in production 5e source):
 ```javascript
-// NO const/let — use var
-// NO arrow functions — use function(){}
-// NO template literals — use string concatenation
-// NO .map()/.filter()/.forEach() — use for loops
-// NO Set/Map — use plain objects for lookups
-// NO ...spread — use explicit assignment
-// NO default parameters — check args inside function
-// NO Object.assign — build objects manually
-
-// CORRECT patterns
-var x = 5;
-var arr = [];
-for (var i = 0; i < arr.length; i++) { /* ... */ }
-function handler() { /* ... */ }
-var str = 'Hello ' + name + '!';
+const / let
+() => {}                      // arrow functions
+`template ${literals}`
+obj?.prop ?? fallback         // optional chaining + nullish coalescing
+[...spread], {...spread}
+arr.map / .filter / .forEach / .find / .some / .reduce / .includes
+new Set() / new Map()
+String.prototype.replaceAll / matchAll
+default parameters, Object.assign
 ```
+
+Notes:
+- Existing YZE code is written in ES5 style (var, function, string concatenation,
+  for-loops). That is still 100% valid — there's no need to rewrite it. Modern JS
+  is now *allowed*, not *required*. Match the surrounding file's style when editing.
+- When copying patterns from Sean's 5e/PF2e source, keep them as written (they are
+  ES6+) — do NOT down-translate to ES5.
+- The roll-handler / list-item example snippets elsewhere in this doc were authored
+  in ES5 style and left as-is; they still run, but you may use modern syntax.
+- The YZE unit-test harness (`YZE/tests/`) loads `common.js` into a Node `vm`
+  context and exercises the pure helpers — run `node tests/run-all.js` from `YZE/`.
 
 ---
 
@@ -1081,4 +1098,108 @@ var str = 'Hello ' + name + '!';
 
 ---
 
-*Sources: SEAN_CODE_EXAMPLES.md, PTA/character-main.html, PTA/common.js — May 2026*
+## 12. Confirmed from Sean's updated 5e source (June 2026)
+
+These were UNCONFIRMED but now have production backing in `Source/realmvtt-5e-main/`.
+Citations are `file:line` in that repo — verify the exact signature there before
+relying on one. (Several were previously listed as "ask Sean.")
+
+### Rolling
+```javascript
+// Per-token roll prompt — the workhorse for saves/checks/initiative on a token
+// that may not be the current record (rollhandlers/combatTracker-roll-initiative.js:46)
+api.promptRollForToken(token, name, dice, modifiers, metadata, rollType);
+
+// Synchronous roll — no prompt, no chat card; returns { total } (onTokenAdded.js:7)
+var res = api.rollInstant('2d6');   // res.total
+```
+
+### Targeting & tokens
+```javascript
+api.getSelectedOrDroppedToken();  // -> array; selected tokens or the macro's drop target (damage.js:61)
+api.getSelectedOwnedTokens();     // -> [{token}]; player-owned selected (damage.js:72)
+api.getOtherTokens();             // -> other tokens on the scene (spell-list.html:713)
+api.getDistance(tokenA, tokenB);  // -> grid distance (spell-list.html:736)
+api.setValueOnToken(token, 'data.curHealth', n);          // write by token ref (damage.js:161)
+api.floatText(token, 'text', 'red');                      // floating combat text (deathsave.js:76)
+```
+
+### Chat / VFX
+```javascript
+api.editMessage(messageId, newText);          // edit a posted message (Undo strike-through) (damage.js:219)
+api.playAnimation(animation, srcTokenId, tgtTokenId);     // token-to-token VFX (attack.js:516)
+api.richTextToMarkdown(htmlField);            // richtext -> chat markdown (spell-list.html:100)
+// sendMessage takes an optional 5th arg `target` (common.js:4277)
+```
+
+### Records / compendium
+```javascript
+api.getRecordsByQuery(type, { 'data.slug': x }, cb);      // bulk mongo-style query (feature-utils.js:1786)
+api.dropRecord(record);                       // programmatically "drop" a compendium record onto the sheet (wizards step2)
+api.addValues('data.list', [a, b, c], cb);    // PLURAL append (feature-utils.js:4463)
+api.setRecordLink('field', recordLink, cb);   // store a record-to-record link (character-features.html:446)
+api.addTokenChangeEffect(npcId, token);       // swap token art as a removable effect (npc-description.html:122)
+```
+
+### Prompts (custom dialogs)
+```javascript
+api.showPrompt(title, header, body, options, default, cb, okLabel, cancelLabel, numChoices); // option/compendium picker (feature-utils.js:442)
+api.showValuePrompt(title, description, cb);  // free-text input (feature-utils.js:3874)
+```
+
+### Show/hide, settings, misc
+```javascript
+api.setHidden(['fieldA', 'fieldB'], true);    // ARRAY overload of setHidden (character-actions.html:98)
+api.getSetting('coinWeight');                 // read a ruleset setting (character-inventory.html:24)
+api.awardExp(amount, reason);                 // party XP award (onEncounterEnd.js:31)
+api.broadcast('xp-awarded', payload);         // cross-client event; sheets receive via onBroadcast(name, data) (onEncounterEnd.js:32)
+api.loadImage(url);                           // async -> base64 dataURL; for exporters (exporters/characters.js:178)
+api.closeOpenedPopovers();                    // close any open <popover> (character-inventory.html:348)
+api.delay(cb, ms);                            // defer until after a save settles (character-inventory.html:318)
+```
+
+### onDrop — move semantics (sourceInfo)
+```javascript
+// character-inventory.html:186 — the full pattern (already applied to YZE gear/magic/talents)
+function onDrop(type, recordLink, sourceInfo) {
+  if (type === 'items') {
+    addItem(recordLink);
+    if (sourceInfo?.type === 'list') {
+      api.getRecord(sourceInfo.recordType, sourceInfo.recordId, function(src) {
+        api.removeValueFromRecord(src, sourceInfo.dataPath, sourceInfo.index);
+      });
+    } else if (sourceInfo?.type === 'partysheet') {
+      api.removePartySheetItem(sourceInfo.itemId);
+    }
+  }
+}
+// sourceInfo shape: { type:'list'|'partysheet', recordType, recordId, dataPath, index, itemId }
+```
+
+### New UI tags / attributes (confirmed)
+- Compound `<popover>` / `<popover.target>` / `<popover.dropdown>` (character-main.html:3629)
+- `<iconbutton options='[{"icon","label","value"}]'>` (icon that opens a menu)
+- `<progressbar field="curhp" currentvaluefield maxvaluefield color="health">` (character-main.html:3834)
+- `<portrait variant="fancy">`
+- `<list variant="striped|unstyled" allowadd>`
+- `numberfield` attrs: `showsign`, `updateonblur`, `hidecontrols`
+
+### New config blocks (in ruleset.config.json)
+- `jsonImport { script, fetchUrl, fetchLabel, postScript }` — importer; the script returns `{name, data, fields, _pendingRecords[], portrait}` (Realm resolves `_pendingRecords` by compendium name).
+- `pdfExport { script, filename }` — async script returning a pdfmake docDefinition.
+- `wizard { steps: [{name, file, next, previous}] }` — each step HTML has `onStepEnd()`, writes a `data.wizard.*` scratch namespace, commits via `api.setValues`/`api.dropRecord`.
+- `combatTracker.onRollInitiativeGroup` — group-initiative hook (one roll fills a whole group).
+- `settings.otherSettings.scripts.{name}.file` — named secondary shared scripts beyond `commonScript`.
+- `settings.otherSettings.onReroll` — gate run before a reroll; return `{success:bool}`.
+- Note: `campaignSettings` and `otherSettings` live UNDER `settings`, not at top level.
+
+### Caveat — full-array writes
+`common.js:15` `safeAddValue` re-fetches the record and writes the WHOLE array back
+via `setValues` (to dodge a stale-cache bug) — the OPPOSITE of this doc's earlier
+"use addValue, don't replace full arrays" advice (Section 2). Both appear in current
+5e code; ask Sean which is canonical before relying on either for large lists.
+
+---
+
+*Sources: SEAN_CODE_EXAMPLES.md, PTA/character-main.html, PTA/common.js (May 2026);
+Sean's updated realmvtt-5e-main full review (June 2026) — Section 12.*
