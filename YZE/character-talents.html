@@ -143,25 +143,37 @@ function yzeUuid() {
   return s.join('');
 }
 
+function onDropSpecialtyItem(recordLink) {
+  const item = recordLink?.value;
+  if (!item || !item.data) return;
+  const itemToAdd = {
+    ...item,
+    _id: yzeUuid(),
+  };
+  api.addValue('data.specialtyList', itemToAdd);
+}
+
 function onDrop(type, recordLink, sourceInfo) {
-  if (type !== 'specialty') return;
-  var rec = recordLink.value;
-  if (!rec || !rec.data) return;
-  var newItem = {};
-  for (var k in rec) {
-    if (Object.prototype.hasOwnProperty.call(rec, k)) newItem[k] = rec[k];
-  }
-  newItem._id = yzeUuid();
-  api.addValue('data.specialtyList', newItem);
-  // Remove the item from its source when dragged off another list / the party
-  // sheet (Sean's 5e onDrop pattern, ES5).
-  if (sourceInfo) {
-    if (sourceInfo.type === 'list') {
-      api.getRecord(sourceInfo.recordType, sourceInfo.recordId, function(sourceRecord) {
-        api.removeValueFromRecord(sourceRecord, sourceInfo.dataPath, sourceInfo.index);
-      });
-    } else if (sourceInfo.type === 'partysheet') {
-      api.removePartySheetItem(sourceInfo.itemId);
+  if (type === "specialty") {
+    onDropSpecialtyItem(recordLink);
+    if (sourceInfo) {
+      if (sourceInfo?.type === "list") {
+        // Query for the record first, then remove the item from the source list
+        api.getRecord(
+          sourceInfo.recordType,
+          sourceInfo.recordId,
+          (sourceRecord) => {
+            api.removeValueFromRecord(
+              sourceRecord,
+              sourceInfo.dataPath,
+              sourceInfo.index,
+            );
+          },
+        );
+      } else if (sourceInfo?.type === "partysheet") {
+        // Remove the item from party sheet
+        api.removePartySheetItem(sourceInfo.itemId);
+      }
     }
   }
 }
