@@ -4,3 +4,7 @@ node_modules/
 settings.local.json
 *.local.json
 *.code-workspace
+
+# Local helpers / unreferenced assets
+watch_game.ps1
+icons/yze-icon-512.png
