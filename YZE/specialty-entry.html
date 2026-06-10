@@ -1,10 +1,27 @@
 <script>
+// ── Sean's list-item context helpers ──────────────────────────────────────
+// specialty-entry.html is a list-item template. api.getValue('data.X') reads
+// the TOP-LEVEL owning record. Use ctx.dataPrefix to read THIS item's fields.
+function getNearestParentDataPath(dp) {
+  const parts = dp.split('.data');
+  return parts.length > 1 ? parts.slice(0, -1).join('.data') : '';
+}
+
+function getItemContext() {
+  const itemDataPath = getNearestParentDataPath(dataPath);
+  const item         = itemDataPath ? api.getValue(itemDataPath) : record;
+  const dp           = itemDataPath ? `${itemDataPath}.data`     : 'data';
+  const fp           = itemDataPath ? `${itemDataPath}.fields`   : 'fields';
+  return { item: item, dataPrefix: dp, fieldsPath: fp };
+}
+
 // Show rank stepper only when the specialty can be taken more than once.
 // _lastRankHidden guard: api.setValues() in onrecordchanged re-fires onrecordchanged —
 // bail early if nothing changed to prevent an infinite loop.
 let _lastRankHidden = null;
 function onSpecialtyEntryLoad() {
-  const maxR = parseInt(api.getValue('data.maxRanks') || '1', 10);
+  const ctx  = getItemContext();
+  const maxR = parseInt(api.getValue(`${ctx.dataPrefix}.maxRanks`) || '1', 10);
   const shouldHide = maxR <= 1;
   if (shouldHide === _lastRankHidden) return;
   _lastRankHidden = shouldHide;

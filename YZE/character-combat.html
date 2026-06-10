@@ -252,7 +252,7 @@
   }
 
   // ── onDrop — adds gear to gearList from compendium drag ─────────────────
-  function onDrop(type, recordLink) {
+  function onDrop(type, recordLink, sourceInfo) {
     if (type !== 'gear') return;
     const rec = recordLink.value;
     if (!rec || !rec.data) return;
@@ -269,6 +269,13 @@
       range:       rec.data.range       || 'engaged'
     };
     api.addValue('data.gearList', newItem, () => { drawWeaponsCanvas(); });
+    if (sourceInfo?.type === 'list') {
+      api.getRecord(sourceInfo.recordType, sourceInfo.recordId, (sourceRecord) => {
+        api.removeValueFromRecord(sourceRecord, sourceInfo.dataPath, sourceInfo.index);
+      });
+    } else if (sourceInfo?.type === 'partysheet') {
+      api.removePartySheetItem(sourceInfo.itemId);
+    }
   }
 
   // ── Rounded rect helper ──────────────────────────────────────────────────

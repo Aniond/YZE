@@ -1,25 +1,46 @@
 <script>
-// Local wrapper: reads this record's fields and calls castSpell() from common.js.
+// ── Sean's list-item context helpers ──────────────────────────────────────
+// spell-entry.html is a list-item template. api.getValue('data.X') reads
+// the TOP-LEVEL owning record. Use ctx.dataPrefix to read THIS item's fields.
+function getNearestParentDataPath(dp) {
+  const parts = dp.split('.data');
+  return parts.length > 1 ? parts.slice(0, -1).join('.data') : '';
+}
+
+function getItemContext() {
+  const itemDataPath = getNearestParentDataPath(dataPath);
+  const item         = itemDataPath ? api.getValue(itemDataPath) : record;
+  const dp           = itemDataPath ? `${itemDataPath}.data`     : 'data';
+  const fp           = itemDataPath ? `${itemDataPath}.fields`   : 'fields';
+  return { item: item, dataPrefix: dp, fieldsPath: fp };
+}
+
+// Local wrapper: reads THIS spell's fields and calls castSpell() from common.js.
+// (castSpell's own 'data.wp' reads/writes intentionally hit the owning character.)
 function onCastSpell() {
-  function bool(f) { const v = api.getValue(`data.${f}`); return (v === true || v === 1 || v === '1' || v === 'true'); }
+  const ctx  = getItemContext();
+  const item = ctx.item || {};
+  const d    = item.data || {};
+  function bool(v) { return (v === true || v === 1 || v === '1' || v === 'true'); }
   castSpell(
-    parseInt(api.getValue('data.wpSpend')        || '1', 10),
-    api.getValue('data.name')                    || 'Spell',
-    parseInt(api.getValue('data.rank')           || '1', 10),
-    api.getValue('data.discipline')              || '',
-    api.getValue('data.portrait')                || '',
+    parseInt(d.wpSpend || '1', 10),
+    item.name          || 'Spell',
+    parseInt(d.rank    || '1', 10),
+    d.discipline       || '',
+    item.portraitUrl   || item.portrait || '',
     {
-      safeCast:     bool('safeCast'),
-      safecastDice: parseInt(api.getValue('data.safecastDice') || '1', 10),
-      chanceCast:   bool('chanceCast'),
-      fromGrimoire: bool('fromGrimoire')
+      safeCast:     bool(d.safeCast),
+      safecastDice: parseInt(d.safecastDice || '1', 10),
+      chanceCast:   bool(d.chanceCast),
+      fromGrimoire: bool(d.fromGrimoire)
     }
   );
 }
 
 // Show/hide safecastDice stepper based on the safeCast checkbox.
 function onSafeCastChange() {
-  const on = api.getValue('data.safeCast');
+  const ctx = getItemContext();
+  const on = api.getValue(`${ctx.dataPrefix}.safeCast`);
   const checked = (on === true || on === 1 || on === '1' || on === 'true');
   api.setValues({ 'fields.safecastDiceBox.hidden': !checked });
 }
@@ -29,7 +50,8 @@ function onSafeCastChange() {
 // bail early if discipline hasn't changed to prevent an infinite loop.
 let _lastDisc = null;
 function onSpellEntryLoad() {
-  const disc = api.getValue('data.discipline') || '';
+  const ctx  = getItemContext();
+  const disc = api.getValue(`${ctx.dataPrefix}.discipline`) || '';
   if (disc === _lastDisc) return;
   _lastDisc = disc;
   const isAmber = (disc === 'Awareness' || disc === 'Healing' || disc === 'Shapeshifting');
