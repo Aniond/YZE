@@ -33,7 +33,9 @@ npm-debug.log*
 reference/
 
 # Sean's source rulesets — reference only, not part of this project
-Source/
+Source/*
+!Source/realmvtt-age-of-vikings-main/
+!Source/realmvtt-age-of-vikings-main/**
 
 # AI-generated Kult sheet — not part of the YZE project
 kult-divinity-lost/
