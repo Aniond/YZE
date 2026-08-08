@@ -6,6 +6,8 @@ import { registerDerivedTests } from "./test-derived.js";
 import { registerCombatTests } from "./test-combat.js";
 import { registerDamageTests } from "./test-damage.js";
 import { registerTabTests } from "./test-tabs.js";
+import { registerConfigTests } from "./test-config.js";
+import { registerImporterTests } from "./test-importer.js";
 
 let passed = 0;
 let failed = 0;
@@ -36,6 +38,8 @@ registerDerivedTests(test, loadScript);
 registerCombatTests(test, loadScript);
 registerDamageTests(test, loadScript);
 registerTabTests(test);
+registerConfigTests(test);
+registerImporterTests(test, loadScript);
 
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) process.exitCode = 1;

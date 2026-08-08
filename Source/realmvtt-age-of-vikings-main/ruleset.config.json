@@ -1,0 +1,66 @@
+{
+  "name": "Age of Vikings",
+  "description": "A RuneQuest-derived percentile ruleset for Chaosium's Age of Vikings, built for private Cult of Chaos play.",
+  "version": 1,
+  "published": false,
+  "records": [
+    {
+      "name": "Characters", "type": "characters", "minX": 760, "minY": 760, "isList": false, "hasToken": true, "icon": "GiVikingHead",
+      "tabs": [
+        {"name":"Main","file":"character-main.html"},{"name":"Skills","file":"character-skills.html"},{"name":"Combat","file":"character-combat.html"},{"name":"Gear","file":"character-gear.html"},{"name":"Magic","file":"character-magic.html"},{"name":"Family","file":"character-family.html"},{"name":"Notes","file":"character-notes.html"}
+      ],
+      "wizard": {"enabled":true,"steps":[
+        {"name":"Identity","file":"wizards/characters/step-01.html","next":"Characteristics","previous":""},
+        {"name":"Characteristics","file":"wizards/characters/step-02.html","next":"Homeland","previous":"Identity"},
+        {"name":"Homeland","file":"wizards/characters/step-03.html","next":"Family","previous":"Characteristics"},
+        {"name":"Family","file":"wizards/characters/step-04.html","next":"Abilities","previous":"Homeland"},
+        {"name":"Abilities","file":"wizards/characters/step-05.html","next":"Passions","previous":"Family"},
+        {"name":"Passions","file":"wizards/characters/step-06.html","next":"Runes","previous":"Abilities"},
+        {"name":"Runes","file":"wizards/characters/step-07.html","next":"Magic","previous":"Passions"},
+        {"name":"Magic","file":"wizards/characters/step-08.html","next":"Gear","previous":"Runes"},
+        {"name":"Gear","file":"wizards/characters/step-09.html","next":"Review","previous":"Magic"},
+        {"name":"Review","file":"wizards/characters/step-10.html","next":"Create Hero","previous":"Gear"}
+      ]},
+      "jsonImport":{"enabled":true,"label":"Import Age of Vikings Character JSON","script":{"file":"importers/character-json.js"},"postScript":{"file":"importers/post-character-json.js"}}
+    },
+    {"name":"NPCs","type":"npcs","minX":680,"minY":650,"isList":false,"hasToken":true,"icon":"GiVikingLonghouse","tabs":[{"name":"Main","file":"npcs-main.html"},{"name":"Combat","file":"npcs-combat.html"},{"name":"Gear","file":"npcs-gear.html"},{"name":"Abilities","file":"npcs-abilities.html"},{"name":"Description","file":"npcs-description.html"},{"name":"Rules","file":"npcs-rules.html"}]},
+    {"name":"Items","type":"items","isList":false,"icon":"GiBroadsword","tabs":[{"name":"Main","file":"items-main.html"},{"name":"Combat","file":"items-combat.html"},{"name":"Rules","file":"items-rules.html"}]},
+    {"name":"Abilities","type":"abilities","isList":false,"icon":"GiBookmarklet","tabs":[{"name":"Main","file":"abilities-main.html"},{"name":"Rules","file":"abilities-rules.html"}]},
+    {"name":"Runes","type":"runes","isList":false,"icon":"GiRuneStone","tabs":[{"name":"Main","file":"runes-main.html"},{"name":"Rules","file":"runes-rules.html"}]},
+    {"name":"Magic","type":"magic","isList":false,"icon":"GiMagicSwirl","tabs":[{"name":"Main","file":"magic-main.html"},{"name":"Rules","file":"magic-rules.html"}]},
+    {"name":"Skill List","type":"skill_list","isList":true,"showAddButton":true,"showDeleteButton":true,"addButtonText":"Add Ability","newItemName":"New Ability","disableDrop":true,"tabs":[{"name":"Main","file":"lists/skill_list.html"}]},
+    {"name":"Passion List","type":"passion_list","isList":true,"showAddButton":true,"showDeleteButton":true,"addButtonText":"Add Passion","newItemName":"New Passion","disableDrop":true,"tabs":[{"name":"Main","file":"lists/passion_list.html"}]},
+    {"name":"Devotion List","type":"devotion_list","isList":true,"showAddButton":true,"showDeleteButton":true,"addButtonText":"Add Devotion","newItemName":"New Devotion","disableDrop":true,"tabs":[{"name":"Main","file":"lists/devotion_list.html"}]},
+    {"name":"Attack List","type":"attack_list","isList":true,"showAddButton":true,"showDeleteButton":true,"addButtonText":"Add Attack","newItemName":"New Attack","disableDrop":true,"tabs":[{"name":"Main","file":"lists/attack_list.html"}]},
+    {"name":"Hit Location List","type":"hit_location_list","isList":true,"showAddButton":true,"showDeleteButton":true,"addButtonText":"Add Location","newItemName":"New Location","disableDrop":true,"tabs":[{"name":"Main","file":"lists/hit_location_list.html"}]},
+    {"name":"Inventory List","type":"inventory_list","isList":true,"showAddButton":true,"showDeleteButton":true,"addButtonText":"Add Item","newItemName":"New Item","allowedListTypes":["items"],"tabs":[{"name":"Main","file":"lists/inventory_list.html"}]},
+    {"name":"Armor Layer List","type":"armor_layer_list","isList":true,"showAddButton":true,"showDeleteButton":true,"addButtonText":"Add Armor","newItemName":"New Armor","allowedListTypes":["items"],"tabs":[{"name":"Main","file":"lists/armor_layer_list.html"}]},
+    {"name":"Ability List","type":"ability_list","isList":true,"showAddButton":true,"showDeleteButton":true,"addButtonText":"Add Ability","newItemName":"New Ability","allowedListTypes":["abilities"],"tabs":[{"name":"Main","file":"lists/ability_list.html"}]},
+    {"name":"Known Rune List","type":"known_rune_list","isList":true,"showAddButton":true,"showDeleteButton":true,"addButtonText":"Add Rune","newItemName":"New Rune","allowedListTypes":["runes"],"tabs":[{"name":"Main","file":"lists/known_rune_list.html"}]},
+    {"name":"Magic Action List","type":"magic_action_list","isList":true,"showAddButton":true,"showDeleteButton":true,"addButtonText":"Add Magic","newItemName":"New Magic","allowedListTypes":["magic"],"tabs":[{"name":"Main","file":"lists/magic_action_list.html"}]},
+    {"name":"Family List","type":"family_list","isList":true,"showAddButton":true,"showDeleteButton":true,"addButtonText":"Add Relation","newItemName":"New Relation","disableDrop":true,"tabs":[{"name":"Main","file":"lists/family_list.html"}]}
+  ],
+  "settings": {
+    "healthIndicator":{"disabled":false,"maxHealthField":"maxHp","currentHealthField":"curHp","color":[{"percentage":0,"color":"#5b1515","label":"Dying"},{"percentage":25,"color":"#9c3f24","label":"Grievously Wounded"},{"percentage":50,"color":"#c88532","label":"Wounded"},{"percentage":75,"color":"#c1a850","label":"Hurt"},{"percentage":100,"color":"#3f704d","label":"Healthy"}]},
+    "combatTracker":{"initiativeMode":"standard","initiative":"dex","order":"desc","slotBased":false,"clearSlotsPerRound":false,"additionalFields":[{"field":"curHp","label":"HP","type":"number","width":60,"editable":true},{"field":"maxHp","label":"Max","type":"number","width":60,"editable":false}],"onRollInitiative":{"file":"scripts/on-roll-initiative.js"}},
+    "rollTypes":[{"name":"ability","file":"rollhandlers/ability.js"}],
+    "damage":{"enableDamage":true,"enableHealing":true,"damageScript":{"file":"scripts/damage-apply.js"},"healingScript":{"file":"scripts/healing-apply.js"},"damageTypes":{"normal":{"icon":"icon-slashing","color":"default"},"fire":{"icon":"icon-fire","color":"orange"},"magic":{"icon":"icon-radiant","color":"violet"}},"enableSecondaryStat":false},
+    "effects":[
+      {"label":"Ability Bonus","type":"abilityBonus","fields":[{"label":"All Abilities","field":"all"}]},
+      {"label":"Ability Penalty","type":"abilityPenalty","fields":[{"label":"All Abilities","field":"all"}]},
+      {"label":"Attack Bonus","type":"attackBonus","fields":[]},
+      {"label":"Attack Penalty","type":"attackPenalty","fields":[]},
+      {"label":"Armor Modifier","type":"armorModifier","fields":[]},
+      {"label":"Damage Multiplier","type":"damageMultiplier","fields":[]}
+    ],
+    "otherSettings":{"commonScript":{"file":"rollhandlers/common.js"},"rulesetVersion":"0.1.0","defaultDice":"default","defaultUnitsPerSquare":1,"defaultUnits":"meters","alternateDiagonalMovement":false,"advDisRolls":[]},
+    "partySheet":{"additionalFields":[{"field":"curHp","label":"HP","type":"healthbar","width":90,"maxField":"maxHp"},{"field":"dex","label":"DEX","type":"number","width":60}],"inventory":{"enabled":false,"recordType":"items","additionalFields":[]},"awards":{"enabled":false,"xpName":"Reputation","xpField":"reputation","xpMethod":"award_equally","currencyFields":[]}},
+    "campaignSettings":[],
+    "tokenSize":[{"size":0.5,"label":"Tiny"},{"size":1,"label":"Human"},{"size":2,"label":"Large"},{"size":3,"label":"Huge"}],
+    "calendars":[],
+    "themes":[
+      {"name":"Age of Vikings - Parchment","colorScheme":"light","theme":{"primaryColor":"brown","white":"#f6efdc","black":"#211a14","colors":{"brown":["#fbf5e8","#f2e2be","#e6ca91","#d3aa61","#b8873f","#99672f","#795027","#603f24","#4d3320","#3c281b"]}}},
+      {"name":"Age of Vikings - Longhouse","colorScheme":"dark","theme":{"primaryColor":"orange","white":"#efe4ce","black":"#14110e","colors":{"orange":["#fff1dc","#f7d7aa","#edbd7c","#dfa052","#cd8435","#b66b29","#925322","#743f1e","#5d331c","#4a2919"]}}}
+    ]
+  }
+}
