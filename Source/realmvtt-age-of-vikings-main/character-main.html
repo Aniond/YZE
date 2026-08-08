@@ -1,0 +1,26 @@
+<script>
+  function recalculateHero() {
+    var core = {};
+    ["str", "con", "siz", "dex", "int", "pow", "cha"].forEach(function (key) { core[key] = Number(api.getValue("data." + key)) || 0; });
+    var derived = aov.calculateDerived(core);
+    var categories = aov.calculateSkillCategoryModifiers(core);
+    var values = {};
+    Object.keys(derived).forEach(function (key) { values["data." + key] = derived[key]; });
+    Object.keys(categories).forEach(function (key) { values["data.category_" + key] = categories[key]; });
+    api.setValues(values);
+  }
+  function rollCharacteristic(key, label) {
+    api.promptRoll(label, "1d100", [], { rollName: label, target: Number(api.getValue("data." + key)) || 0 }, "ability");
+  }
+</script>
+<div style="padding:12px;display:grid;gap:10px">
+  <stringfield field="name" label="Hero Name" size="lg"></stringfield>
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px">
+    <numberfield field="str" label="STR" onchange="recalculateHero()"></numberfield><numberfield field="con" label="CON" onchange="recalculateHero()"></numberfield><numberfield field="siz" label="SIZ" onchange="recalculateHero()"></numberfield><numberfield field="dex" label="DEX" onchange="recalculateHero()"></numberfield><numberfield field="int" label="INT" onchange="recalculateHero()"></numberfield><numberfield field="pow" label="POW" onchange="recalculateHero()"></numberfield><numberfield field="cha" label="CHA" onchange="recalculateHero()"></numberfield>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">
+    <numberfield field="curHp" label="HP"></numberfield><numberfield field="maxHp" label="Max HP" editable="false"></numberfield><numberfield field="curMagicPoints" label="MP"></numberfield><numberfield field="maxMagicPoints" label="Max MP" editable="false"></numberfield><numberfield field="movement" label="MOV" editable="false"></numberfield><numberfield field="healingRate" label="Healing" editable="false"></numberfield>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px"><stringfield field="damageModifier" label="Damage Modifier" editable="false"></stringfield><numberfield field="maxEnc" label="Max ENC" editable="false"></numberfield><checkbox field="wyrdUsedToday" label="Wyrd Used Today"></checkbox></div>
+  <richtextfield field="description" label="Description"></richtextfield>
+</div>

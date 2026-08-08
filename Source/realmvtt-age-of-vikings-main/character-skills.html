@@ -1,0 +1,2 @@
+<script>function rollSkill(value, name) { api.promptRoll(name || "Ability", "1d100", [], { rollName: name || "Ability", target: Number(value) || 0 }, "ability"); }</script>
+<div style="padding:12px;display:grid;gap:10px"><label text="Abilities and Relationships" size="lg"></label><list listtype="skill_list" field="skills" variant="striped"></list><list listtype="passion_list" field="passions" variant="striped"></list><list listtype="devotion_list" field="devotions" variant="striped"></list></div>
