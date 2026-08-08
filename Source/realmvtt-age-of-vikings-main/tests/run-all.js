@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { loadScript } from "./load-script.js";
 import { parseAllScripts } from "./parse-check.js";
+import { registerPercentileTests } from "./test-percentile.js";
+import { registerDerivedTests } from "./test-derived.js";
 
 let passed = 0;
 let failed = 0;
@@ -25,6 +27,9 @@ test("common script exposes the aov namespace", () => {
 test("all JavaScript and HTML script blocks parse", () => {
   assert.deepEqual(parseAllScripts(), []);
 });
+
+registerPercentileTests(test, loadScript);
+registerDerivedTests(test, loadScript);
 
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) process.exitCode = 1;
