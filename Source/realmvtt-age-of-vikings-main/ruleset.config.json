@@ -2,7 +2,6 @@
   "name": "Age of Vikings",
   "description": "A RuneQuest-derived percentile ruleset for Chaosium's Age of Vikings, built for private Cult of Chaos play.",
   "version": 1,
-  "published": false,
   "records": [
     {
       "name": "Characters", "type": "characters", "minX": 760, "minY": 760, "isList": false, "hasToken": true, "icon": "GiVikingHead",
@@ -44,7 +43,7 @@
     "healthIndicator":{"disabled":false,"maxHealthField":"maxHp","currentHealthField":"curHp","color":[{"percentage":0,"color":"#5b1515","label":"Dying"},{"percentage":25,"color":"#9c3f24","label":"Grievously Wounded"},{"percentage":50,"color":"#c88532","label":"Wounded"},{"percentage":75,"color":"#c1a850","label":"Hurt"},{"percentage":100,"color":"#3f704d","label":"Healthy"}]},
     "combatTracker":{"initiativeMode":"standard","initiative":"dex","order":"desc","slotBased":false,"clearSlotsPerRound":false,"additionalFields":[{"field":"curHp","label":"HP","type":"number","width":60,"editable":true},{"field":"maxHp","label":"Max","type":"number","width":60,"editable":false}],"onRollInitiative":{"file":"scripts/on-roll-initiative.js"}},
     "rollTypes":[{"name":"ability","file":"rollhandlers/ability.js"}],
-    "damage":{"enableDamage":true,"enableHealing":true,"damageScript":{"file":"scripts/damage-apply.js"},"healingScript":{"file":"scripts/healing-apply.js"},"damageTypes":{"normal":{"icon":"icon-slashing","color":"default"},"fire":{"icon":"icon-fire","color":"orange"},"magic":{"icon":"icon-radiant","color":"violet"}},"enableSecondaryStat":false},
+    "damage":{"enableDamage":true,"enableHealing":true,"damageScript":{"file":"scripts/damage-apply.js"},"healingScript":{"file":"scripts/healing-apply.js"},"damageTypes":{"slashing":{"icon":"icon-slashing","color":"default"},"fire":{"icon":"icon-fire","color":"orange"},"radiant":{"icon":"icon-radiant","color":"violet"}}},
     "effects":[
       {"label":"Ability Bonus","type":"abilityBonus","fields":[{"label":"All Abilities","field":"all"}]},
       {"label":"Ability Penalty","type":"abilityPenalty","fields":[{"label":"All Abilities","field":"all"}]},
@@ -53,13 +52,13 @@
       {"label":"Armor Modifier","type":"armorModifier","fields":[]},
       {"label":"Damage Multiplier","type":"damageMultiplier","fields":[]}
     ],
-    "otherSettings":{"commonScript":{"file":"rollhandlers/common.js"},"rulesetVersion":"0.1.0","defaultDice":"default","defaultUnitsPerSquare":1,"defaultUnits":"meters","alternateDiagonalMovement":false,"advDisRolls":[]},
+    "otherSettings":{"commonScript":{"file":"rollhandlers/common.js"},"defaultDice":"default","defaultUnitsPerSquare":1,"defaultUnits":"meters","alternateDiagonalMovement":false,"advDisRolls":[]},
     "partySheet":{"additionalFields":[{"field":"curHp","label":"HP","type":"healthbar","width":90,"maxField":"maxHp"},{"field":"dex","label":"DEX","type":"number","width":60}],"inventory":{"enabled":false,"recordType":"items","additionalFields":[]},"awards":{"enabled":false,"xpName":"Reputation","xpField":"reputation","xpMethod":"award_equally","currencyFields":[]}},
     "campaignSettings":[],
     "tokenSize":[{"size":0.5,"label":"Tiny"},{"size":1,"label":"Human"},{"size":2,"label":"Large"},{"size":3,"label":"Huge"}],
     "calendars":[],
     "themes":[
-      {"name":"Age of Vikings - Parchment","colorScheme":"light","theme":{"primaryColor":"brown","white":"#f6efdc","black":"#211a14","colors":{"brown":["#fbf5e8","#f2e2be","#e6ca91","#d3aa61","#b8873f","#99672f","#795027","#603f24","#4d3320","#3c281b"]}}},
+      {"name":"Age of Vikings - Parchment","colorScheme":"light","theme":{"primaryColor":"orange","white":"#f6efdc","black":"#211a14","colors":{"orange":["#fbf5e8","#f2e2be","#e6ca91","#d3aa61","#b8873f","#99672f","#795027","#603f24","#4d3320","#3c281b"]}}},
       {"name":"Age of Vikings - Longhouse","colorScheme":"dark","theme":{"primaryColor":"orange","white":"#efe4ce","black":"#14110e","colors":{"orange":["#fff1dc","#f7d7aa","#edbd7c","#dfa052","#cd8435","#b66b29","#925322","#743f1e","#5d331c","#4a2919"]}}}
     ]
   }
