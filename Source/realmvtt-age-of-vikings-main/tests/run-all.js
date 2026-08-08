@@ -3,6 +3,8 @@ import { loadScript } from "./load-script.js";
 import { parseAllScripts } from "./parse-check.js";
 import { registerPercentileTests } from "./test-percentile.js";
 import { registerDerivedTests } from "./test-derived.js";
+import { registerCombatTests } from "./test-combat.js";
+import { registerDamageTests } from "./test-damage.js";
 
 let passed = 0;
 let failed = 0;
@@ -30,6 +32,8 @@ test("all JavaScript and HTML script blocks parse", () => {
 
 registerPercentileTests(test, loadScript);
 registerDerivedTests(test, loadScript);
+registerCombatTests(test, loadScript);
+registerDamageTests(test, loadScript);
 
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) process.exitCode = 1;

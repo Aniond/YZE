@@ -7,7 +7,10 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export function loadScript(relativePath, globals = {}) {
   const context = vm.createContext({ console, ...globals });
-  const source = fs.readFileSync(path.join(root, relativePath), "utf8");
-  vm.runInContext(source, context, { filename: relativePath });
+  const paths = Array.isArray(relativePath) ? relativePath : [relativePath];
+  for (const scriptPath of paths) {
+    const source = fs.readFileSync(path.join(root, scriptPath), "utf8");
+    vm.runInContext(source, context, { filename: scriptPath });
+  }
   return context;
 }
