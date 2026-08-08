@@ -8,6 +8,7 @@ import { registerDamageTests } from "./test-damage.js";
 import { registerTabTests } from "./test-tabs.js";
 import { registerConfigTests } from "./test-config.js";
 import { registerImporterTests } from "./test-importer.js";
+import { registerPrivateBundleTests } from "./test-private-bundle.js";
 
 let passed = 0;
 let failed = 0;
@@ -40,6 +41,7 @@ registerDamageTests(test, loadScript);
 registerTabTests(test);
 registerConfigTests(test);
 registerImporterTests(test, loadScript);
+registerPrivateBundleTests(test);
 
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) process.exitCode = 1;
